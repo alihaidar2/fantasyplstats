@@ -2,7 +2,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import mysql from 'mysql';
-import { Team } from '../../models/Team';
+import { Team } from '../../types/Team';
 
 
 // MySQL connection configuration

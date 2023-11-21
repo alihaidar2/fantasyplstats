@@ -25,3 +25,13 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+/* globals.css */
+.heatmap-labels {
+  @apply w-[150px] whitespace-nowrap overflow-hidden;
+}
+
+/* globals.css */
+.centered-label {
+  @apply flex items-center justify-center; /* Flexbox centering */
+}
