@@ -14,7 +14,8 @@ const Header: React.FC = () => {
         {/* Center-aligned links */}
         <div className="flex-grow flex items-center justify-center">
           <Link href="/" className="text-white mx-2">Home</Link>
-          <Link href="/teams" className="text-white mx-2">Fixture Tracker</Link>
+          <Link href="/fixtures" className="text-white mx-2">Fixture</Link>
+          <Link href="/teams" className="text-white mx-2">Teams</Link>
           <Link href="/players" className="text-white mx-2">Players</Link>
           <Link href="/about" className="text-white mx-2">About Us</Link>
         </div>

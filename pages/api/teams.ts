@@ -19,5 +19,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Team[]
       return res.status(500).json({ message: 'Error fetching data' });
     }
     res.status(200).json(results);
+    
   });
 }

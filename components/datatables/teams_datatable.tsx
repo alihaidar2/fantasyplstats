@@ -4,11 +4,11 @@ import React from 'react';
 import DataTable from 'react-data-table-component';
 import { Team } from '../../types/Team';
 
-interface DatatableProps {
+interface TeamsDatatableProps {
   data: Team[];
 }
 
-const Datatable: React.FC<DatatableProps> = ({ data }) => {
+const TeamsDatatable: React.FC<TeamsDatatableProps> = ({ data }) => {
   const columns = [
     {
       name: 'Team Name',
@@ -93,4 +93,4 @@ const Datatable: React.FC<DatatableProps> = ({ data }) => {
   // return <DataTable columns={columns} data={data} pagination />;
 };
 
-export default Datatable;
+export default TeamsDatatable;

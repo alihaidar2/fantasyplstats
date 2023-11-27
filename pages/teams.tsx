@@ -43,9 +43,8 @@ const TeamsPage: React.FC = () => {
   return (
     <Layout>
       <h1>Teams Table</h1>
-      {/* <Datatable data={teams} /> */}
+      <Datatable data={teams} />
       {/* Now TeamsHeatmap will only be rendered on the client-side */}
-      <TeamsHeatmap teams={teams} />
       {/* Additional content for the Players page */}
     </Layout>
   );
