@@ -1,5 +1,7 @@
-import { getFixturesByGameweek, getTeamNames } from '@/server';
+// import { getFixturesByGameweek, getTeamNames } from '@/server.js';
+// import { getFixturesByGameweek, getTeamNames } from '@/server-old';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getFixturesByGameweek, getTeamNames } from '../../server-old';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

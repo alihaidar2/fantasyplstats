@@ -1,7 +1,12 @@
+import dynamic from 'next/dynamic';
 import { Fixture } from '@/types/Fixture';
 import { Team } from '@/types/Team';
 import React, { useEffect, useState } from 'react';
 import HeatMap from 'react-heatmap-grid';
+// const HeatMap = dynamic(
+//     () => import('react-heatmap-grid'),
+//     { ssr: false } // This component will only be imported on the client-side
+//   );
 
 
 const FixturesHeatmap: React.FC = () => {
