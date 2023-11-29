@@ -6,9 +6,9 @@ import Layout from './layout';
 import dynamic from 'next/dynamic';
 
 // Import TeamsHeatmap with dynamic imports and disable SSR
-const TeamsHeatmap = dynamic(() => import('@/components/fixture_difficulty_heatmap'), {
-  ssr: false,
-});
+// const TeamsHeatmap = dynamic(() => import('@/components/fixture_difficulty_heatmap'), {
+//   ssr: false,
+// });
 
 const TeamsPage: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);

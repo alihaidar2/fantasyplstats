@@ -1,7 +1,7 @@
 // import { getFixturesByGameweek, getTeamNames } from '@/server.js';
 // import { getFixturesByGameweek, getTeamNames } from '@/server-old';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getFixturesByGameweek, getTeamNames } from '../../server-old';
+// import { getFixturesByGameweek, getTeamNames } from '../../server-old';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -17,6 +17,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
+
+function getFixturesByGameweek() {
+  throw new Error('Function not implemented.');
+}
+
+function getTeamNames() {
+  throw new Error('Function not implemented.');
+}
 // function processHeatmapData(fixtures: any[], teams: any[]): any {
 //   // console.log("heyyyy")
 //   // Implement your data processing logic here

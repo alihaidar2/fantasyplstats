@@ -1,8 +1,9 @@
 import React, { ReactNode } from 'react';
 import Link from 'next/link';
 // import Header from '@/components/header';
-import Footer from '@/components/footer';
+// import Footer from '@/components/footer';
 import 'app\\globals.css'
+import Footer from '../components/footer';
 
 type LayoutProps = {
   children: ReactNode;
