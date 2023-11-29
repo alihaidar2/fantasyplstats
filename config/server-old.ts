@@ -1,6 +1,6 @@
 import mysql from 'mysql';
-import { Fixture } from './types/Fixture';
-import { Team } from './types/Team';
+import { Fixture } from '../types/Fixture';
+import { Team } from '../types/Team';
 
 // Database connection
 const connection = mysql.createPool({
