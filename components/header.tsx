@@ -8,7 +8,7 @@ const Header: React.FC = () => {
       <nav className="flex items-center justify-between bg-green-500 py-2 px-2.5">
         {/* Left-aligned Home icon */}
         <Link href="/" className="text-white">
-          {/* <img src={'/fpl_logo.png'} className='h-5' alt={'O'} /> */}
+          <img src={'/fpl_logo.png'} className='h-5' alt={'O'} />
         </Link>
 
         {/* Center-aligned links */}

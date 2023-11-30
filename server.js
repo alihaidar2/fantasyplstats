@@ -17,7 +17,7 @@ app.prepare().then(async () => {
   // Database Operations
   try {
     console.log('Updating database...');
-    await initializeDatabase()
+    // await initializeDatabase()
     updateData();
 
     console.log('Database initialization completed.');
@@ -78,6 +78,7 @@ async function deleteAllData(connection) {
   // Delete existing data
   console.log("Deleting existing data...")
   await connection.execute(`DELETE FROM FIXTURES;`);
+  await connection.execute(`DELETE FROM PLAYERS;`);
   await connection.execute(`DELETE FROM TEAMS;`);
   console.log("Deleted data")
 }
