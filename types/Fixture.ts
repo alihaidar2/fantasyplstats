@@ -3,7 +3,6 @@
 export interface Fixture {
     fixture_id: number;
     season_id: number;
-    team_name: string;
     event: number;
     finished: boolean;
     kickoff_time: Date;

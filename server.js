@@ -18,7 +18,7 @@ app.prepare().then(async () => {
   try {
     console.log('Updating database...');
     // await initializeDatabase()
-    updateData();
+    // updateData();
 
     console.log('Database initialization completed.');
 
@@ -46,7 +46,7 @@ async function initializeDatabase() {
     host: "localhost",
     user: "root",
     password: "password",
-    database: "fantasy_pl",
+    database: "fantasy_pl"
   });
 
   const script = await fs.readFile(path.join(__dirname, 'queries\\create_tables.sql'), 'utf8');
