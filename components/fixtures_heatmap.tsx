@@ -10,6 +10,8 @@ const FixturesHeatmap: React.FC = () => {
     const [fixtures, setFixtures] = useState<Fixture[]>([]); // passed to heatmap
     const [heatmapData, setHeatmapData] = useState<any[][]>([]); // passed to heatmap
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
+    const [selectedGameweekRange, setSelectedGameweeks] = useState(5); // Default value
+
 
     useEffect(() => {
         fetch('/api/fixtures')
@@ -22,16 +24,28 @@ const FixturesHeatmap: React.FC = () => {
 
                 // TO-DO: Modify this to get actual heatmap data
                 const sampleHeatmapData = Array.from({ length: 20 }, () => Array.from({ length: 25 }, () => Math.floor(Math.random() * 5) + 1));
-                console.log("sampleHeatmapData: ", sampleHeatmapData)
-                setHeatmapData(sampleHeatmapData);
+                const customHeatmapData = sampleHeatmapData.map(row => row.slice(0, selectedGameweekRange));
+                console.log("heatmap data:", customHeatmapData)
+                setHeatmapData(customHeatmapData);
 
-                const uniqueGameweeks: number[] = Array.from(new Set(fixtures.map(fixture => fixture.event)));
-                console.log("unique gameweeks: ", uniqueGameweeks)
+                // Get remaining Gameweeks
+                const uniqueGameweeks: number[] = Array.from(new Set(fixtures.map(fixture => fixture.event))); // all remaining gws
+                // const limitedGameweeks = uniqueGameweeks.slice(0, selectedGameweekRange);
                 setGameweeks(uniqueGameweeks);
+                // setSelectedGameweeks(limitedGameweeks.length);
 
             })
             .catch(error => console.error('Error:', error));
-    }, []);
+    }, [selectedGameweekRange]);
+
+    // At run time, get options for dropdown
+    const generateGameweekOptions = (): JSX.Element[] => {
+        let options: JSX.Element[] = [];
+        for (let i = 1; i <= gameweeks.length; i++) {
+            options.push(<option key={i} value={i}>{i} GW{i > 1 ? 's' : ''}</option>);
+        }
+        return options;
+    };
 
 
     // To be implemented
@@ -39,24 +53,12 @@ const FixturesHeatmap: React.FC = () => {
 
     }
 
-
-    // this already only gets the unfinished gameweeks.
-    // function getHeatmapData(fixtures: Fixture[], teams: Team[]) {
-    //     return teams.map((team: { team_id: number; }) => {
-    //         // Filter and sort EACH TEAM'S fixtures
-    //         let teamFixtures = fixtures
-    //             .filter((fixture: { team_h: number; team_a: number; finished: boolean; }) => (fixture.team_h === team.team_id || fixture.team_a === team.team_id) && !fixture.finished)
-    //             .sort((a: { event: number; }, b: { event: number; }) => a.event - b.event);
-    //         // console.log("teamFixtures: " + teamFixtures)
-
-    //         // Map to team's difficulty level - returns ARRAY OF DIFFICULTIES
-    //         return teamFixtures.map((fixture: { team_h: any; team_h_difficulty: any; team_a_difficulty: any; }) =>
-    //             fixture.team_h === team.team_id ? fixture.team_h_difficulty : fixture.team_a_difficulty);
-    //     });
-    // }
-
-
-
+    // On GW range change
+    const handleGameweekRangeChange = (event) => {
+        console.log("value chosen: ", event.target.value)
+        setSelectedGameweeks(Number(event.target.value)); // this sets it but it doesnt reload with the proper data
+        console.log("selectedGameweekRange: ", selectedGameweekRange)
+    };
 
     const cellStyle = (background: any, value: number, min: number, max: number, data: any, x: any, y: any) => {
         // Normalize the value
@@ -72,20 +74,24 @@ const FixturesHeatmap: React.FC = () => {
         };
     };
 
-    // Generating the 2D array
-    // const heatmapData = Array.from({ length: 20 }, () => Array.from({ length: 25 }, () => Math.floor(Math.random() * 5) + 1));
-    // console.log("heatmapData: ", heatmapData)
-    const teamNames = teams.map(team => team.short_name)
-    console.log("team names: ", teams.map(team => team.short_name))
-
     return (
-        <HeatMap
-            xLabels={gameweeks}
-            yLabels={teamNames}
-            data={heatmapData}
-            // cellStyle={cellStyle}
-        // ... other props
-        />
+        <div>
+            <div>
+                <label htmlFor="gameweek-select">Choose Gameweeks: </label>
+                <select id="gameweek-select" value={selectedGameweekRange} onChange={handleGameweekRangeChange}>
+                    {generateGameweekOptions()}
+                </select>
+            </div>
+            <HeatMap
+                xLabels={gameweeks.slice(0, selectedGameweekRange)}
+                yLabels={teams.map(team => team.short_name)}
+                data={heatmapData}
+                // cellStyle={cellStyle}
+            // ... other props
+            />
+
+        </div>
+
     );
 };
 
