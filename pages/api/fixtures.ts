@@ -1,13 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Fixture } from '../../types/Fixture';
 import { Team } from '../../types/Team';
-const db = require('db.js'); // Adjust the path as necessary
+// const db = require('db.js'); // Adjust the path as necessary
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const teamsArray = await db.query('SELECT * FROM teams')
-    const fixturesArray = await db.query('SELECT * FROM fixtures WHERE finished = false')
+    // const teamsArray = await db.query('SELECT * FROM teams')
+    // const fixturesArray = await db.query('SELECT * FROM fixtures WHERE finished = false')
+
+    const teamsArray = {}
+    const fixturesArray = {}
 
     // Transform rows to match the Fixture type
     const fixtures: Fixture[] = fixturesArray[0].map((fixture: any) => {
