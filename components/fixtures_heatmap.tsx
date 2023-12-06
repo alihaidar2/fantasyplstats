@@ -3,8 +3,6 @@ import HeatMap from 'react-heatmap-grid';
 import { Fixture } from '../types/Fixture';
 import { Team } from '../types/Team';
 
-
-
 const FixturesHeatmap: React.FC = () => {
 
     const [teams, setTeams] = useState<Team[]>([]); // passed to heatmap
@@ -102,7 +100,7 @@ const FixturesHeatmap: React.FC = () => {
         );
 
     }
-    
+
     const getDifficultyColor = (difficulty: number): string => {
         switch (difficulty) {
             case 2:
