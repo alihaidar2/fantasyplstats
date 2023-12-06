@@ -11,7 +11,7 @@ const FixturesHeatmap: React.FC = () => {
     const [fixtures, setFixtures] = useState<Fixture[]>([]); // passed to heatmap
     const [heatmapData, setHeatmapData] = useState<any[][]>([]); // passed to heatmap
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
-    const [selectedGameweekRange, setSelectedGameweeks] = useState(gameweeks.length); // Default value
+    const [selectedGameweekRange, setSelectedGameweeks] = useState(5); // Default value
     const [teamFixtureDictionary, setTeamFixtureDictionary] = useState<{ [teamName: string]: SimpleFixture[] }>({});
 
     interface SimpleFixture {
@@ -59,9 +59,6 @@ const FixturesHeatmap: React.FC = () => {
         return options;
     };
 
-
-
-
     // On GW Range change
     const handleGameweekRangeChange = (event) => {
         setSelectedGameweeks(Number(event.target.value)); // this sets it but it doesnt reload with the proper data
@@ -70,7 +67,6 @@ const FixturesHeatmap: React.FC = () => {
     function getHeatmapData() {
         // Initialize an object to hold all teams with their opponents and difficulties
         const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } = {};
-        // console.log("teamsOpponentsAndDifficulties before: ", teamsOpponentsAndDifficulties)
 
         // Populate the object with team names as keys
         teams.forEach(team => {
@@ -99,8 +95,6 @@ const FixturesHeatmap: React.FC = () => {
                 });
             }
         });
-        // finish with team's : (fixtures && difficulties)
-        // console.log("teamsOpponentsAndDifficulties after: ", teamsOpponentsAndDifficulties)
 
         // Creates 2D array of fixtures, need to create a dictionary to map keys to this from teams
         return Object.values(teamsOpponentsAndDifficulties).map(
@@ -108,19 +102,7 @@ const FixturesHeatmap: React.FC = () => {
         );
 
     }
-
-
-
-    // const teamFixtureDictionary = {};
-
-    // teams.forEach((team, index) => {
-    //     // Ensure that heatmapData has the same order and length as teams
-    //     teamFixtureDictionary[team.short_name] = heatmapData[index];
-    // });
-
-    console.log("teamFixtureDictionary: ", teamFixtureDictionary)
-
-
+    
     const getDifficultyColor = (difficulty: number): string => {
         switch (difficulty) {
             case 2:
@@ -135,9 +117,6 @@ const FixturesHeatmap: React.FC = () => {
                 return 'gray';      // Default color
         }
     }
-
-
-    // console.log("heatmapData: ", heatmapData)
 
     return (
         <div>
@@ -162,25 +141,14 @@ const FixturesHeatmap: React.FC = () => {
                     };
                 }}
                 cellRender={(x, y, team) => {
-                    // Safeguard against undefined data
-                    if (!heatmapData[y] || heatmapData[y].length <= x) {
-                        return <div className="text-center text-black">N/A</div>; // Placeholder with Tailwind classes
-                    }
-
-                    // const fixture = heatmapData[y][x];
                     const fixture = teamFixtureDictionary[team][y - gameweeks[0]]
-                    const backgroundColorClass = getDifficultyColor(fixture.difficulty); // This should return a Tailwind color class
-
-                    // Render the cell with the opponent name and the background color based on difficulty
+                    // Render the cell with the opponent name
                     return (
-                        <div className={`text-center ${backgroundColorClass} text-black`}>
+                        <div>
                             {fixture.opponentName}
                         </div>
                     );
                 }}
-
-
-
             />
         </div>
 
