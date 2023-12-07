@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import HeatMap from 'react-heatmap-grid';
 import { Fixture } from '../types/Fixture';
 import { Team } from '../types/Team';
+import dynamic from 'next/dynamic';
+const HeatMap = dynamic(
+    () => import('react-heatmap-grid'),
+    { ssr: false }
+);
 
 const FixturesHeatmap: React.FC = () => {
 
@@ -28,11 +32,11 @@ const FixturesHeatmap: React.FC = () => {
                 setFixtures(data.fixtures);
 
                 // Gets heatmap data as 2D array
-                const heatmapData = getHeatmapData();
+                const heatmapData = getHeatmapData(data.teams, data.fixtures);
                 setHeatmapData(heatmapData);
 
                 // Creates dictionary with each team's fixtures
-                const teamFixtureDictionary = teams.reduce((acc, team, index) => {
+                const teamFixtureDictionary = data.teams.reduce((acc, team, index) => {
                     // Use the team's short name as the key, and the corresponding heatmapData2 row as the value
                     acc[team.short_name] = heatmapData[index];
                     return acc;
@@ -62,7 +66,7 @@ const FixturesHeatmap: React.FC = () => {
         setSelectedGameweeks(Number(event.target.value)); // this sets it but it doesnt reload with the proper data
     };
 
-    function getHeatmapData() {
+    function getHeatmapData(teams: Team[], fixtures: Fixture[]) {
         // Initialize an object to hold all teams with their opponents and difficulties
         const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } = {};
 
