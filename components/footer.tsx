@@ -2,10 +2,10 @@ import React from 'react';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="flex items-center justify-between bg-green-500 py-2 px-2.5 text-white">
+    <footer className="flex items-center justify-between bg-green-700 py-2 px-2.5 text-white">
       {/* Left Section: Brand or Company Name */}
-      <div className='flex-grow flex items-center justify-start'>
-        <p className="text-gray-300 italic text-sm m-0">
+      <div className='flex-grow flex items-center justify-start h-8'>
+        <p className="text-white italic text-sm m-0">
           © 2023 FPL Stats
         </p>
       </div>
