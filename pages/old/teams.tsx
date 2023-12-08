@@ -1,8 +1,8 @@
 // pages/teams.tsx
 import React, { useEffect, useState } from 'react';
-import Datatable from '../components/datatables/teams_datatable';
-import { Team } from '../types/Team';
-import Layout from './layout';
+import Datatable from '../../components/datatables/teams_datatable';
+import { Team } from '../../types/Team';
+import Layout from '../layout';
 import dynamic from 'next/dynamic';
 
 
