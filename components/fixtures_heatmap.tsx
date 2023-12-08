@@ -2,8 +2,38 @@ import React, { useEffect, useState } from 'react';
 import { Fixture } from '../types/Fixture';
 import { Team } from '../types/Team';
 import dynamic from 'next/dynamic';
-const HeatMap = dynamic(
-    () => import('react-heatmap-grid'),
+// import  HeatMap from 'react-heatmap-grid'
+
+
+// Have to use this HeatMapProps cause Typescript is giving me issues with react-heatmap-grid
+// The other option was to go to .js file but nah
+interface HeatMapProps {
+    xLabels: number[];
+    yLabels: string[];
+    data: number[][]; // Since you're mapping to cell.difficulty, which is a number
+    cellStyle: (
+        background: any, // You may want to specify a more specific type
+        value: number,
+        min: number,
+        max: number,
+        data: any, // You may want to specify a more specific type
+        x: number,
+        y: number
+    ) => {
+        background: string;
+        fontSize: string;
+        color: string;
+    };
+    cellRender: (
+        x: number,
+        y: number,
+        team: string
+    ) => JSX.Element;
+}
+
+// If you are using dynamic import
+const HeatMap = dynamic<HeatMapProps>(
+    () => import('react-heatmap-grid').then((mod) => mod.HeatMap),
     { ssr: false }
 );
 
@@ -122,13 +152,13 @@ const FixturesHeatmap: React.FC = () => {
 
     return (
         <div>
-            <div>
+            {/* <div>
                 <label htmlFor="gameweek-select">Choose Gameweeks: </label>
                 <select id="gameweek-select" value={selectedGameweekRange} onChange={handleGameweekRangeChange}>
                     {generateGameweekOptions()}
                 </select>
-            </div>
-            <HeatMap
+            </div> */}
+            {/* <HeatMap
                 xLabels={gameweeks.slice(0, selectedGameweekRange)}
                 yLabels={teams.map(team => team.short_name)}
                 data={heatmapData.map(row => row.map(cell => cell.difficulty))} // Heatmap expects a 2D array
@@ -151,7 +181,7 @@ const FixturesHeatmap: React.FC = () => {
                         </div>
                     );
                 }}
-            />
+            /> */}
         </div>
 
     );
