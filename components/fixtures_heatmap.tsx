@@ -152,13 +152,13 @@ const FixturesHeatmap: React.FC = () => {
 
     return (
         <div>
-            {/* <div>
+            <div>
                 <label htmlFor="gameweek-select">Choose Gameweeks: </label>
                 <select id="gameweek-select" value={selectedGameweekRange} onChange={handleGameweekRangeChange}>
                     {generateGameweekOptions()}
                 </select>
-            </div> */}
-            {/* <HeatMap
+            </div>
+            <HeatMap
                 xLabels={gameweeks.slice(0, selectedGameweekRange)}
                 yLabels={teams.map(team => team.short_name)}
                 data={heatmapData.map(row => row.map(cell => cell.difficulty))} // Heatmap expects a 2D array
@@ -181,9 +181,8 @@ const FixturesHeatmap: React.FC = () => {
                         </div>
                     );
                 }}
-            /> */}
+            />
         </div>
-
     );
 };
 

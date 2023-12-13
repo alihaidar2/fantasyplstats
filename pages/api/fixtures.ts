@@ -3,14 +3,33 @@ import { Fixture } from '../../types/Fixture';
 import { Team } from '../../types/Team';
 // const db = require('db.js'); // Adjust the path as necessary
 
+const { Pool } = require('pg');
+const DATABASE_URL = "postgres://wmpfowrpdqvafv:2a52e05375cb04034b99147dfc185b9a1f7090b7f2a845239a115e46b1b00073@ec2-3-210-173-88.compute-1.amazonaws.com:5432/d10r5uceimqi2s"
+
+
+
+const pool = new Pool({
+  connectionString: DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // const teamsArray = await db.query('SELECT * FROM teams')
-    // const fixturesArray = await db.query('SELECT * FROM fixtures WHERE finished = false')
+    const teamsResult = await pool.query('SELECT * FROM teams');
+    const teamsArray = teamsResult.rows;
 
-    const teamsArray = {}
-    const fixturesArray = {}
+    const fixturesResult = await pool.query('SELECT * FROM fixtures WHERE finished = false');
+    const fixturesArray = fixturesResult.rows;
+
+    // Do something with teamsArray and fixturesArray
+    console.log(teamsArray);
+    console.log(fixturesArray);
+
+
+    // const teamsArray = {}
+    // const fixturesArray = {}
 
     // Transform rows to match the Fixture type
     const fixtures: Fixture[] = fixturesArray[0].map((fixture: any) => {

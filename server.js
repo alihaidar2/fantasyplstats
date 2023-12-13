@@ -7,8 +7,8 @@ const handle = app.getRequestHandler();
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
-
-
+const { Client } = require('pg');
+const DATABASE_URL = "postgres://wmpfowrpdqvafv:2a52e05375cb04034b99147dfc185b9a1f7090b7f2a845239a115e46b1b00073@ec2-3-210-173-88.compute-1.amazonaws.com:5432/d10r5uceimqi2s"
 
 
 app.prepare().then(async () => {
@@ -42,35 +42,48 @@ app.prepare().then(async () => {
 
 // RECREATE ALL DATABASE TABLES
 async function initializeDatabase() {
-  const connection = await mysql2.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "password",
-    database: "fantasy_pl"
-  });
 
-  const script = await fs.readFile(path.join(__dirname, 'queries\\create_tables.sql'), 'utf8');
+  const client = new Client({
+    connectionString: DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+  
+  client.connect();
+
+  const script = await fs.readFile(path.join(__dirname, 'queries\\create_tables_pg.sql'), 'utf8');
   const statements = script.split(';');
 
   for (const statement of statements) {
     if (statement.trim()) {
-      await connection.execute(statement);
+      console.log("st")
+      await client.query(statement);
     }
   }
   // await connection.execute(script);
-  await connection.end();
+  await client.end();
 }
 
 // POPULATE ALL TABLES
 async function updateData() {
-  const connection = await createConnection();
+  // const connection = await createConnection();
+  const connection = new Client({
+    connectionString: DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+  
+  connection.connect();
+  
   try {
-    await deleteAllData(connection);
-    await updateTeams(connection);
-    await updateFixtures(connection);
+    // await deleteAllData(connection);
+    // await updateTeams(connection);
+    // await updateFixtures(connection);
     await updatePlayers(connection);
   } finally {
-    connection.end();
+    // connection.end();
   }
 }
 
@@ -120,11 +133,14 @@ async function insertPlayer(player, connection) {
         goals_conceded_per_90, now_cost_rank, now_cost_rank_type, form_rank,
         form_rank_type, points_per_game_rank, points_per_game_rank_type, selected_rank,
         selected_rank_type, starts_per_90, clean_sheets_per_90
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`;
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89)
+  `;
+
+  const newsAddedFormatted = player.news_added ? new Date(player.news_added).toISOString().slice(0, 19).replace('T', ' ') : null;
+
   const values = [
     player.id,
-    2324,
+    2324, // Assuming a constant season_id
     player.chance_of_playing_next_round,
     player.chance_of_playing_this_round,
     player.code,
@@ -141,12 +157,12 @@ async function insertPlayer(player, connection) {
     parseFloat(player.form),
     player.in_dreamteam,
     player.news,
-    player.news_added ? new Date(player.news_added).toISOString().slice(0, 19).replace('T', ' ') : null,
+    newsAddedFormatted,
     player.now_cost,
     player.photo,
-    player.points_per_game,
+    parseFloat(player.points_per_game),
     player.second_name,
-    player.selected_by_percent,
+    parseFloat(player.selected_by_percent),
     player.special,
     player.squad_number,
     player.status,
@@ -157,8 +173,8 @@ async function insertPlayer(player, connection) {
     player.transfers_in_event,
     player.transfers_out,
     player.transfers_out_event,
-    player.value_form,
-    player.value_season,
+    parseFloat(player.value_form),
+    parseFloat(player.value_season),
     player.web_name,
     player.minutes,
     player.goals_scored,
@@ -173,15 +189,15 @@ async function insertPlayer(player, connection) {
     player.saves,
     player.bonus,
     player.bps,
-    player.influence,
-    player.creativity,
-    player.threat,
-    player.ict_index,
+    parseFloat(player.influence),
+    parseFloat(player.creativity),
+    parseFloat(player.threat),
+    parseFloat(player.ict_index),
     player.starts,
-    player.expected_goals,
-    player.expected_assists,
-    player.expected_goal_involvements,
-    player.expected_goals_conceded,
+    parseFloat(player.expected_goals),
+    parseFloat(player.expected_assists),
+    parseFloat(player.expected_goal_involvements),
+    parseFloat(player.expected_goals_conceded),
     player.influence_rank,
     player.influence_rank_type,
     player.creativity_rank,
@@ -196,12 +212,12 @@ async function insertPlayer(player, connection) {
     player.direct_freekicks_text,
     player.penalties_order,
     player.penalties_text,
-    player.expected_goals_per_90,
-    player.saves_per_90,
-    player.expected_assists_per_90,
-    player.expected_goal_involvements_per_90,
-    player.expected_goals_conceded_per_90,
-    player.goals_conceded_per_90,
+    parseFloat(player.expected_goals_per_90),
+    parseFloat(player.saves_per_90),
+    parseFloat(player.expected_assists_per_90),
+    parseFloat(player.expected_goal_involvements_per_90),
+    parseFloat(player.expected_goals_conceded_per_90),
+    parseFloat(player.goals_conceded_per_90),
     player.now_cost_rank,
     player.now_cost_rank_type,
     player.form_rank,
@@ -210,13 +226,14 @@ async function insertPlayer(player, connection) {
     player.points_per_game_rank_type,
     player.selected_rank,
     player.selected_rank_type,
-    player.starts_per_90,
-    player.clean_sheets_per_90
+    parseFloat(player.starts_per_90),
+    parseFloat(player.clean_sheets_per_90)
   ];
 
-
-  await connection.execute(sql, values);
+  await connection.query(sql, values);
 }
+
+
 async function updateFixtures(connection) {
   const url = "https://fantasy.premierleague.com/api/fixtures";
 
@@ -231,7 +248,6 @@ async function updateFixtures(connection) {
   console.log("All fixtures have been inserted successfully.");
 }
 
-// Insert a team into the database - used by updateTeams()
 async function insertFixture(fixture, connection) {
   const sql = `
     INSERT INTO fixtures (
@@ -239,8 +255,8 @@ async function insertFixture(fixture, connection) {
         kickoff_time, minutes, started, 
         team_a, team_a_score, team_h, team_h_score, 
         team_h_difficulty, team_a_difficulty, pulse_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`;
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+  `;
   const values = [
     fixture.id,
     2324,
@@ -258,8 +274,9 @@ async function insertFixture(fixture, connection) {
     fixture.pulse_id,
   ];
 
-  await connection.execute(sql, values);
+  await connection.query(sql, values);
 }
+
 
 // Fetch teams data from the API
 async function updateTeams(connection) {
@@ -279,10 +296,10 @@ async function updateTeams(connection) {
 async function insertTeam(team, connection) {
   const sql = `
       INSERT INTO TEAMS (season_id, code, draw, form, team_id, loss, team_name, played, points, position, short_name, strength, team_division, unavailable, win, strength_overall_home, strength_overall_away, strength_attack_home, strength_attack_away, strength_defence_home, strength_defence_away, pulse_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`;
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+  `;
   const values = [
-    2324,
+    2324, // Assuming 2324 is a constant season_id
     team.code,
     team.draw,
     team.form,
@@ -306,10 +323,11 @@ async function insertTeam(team, connection) {
     team.pulse_id,
   ];
 
-  await connection.execute(sql, values);
+  await connection.query(sql, values);
 }
 
-// Create connection to DB
+
+// Create connection to local DB
 async function createConnection() {
   try {
     return await mysql2.createConnection({
