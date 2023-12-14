@@ -25,6 +25,8 @@ const FixturesHeatmap: React.FC = () => {
     const [teamFixtureDictionary, setTeamFixtureDictionary] = useState<{ [teamName: string]: SimpleFixture[] }>({});
     const [isLoading, setIsLoading] = useState(true);
     const [teamFixtureArray, setTeamFixtureArray] = useState<TeamData[]>([]);
+    const [sortDirection, setSortDirection] = useState({});
+
 
     useEffect(() => {
         setIsLoading(true);
@@ -65,7 +67,7 @@ const FixturesHeatmap: React.FC = () => {
             .catch(error => console.error('Error:', error));
     }, [selectedGameweekRange]);
 
-    
+
     // At run time, get options for dropdown
     const generateGameweekOptions = (): JSX.Element[] => {
         let options: JSX.Element[] = [];
@@ -132,7 +134,39 @@ const FixturesHeatmap: React.FC = () => {
                 return 'white';      // Default color
         }
     }
-    
+
+    // const [sortedHeatmapData, setSortedHeatmapData] = useState(initialHeatmapData);
+
+    const handleColumnHeaderClick = (columnIndex) => {
+        // Determine the current sort direction for the column
+        const currentDirection = sortDirection[columnIndex] || 'asc'; // Default to ascending
+        // Toggle the sort direction
+        const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+
+        // Clone the current array to avoid mutating the state directly
+        const updatedTeamFixtureArray = [...teamFixtureArray].map(team => {
+            // Assume team.difficulties is an array of objects and we're sorting by 'difficulty'
+            const newScore = team.difficulties[columnIndex].difficulty;
+            return { ...team, score: newScore };
+        });
+
+        // Sort the array based on the new scores and the new sort direction
+        updatedTeamFixtureArray.sort((a, b) => {
+            if (newDirection === 'asc') {
+                return a.score - b.score;
+            } else {
+                return b.score - a.score;
+            }
+        });
+
+        // Update the sort direction state
+        setSortDirection({ ...sortDirection, [columnIndex]: newDirection });
+
+        // Set the updated, sorted array to the state
+        setTeamFixtureArray(updatedTeamFixtureArray);
+        console.log("columnIndex: ", columnIndex)
+    };
+
     return (
         <div>
             <div>
@@ -141,38 +175,60 @@ const FixturesHeatmap: React.FC = () => {
                     {generateGameweekOptions()}
                 </select>
             </div>
-            <HeatMap
-                xLabels={gameweeks.slice(0, selectedGameweekRange)}
-                yLabels={teamFixtureArray.map(team => team.teamName)}
-                data={teamFixtureArray.map(team => team.difficulties.map(fixture => fixture.difficulty))}
-                cellStyle={(background, value, min, max, data, x, y) => {
-                    const backgroundColor = getDifficultyColor(value);
-                    return {
-                        background: backgroundColor,
-                        fontSize: '11px',
-                        color: 'white',
-                        // other styles...
-                    };
-                }}
-                cellRender={(x, y, teamName) => {
-                    // Find the team object by teamName
-                    const team = teamFixtureArray.find(t => t.teamName === teamName);
-                
-                    // Check if the team is found and the difficulties array has the expected data
-                    if (team && team.difficulties[y - gameweeks[0]]) {
-                        const fixture = team.difficulties[y - gameweeks[0]];
-                        // Render the cell with the opponent name
-                        return (
-                            <div>
-                                {fixture.opponentName}
-                            </div>
-                        );
-                    } else {
-                        // Return a default or empty element if no data is found
-                        return <div>---</div>;
-                    }
-                }}
-            />
+            {/* <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+                {gameweeks.slice(0, selectedGameweekRange).map((gw, index) => (
+                    <div key={index} onClick={() => handleColumnHeaderClick(index)} style={{ cursor: 'pointer' }}>
+                        {gw}
+                    </div>
+                ))}
+            </div> */}
+            <div className="relative">
+                <div className="absolute top-0 left-0 right-0 z-10 flex pl-10">
+                    {gameweeks.slice(0, selectedGameweekRange).map((gw, index) => (
+                        <div
+                            key={index}
+                            className="flex-grow text-center cursor-pointer"
+                            onClick={() => handleColumnHeaderClick(index)}
+                        >
+                            {gw}
+                        </div>
+                    ))}
+                </div>
+                <HeatMap
+                    xLabels={gameweeks.slice(0, selectedGameweekRange)}
+                    yLabels={teamFixtureArray.map(team => team.teamName)}
+                    data={teamFixtureArray.map(team => team.difficulties.map(fixture => fixture.difficulty))}
+                    cellStyle={(background, value, min, max, data, x, y) => {
+                        const backgroundColor = getDifficultyColor(value);
+                        return {
+                            background: backgroundColor,
+                            fontSize: '11px',
+                            color: 'white',
+                            // other styles...
+                        };
+                    }}
+                    cellRender={(x, y, teamName) => {
+                        // Find the team object by teamName
+                        const team = teamFixtureArray.find(t => t.teamName === teamName);
+
+                        // Check if the team is found and the difficulties array has the expected data
+                        if (team && team.difficulties[y - gameweeks[0]]) {
+                            const fixture = team.difficulties[y - gameweeks[0]];
+                            // Render the cell with the opponent name
+                            return (
+                                <div>
+                                    {fixture.opponentName}
+                                </div>
+                            );
+                        } else {
+                            // Return a default or empty element if no data is found
+                            return <div>---</div>;
+                        }
+                    }}
+                />
+                {/* Your heatmap component here */}
+            </div>
+
         </div>
     );
 };
