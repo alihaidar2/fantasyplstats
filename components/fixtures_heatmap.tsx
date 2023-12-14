@@ -5,31 +5,6 @@ import dynamic from 'next/dynamic';
 // import  HeatMap from 'react-heatmap-grid'
 
 
-// Have to use this HeatMapProps cause Typescript is giving me issues with react-heatmap-grid
-// The other option was to go to .js file but nah
-interface HeatMapProps {
-    xLabels: number[];
-    yLabels: string[];
-    data: number[][]; // Since you're mapping to cell.difficulty, which is a number
-    cellStyle: (
-        background: any, // You may want to specify a more specific type
-        value: number,
-        min: number,
-        max: number,
-        data: any, // You may want to specify a more specific type
-        x: number,
-        y: number
-    ) => {
-        background: string;
-        fontSize: string;
-        color: string;
-    };
-    cellRender: (
-        x: number,
-        y: number,
-        team: string
-    ) => JSX.Element;
-}
 
 // If you are using dynamic import
 const HeatMap = dynamic<HeatMapProps>(
@@ -43,8 +18,8 @@ const HeatMap = dynamic<HeatMapProps>(
 const FixturesHeatmap: React.FC = () => {
 
     const [teams, setTeams] = useState<Team[]>([]); // passed to heatmap
-    const [fixtures, setFixtures] = useState<Fixture[]>([]); // passed to heatmap
-    const [heatmapData, setHeatmapData] = useState<any[][]>([]); // passed to heatmap
+    // const [fixtures, setFixtures] = useState<Fixture[]>([]); // passed to heatmap
+    // const [heatmapData, setHeatmapData] = useState<any[][]>([]); // passed to heatmap
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
     const [selectedGameweekRange, setSelectedGameweeks] = useState(5); // Default value
     const [teamFixtureDictionary, setTeamFixtureDictionary] = useState<{ [teamName: string]: SimpleFixture[] }>({});
@@ -59,20 +34,11 @@ const FixturesHeatmap: React.FC = () => {
                 console.log("teams: ", data.teams)
                 console.log("fixtures: ", data.fixtures)
                 setTeams(data.teams);
-                setFixtures(data.fixtures);
 
                 // Gets heatmap data as 2D array
                 const heatmapData = getHeatmapData(data.teams, data.fixtures);
-                setHeatmapData(heatmapData);
 
-                // Creates dictionary with each team's fixtures
-                const teamFixtureDictionary = data.teams.reduce((acc, team, index) => {
-                    // Use the team's short name as the key, and the corresponding heatmapData row as the value
-                    acc[team.short_name] = heatmapData[index];
-                    return acc;
-                }, {});
-                setTeamFixtureDictionary(teamFixtureDictionary)
-
+                // Create array of objects {team, fixtures, score}
                 const teamFixtureArray = data.teams.reduce((acc, team, index) => {
                     // Slice the difficulties array to include only elements up to selectedGameweekRange
                     const relevantDifficulties = heatmapData[index].slice(0, selectedGameweekRange);
@@ -92,7 +58,6 @@ const FixturesHeatmap: React.FC = () => {
                 teamFixtureArray.sort((a, b) => a.score - b.score);
                 setTeamFixtureArray(teamFixtureArray);
 
-
                 // Get remaining Gameweeks
                 const uniqueGameweeks: number[] = Array.from(new Set(data.fixtures.map(fixture => fixture.event))); // all remaining gws
                 setGameweeks(uniqueGameweeks);
@@ -100,6 +65,7 @@ const FixturesHeatmap: React.FC = () => {
             .catch(error => console.error('Error:', error));
     }, [selectedGameweekRange]);
 
+    
     // At run time, get options for dropdown
     const generateGameweekOptions = (): JSX.Element[] => {
         let options: JSX.Element[] = [];
@@ -108,12 +74,11 @@ const FixturesHeatmap: React.FC = () => {
         }
         return options;
     };
-
-    // On GW Range change
+    // Set selectedGameweeks to new value
     const handleGameweekRangeChange = (event) => {
         setSelectedGameweeks(Number(event.target.value)); // this sets it but it doesnt reload with the proper data
     };
-
+    // function to get heatmap data in useEffect()
     function getHeatmapData(teams: Team[], fixtures: Fixture[]) {
         // Initialize an object to hold all teams with their opponents and difficulties
         const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } = {};
@@ -152,7 +117,7 @@ const FixturesHeatmap: React.FC = () => {
         );
 
     }
-
+    // used for cell color rendering
     const getDifficultyColor = (difficulty: number): string => {
         switch (difficulty) {
             case 2:
@@ -166,19 +131,6 @@ const FixturesHeatmap: React.FC = () => {
             default:
                 return 'white';      // Default color
         }
-    }
-    if (heatmapData.length > 12) {
-        // Directly create and add the SimpleFixture object to the end of the array at position 12
-        heatmapData[12].push({
-            opponentName: "OPP",  // Replace with actual opponent name
-            difficulty: 0                 // Replace with actual difficulty value
-        });
-        heatmapData[3].push({
-            opponentName: "OPP",  // Replace with actual opponent name
-            difficulty: 0                // Replace with actual difficulty value
-        });
-        // If you want to insert at a specific index within that array
-        // heatmapData[12].splice(specificIndex, 0, { opponentName: "Example Team", difficulty: 3 });
     }
     
     return (
@@ -202,14 +154,23 @@ const FixturesHeatmap: React.FC = () => {
                         // other styles...
                     };
                 }}
-                cellRender={(x, y, team) => {
-                    const fixture = teamFixtureDictionary[team][y - gameweeks[0]]
-                    // Render the cell with the opponent name
-                    return (
-                        <div>
-                            {fixture.opponentName}
-                        </div>
-                    );
+                cellRender={(x, y, teamName) => {
+                    // Find the team object by teamName
+                    const team = teamFixtureArray.find(t => t.teamName === teamName);
+                
+                    // Check if the team is found and the difficulties array has the expected data
+                    if (team && team.difficulties[y - gameweeks[0]]) {
+                        const fixture = team.difficulties[y - gameweeks[0]];
+                        // Render the cell with the opponent name
+                        return (
+                            <div>
+                                {fixture.opponentName}
+                            </div>
+                        );
+                    } else {
+                        // Return a default or empty element if no data is found
+                        return <div>---</div>;
+                    }
                 }}
             />
         </div>
@@ -219,6 +180,11 @@ const FixturesHeatmap: React.FC = () => {
 
 export default FixturesHeatmap;
 
+
+
+
+// INTERFACES
+
 interface SimpleFixture {
     opponentName: string;
     difficulty: number;
@@ -227,4 +193,29 @@ interface TeamData {
     teamName: string;
     difficulties: SimpleFixture[];
     score: number;
+}
+// Have to use this HeatMapProps cause Typescript is giving me issues with react-heatmap-grid
+// The other option was to go to .js file but nah
+interface HeatMapProps {
+    xLabels: number[];
+    yLabels: string[];
+    data: number[][]; // Since you're mapping to cell.difficulty, which is a number
+    cellStyle: (
+        background: any, // You may want to specify a more specific type
+        value: number,
+        min: number,
+        max: number,
+        data: any, // You may want to specify a more specific type
+        x: number,
+        y: number
+    ) => {
+        background: string;
+        fontSize: string;
+        color: string;
+    };
+    cellRender: (
+        x: number,
+        y: number,
+        team: string
+    ) => JSX.Element;
 }
