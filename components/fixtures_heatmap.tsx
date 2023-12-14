@@ -34,9 +34,9 @@ interface HeatMapProps {
 // If you are using dynamic import
 const HeatMap = dynamic<HeatMapProps>(
     () => import('react-heatmap-grid').then(mod => mod.default || mod.HeatMap),
-    { 
-      ssr: false,
-      loading: () => <p>Loading...</p>
+    {
+        ssr: false,
+        loading: () => <p>Loading...</p>
     }
 );
 
@@ -49,13 +49,7 @@ const FixturesHeatmap: React.FC = () => {
     const [selectedGameweekRange, setSelectedGameweeks] = useState(5); // Default value
     const [teamFixtureDictionary, setTeamFixtureDictionary] = useState<{ [teamName: string]: SimpleFixture[] }>({});
     const [isLoading, setIsLoading] = useState(true);
-
-
-    interface SimpleFixture {
-        opponentName: string;
-        difficulty: number;
-    }
-
+    const [teamFixtureArray, setTeamFixtureArray] = useState<TeamData[]>([]);
 
     useEffect(() => {
         setIsLoading(true);
@@ -77,13 +71,31 @@ const FixturesHeatmap: React.FC = () => {
                     acc[team.short_name] = heatmapData[index];
                     return acc;
                 }, {});
-
                 setTeamFixtureDictionary(teamFixtureDictionary)
+
+                const teamFixtureArray = data.teams.reduce((acc, team, index) => {
+                    // Slice the difficulties array to include only elements up to selectedGameweekRange
+                    const relevantDifficulties = heatmapData[index].slice(0, selectedGameweekRange);
+
+                    // Calculate the average score from the sliced difficulties
+                    const score = relevantDifficulties.reduce((sum, val) => sum + val.difficulty, 0) / relevantDifficulties.length;
+
+                    // Create an object with the team name, full difficulties, and the calculated score
+                    acc.push({
+                        teamName: team.short_name,
+                        difficulties: heatmapData[index],
+                        score: score
+                    });
+
+                    return acc;
+                }, []);
+                teamFixtureArray.sort((a, b) => a.score - b.score);
+                setTeamFixtureArray(teamFixtureArray);
+
 
                 // Get remaining Gameweeks
                 const uniqueGameweeks: number[] = Array.from(new Set(data.fixtures.map(fixture => fixture.event))); // all remaining gws
                 setGameweeks(uniqueGameweeks);
-
             })
             .catch(error => console.error('Error:', error));
     }, [selectedGameweekRange]);
@@ -159,16 +171,16 @@ const FixturesHeatmap: React.FC = () => {
         // Directly create and add the SimpleFixture object to the end of the array at position 12
         heatmapData[12].push({
             opponentName: "OPP",  // Replace with actual opponent name
-            difficulty: 3                // Replace with actual difficulty value
+            difficulty: 0                 // Replace with actual difficulty value
         });
         heatmapData[3].push({
             opponentName: "OPP",  // Replace with actual opponent name
-            difficulty: 3                // Replace with actual difficulty value
+            difficulty: 0                // Replace with actual difficulty value
         });
         // If you want to insert at a specific index within that array
         // heatmapData[12].splice(specificIndex, 0, { opponentName: "Example Team", difficulty: 3 });
     }
-
+    
     return (
         <div>
             <div>
@@ -179,16 +191,15 @@ const FixturesHeatmap: React.FC = () => {
             </div>
             <HeatMap
                 xLabels={gameweeks.slice(0, selectedGameweekRange)}
-                yLabels={teams.map(team => team.short_name)}
-                data={heatmapData.map(row => row.map(cell => cell.difficulty))} // Heatmap expects a 2D array
+                yLabels={teamFixtureArray.map(team => team.teamName)}
+                data={teamFixtureArray.map(team => team.difficulties.map(fixture => fixture.difficulty))}
                 cellStyle={(background, value, min, max, data, x, y) => {
-                    // Use your getDifficultyColor function to determine the background color
                     const backgroundColor = getDifficultyColor(value);
                     return {
-                        background: backgroundColor, // Set the background color based on the difficulty
-                        fontSize: '11px', // Set the font size or any other styles you need
-                        color: 'black', // Set the text color to black
-                        // Add any additional styles you want to apply to each cell
+                        background: backgroundColor,
+                        fontSize: '11px',
+                        color: 'white',
+                        // other styles...
                     };
                 }}
                 cellRender={(x, y, team) => {
@@ -207,3 +218,13 @@ const FixturesHeatmap: React.FC = () => {
 
 
 export default FixturesHeatmap;
+
+interface SimpleFixture {
+    opponentName: string;
+    difficulty: number;
+}
+interface TeamData {
+    teamName: string;
+    difficulties: SimpleFixture[];
+    score: number;
+}
