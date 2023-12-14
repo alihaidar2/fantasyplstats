@@ -156,15 +156,15 @@ const FixturesHeatmap: React.FC = () => {
     const getDifficultyColor = (difficulty: number): string => {
         switch (difficulty) {
             case 2:
-                return 'darkgreen'; // Difficulty 2
+                return 'green'; // Difficulty 2
             case 3:
-                return 'green';     // Difficulty 3
+                return 'orange';     // Difficulty 3
             case 4:
                 return 'red';       // Difficulty 4
             case 5:
                 return 'darkred';   // Difficulty 5
             default:
-                return 'gray';      // Default color
+                return 'white';      // Default color
         }
     }
     if (heatmapData.length > 12) {
