@@ -155,6 +155,19 @@ const FixturesHeatmap: React.FC = () => {
                 return 'gray';      // Default color
         }
     }
+    if (heatmapData.length > 12) {
+        // Directly create and add the SimpleFixture object to the end of the array at position 12
+        heatmapData[12].push({
+            opponentName: "OPP",  // Replace with actual opponent name
+            difficulty: 3                // Replace with actual difficulty value
+        });
+        heatmapData[3].push({
+            opponentName: "OPP",  // Replace with actual opponent name
+            difficulty: 3                // Replace with actual difficulty value
+        });
+        // If you want to insert at a specific index within that array
+        // heatmapData[12].splice(specificIndex, 0, { opponentName: "Example Team", difficulty: 3 });
+    }
 
     return (
         <div>
