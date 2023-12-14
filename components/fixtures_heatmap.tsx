@@ -33,8 +33,11 @@ interface HeatMapProps {
 
 // If you are using dynamic import
 const HeatMap = dynamic<HeatMapProps>(
-    () => import('react-heatmap-grid').then((mod) => mod.HeatMap),
-    { ssr: false }
+    () => import('react-heatmap-grid').then(mod => mod.default || mod.HeatMap),
+    { 
+      ssr: false,
+      loading: () => <p>Loading...</p>
+    }
 );
 
 const FixturesHeatmap: React.FC = () => {
@@ -45,6 +48,8 @@ const FixturesHeatmap: React.FC = () => {
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
     const [selectedGameweekRange, setSelectedGameweeks] = useState(5); // Default value
     const [teamFixtureDictionary, setTeamFixtureDictionary] = useState<{ [teamName: string]: SimpleFixture[] }>({});
+    const [isLoading, setIsLoading] = useState(true);
+
 
     interface SimpleFixture {
         opponentName: string;
@@ -53,6 +58,7 @@ const FixturesHeatmap: React.FC = () => {
 
 
     useEffect(() => {
+        setIsLoading(true);
         fetch('/api/fixtures')
             .then(response => response.json())
             .then(data => {
@@ -67,7 +73,7 @@ const FixturesHeatmap: React.FC = () => {
 
                 // Creates dictionary with each team's fixtures
                 const teamFixtureDictionary = data.teams.reduce((acc, team, index) => {
-                    // Use the team's short name as the key, and the corresponding heatmapData2 row as the value
+                    // Use the team's short name as the key, and the corresponding heatmapData row as the value
                     acc[team.short_name] = heatmapData[index];
                     return acc;
                 }, {});
@@ -75,7 +81,7 @@ const FixturesHeatmap: React.FC = () => {
                 setTeamFixtureDictionary(teamFixtureDictionary)
 
                 // Get remaining Gameweeks
-                const uniqueGameweeks: number[] = Array.from(new Set(fixtures.map(fixture => fixture.event))); // all remaining gws
+                const uniqueGameweeks: number[] = Array.from(new Set(data.fixtures.map(fixture => fixture.event))); // all remaining gws
                 setGameweeks(uniqueGameweeks);
 
             })
