@@ -170,8 +170,9 @@ const FixturesHeatmap: React.FC = () => {
     return (
         <div>
             <div>
-                <label htmlFor="gameweek-select">Choose Gameweeks: </label>
-                <select id="gameweek-select" value={selectedGameweekRange} onChange={handleGameweekRangeChange}>
+                <label
+                    className='italic pl-2' htmlFor="gameweek-select">Choose Gameweeks: </label>
+                <select id="gameweek-select" value={selectedGameweekRange} onChange={handleGameweekRangeChange} className='text-sm' style={{ backgroundColor: '#E0E6D3' }}>
                     {generateGameweekOptions()}
                 </select>
             </div>
@@ -182,8 +183,7 @@ const FixturesHeatmap: React.FC = () => {
                             key={index}
                             className="flex-grow text-center cursor-pointer"
                             onClick={() => handleColumnHeaderClick(index)}
-                        >
-                            {gw}
+                        >{gw}
                         </div>
                     ))}
                 </div>
@@ -219,9 +219,7 @@ const FixturesHeatmap: React.FC = () => {
                         }
                     }}
                 />
-                {/* Your heatmap component here */}
             </div>
-
         </div>
     );
 };
