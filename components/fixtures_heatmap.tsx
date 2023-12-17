@@ -175,13 +175,6 @@ const FixturesHeatmap: React.FC = () => {
                     {generateGameweekOptions()}
                 </select>
             </div>
-            {/* <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-                {gameweeks.slice(0, selectedGameweekRange).map((gw, index) => (
-                    <div key={index} onClick={() => handleColumnHeaderClick(index)} style={{ cursor: 'pointer' }}>
-                        {gw}
-                    </div>
-                ))}
-            </div> */}
             <div className="relative">
                 <div className="absolute top-0 left-0 right-0 z-10 flex pl-10">
                     {gameweeks.slice(0, selectedGameweekRange).map((gw, index) => (

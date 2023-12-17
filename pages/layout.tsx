@@ -12,7 +12,7 @@ type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex flex-col min-h-screen"> {/* keep footer at the bottom */}
+    <div className="flex flex-col h-screen"> {/* Full viewport height and flex column */}
       {/* <Header /> */}
       <Header />
       <main className='flex-grow'>

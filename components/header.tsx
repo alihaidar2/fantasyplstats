@@ -1,28 +1,28 @@
-/* eslint-disable @next/next/no-img-element */
 import React from 'react';
 import Link from 'next/link';
 
 const Header: React.FC = () => {
   return (
-    <header className='header'>
-      <nav className="flex items-center justify-between bg-green-700 py-2 px-2.5 ">
-        {/* Left-aligned Home icon */}
-        <Link href="/" className="text-white">
-          <img src={'/fpl_logo2.png'} className='h-9' alt={'O'} />
-          {/* <img src={'/fpl_logo.png'} className='h-5' alt={'O'} /> */}
+    <header className='sticky top-0 z-50 bg-green-700'>
+      <nav className="flex items-center py-2 px-2.5">
+        <Link href="/">
+          <img src={'/fpl_logo2.png'} className='h-9 cursor-pointer' alt='FPL Logo' />
         </Link>
 
-        {/* Center-aligned links */}
-        <div className="flex-grow flex mx-3">
-          <Link href="/" className="text-white mx-2">Home</Link>
-          <Link href="/fixtures" className="text-white mx-2">Fixtures</Link>
-          {/* <Link href="/teams" className="text-white mx-2">Teams</Link>
-          <Link href="/players" className="text-white mx-2">Players</Link>
-          <Link href="/about" className="text-white mx-2">About Us</Link> */}
+        <div className="flex space-x-4">
+          <Link href="/">
+            <p className="text-white cursor-pointer pl-4">Home</p>
+          </Link>
+          <Link href="/fixtures">
+            <p className="text-white cursor-pointer">Fixtures</p>
+          </Link>
+          {/* Additional links can be uncommented as needed */}
         </div>
 
-        {/* Right-aligned empty space for balance */}
-        {/* <div className="h-6 w-6"></div> */}
+        {/* Placeholder for additional right-aligned elements */}
+        <div>
+          {/* Right-aligned elements like a search icon, user profile, etc. */}
+        </div>
       </nav>
     </header>
   );

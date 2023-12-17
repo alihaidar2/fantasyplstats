@@ -78,9 +78,9 @@ async function updateData() {
   connection.connect();
   
   try {
-    // await deleteAllData(connection);
-    // await updateTeams(connection);
-    // await updateFixtures(connection);
+    await deleteAllData(connection);
+    await updateTeams(connection);
+    await updateFixtures(connection);
     await updatePlayers(connection);
   } finally {
     // connection.end();
