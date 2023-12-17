@@ -15,7 +15,7 @@ export default function Home() {
         <div className="bg-white p-10 max-w-md mx-auto rounded-lg shadow-2xl">
           <h1 className="text-3xl font-bold mb-2">Master Your Fantasy League</h1>
           <p className="mb-4 italic">Unlock advanced soccer stats and predictive heatmaps to gain an edge over the competition.</p>
-          <Link href="/heatmap" className="inline-block bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors">Explore Heatmaps
+          <Link href="/fixtures" className="inline-block bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors">Explore Heatmaps
           </Link>
         </div>
       </div>
