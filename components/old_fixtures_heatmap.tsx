@@ -11,14 +11,8 @@ const HeatMap = dynamic<HeatMapProps>(
         loading: () => <p>Loading...</p>
     }
 );
-const MIN_VALUE = 1040;
-const MAX_VALUE = 1370;
 
-const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selectedHeatmap }) => {
-
-    console.log("selectedHeatmap: ", selectedHeatmap)
-
-    const [teams, setTeams] = useState<Team[]>([]); // passed to heatmap
+const FixturesHeatmap: React.FC = () => {
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
     const [selectedGameweekRange, setSelectedGameweeks] = useState(5); // Default value
     const [teamFixtureDictionary, setTeamFixtureDictionary] = useState<{ [teamName: string]: SimpleFixture[] }>({});
@@ -56,17 +50,15 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
 
                     return acc;
                 }, []);
-                teamFixtureArray.sort((a, b) => b.score - a.score);
+                teamFixtureArray.sort((a, b) => a.score - b.score);
                 setTeamFixtureArray(teamFixtureArray);
 
                 // Get remaining Gameweeks
                 const uniqueGameweeks: number[] = Array.from(new Set(data.fixtures.map(fixture => fixture.event))); // all remaining gws
                 setGameweeks(uniqueGameweeks);
-
-                console.log("teamFixtureArray: ", teamFixtureArray)
             })
             .catch(error => console.error('Error:', error));
-    }, [selectedGameweekRange, selectedHeatmap]);
+    }, [selectedGameweekRange]);
 
 
     // At run time, get options for dropdown
@@ -83,6 +75,12 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
     };
     // function to get heatmap data in useEffect()
     function getHeatmapData(teams: Team[], fixtures: Fixture[]) {
+
+        // I NEED TO MODIFY THIS TO 
+        // 1. CHECK IF TEAM IS HOME AND AWAY FOR FIXTURE
+        // 2. RETRIEVE CORRECT STAT AND OPPONENT'S OPPOSITE STAT
+        // 3. CALCULATE AND STORE DIFFICULTY 
+
         // Initialize an object to hold all teams with their opponents and difficulties
         const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } = {};
 
@@ -91,48 +89,32 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
             teamsOpponentsAndDifficulties[team.short_name] = [];
         });
 
+        // Go through each fixture and add the opponent team and their difficulty
         fixtures.forEach(fixture => {
-            // ... (existing code to get home and away team)
-
+            // get home and away team
+            console.log("fixture: ", fixture)
             const homeTeam = teams.find(t => t.team_id === fixture.team_h);
             const awayTeam = teams.find(t => t.team_id === fixture.team_a);
+            console.log("homeTeam: ", homeTeam)
+            console.log("awayTeam: ", awayTeam)
 
-            if (homeTeam && awayTeam) {
-                const homeAttackStrength = homeTeam.strength_attack_home;
-                const awayDefenseStrength = awayTeam.strength_defence_away;
-                const awayAttackStrength = awayTeam.strength_attack_away;
-                const homeDefenseStrength = homeTeam.strength_defence_home;
-                let difficultyForHome;
-                let difficultyForAway;
-
-
-                if (selectedHeatmap == 'attack') {
-                    difficultyForHome = calculateDifficulty(homeAttackStrength, awayDefenseStrength);
-                } 
-                else if (selectedHeatmap == 'defense') {
-                    difficultyForHome = calculateDifficulty(homeDefenseStrength, awayAttackStrength);
-                }
-                
-
-                if (selectedHeatmap == 'attack') {
-                    difficultyForAway = calculateDifficulty(awayAttackStrength, homeDefenseStrength);
-                } 
-                else if (selectedHeatmap == 'defense') {
-                    difficultyForHome = calculateDifficulty(awayDefenseStrength, homeAttackStrength);
-                }
-                
+            // TODO: here you need to fetch the team from the teams table and get its score 
+            // add the opponent name and difficulty at the HOME team key
+            if (homeTeam) {
                 teamsOpponentsAndDifficulties[homeTeam.short_name].push({
-                    opponentName: awayTeam.short_name,
-                    difficulty: difficultyForHome,
+                    opponentName: awayTeam!.short_name,
+                    difficulty: fixture.team_h_difficulty,
                 });
+            }
 
+            // add the opponent name and difficulty at the AWAY team key
+            if (awayTeam) {
                 teamsOpponentsAndDifficulties[awayTeam.short_name].push({
-                    opponentName: homeTeam.short_name,
-                    difficulty: difficultyForAway
+                    opponentName: homeTeam!.short_name,
+                    difficulty: fixture.team_a_difficulty
                 });
             }
         });
-        // });
 
         // Creates 2D array of fixtures, need to create a dictionary to map keys to this from teams
         return Object.values(teamsOpponentsAndDifficulties).map(
@@ -140,41 +122,21 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
         );
 
     }
-    const getDifficultyColor = (difficultyScore) => {
-        console.log("difficultyScore: ", difficultyScore )
-        if (difficultyScore === undefined) {
-            return 'white';    // Easiest section
-        }if (difficultyScore <= 63.63) {
-            return 'darkred';    // Easiest section
-        } else if (difficultyScore <= 73.63) {
-            return 'red';        // Moderately easy
-        } else if (difficultyScore <= 86.63) {
-            return 'orange';     // Hard (Larger range)
-        } else {
-            return 'green';      // Very Easy (Larger range)
+    // used for cell color rendering
+    const getDifficultyColor = (difficulty: number): string => {
+        switch (difficulty) {
+            case 2:
+                return 'green'; // Difficulty 2
+            case 3:
+                return 'orange';     // Difficulty 3
+            case 4:
+                return 'red';       // Difficulty 4
+            case 5:
+                return 'darkred';   // Difficulty 5
+            default:
+                return 'white';      // Default color
         }
-    };
-    
-    
-
-
-
-
-    const calculateDifficulty = (attack, defense) => {
-        // To prevent division by zero, ensure defense is not zero
-        if (defense === 0) {
-            defense = 1;
-        }
-        const ratio = attack / defense;
-        console.log("Attack: ", attack)
-        console.log("defense: ", defense)
-        console.log("ratio: ", ratio)
-        // Normalize the ratio to a scale of 0-100
-        return (ratio / (MAX_VALUE / MIN_VALUE)) * 100;
-    };
-    
-
-
+    }
 
     const handleColumnHeaderClick = (columnIndex) => {
         // Determine the current sort direction for the column
@@ -264,7 +226,7 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
 };
 
 
-export default FixturesHeatmapCustom;
+export default FixturesHeatmap;
 
 
 
