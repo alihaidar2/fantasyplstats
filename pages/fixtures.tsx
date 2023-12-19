@@ -16,7 +16,7 @@ const Fixtures: React.FC = () => {
         <div className="flex flex-col items-center justify-center pb-5 p-3">
           <h1 className="text-center font-sans text-2xl font-bold w-full">Fixture Difficulty Table</h1>
           {/* Buttons to select heatmaps */}
-          <div className="flex space-x-2 mt-3">
+          <div className="flex flex-wrap gap-2 mt-3 justify-center">
             <button onClick={() => setSelectedHeatmap('simple')} className={`px-4 py-2 ${selectedHeatmap === 'simple' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded hover:bg-blue-700`}>Simple Heatmap</button>
             <button className={`px-4 py-2 ${selectedHeatmap === 'attack' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded hover:bg-blue-700`} onClick={() => setSelectedHeatmap('attack')}>Attack Heatmap</button>
             <button className={`px-4 py-2 ${selectedHeatmap === 'defense' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded hover:bg-blue-700`} onClick={() => setSelectedHeatmap('defense')}>Defensive Heatmap</button>
