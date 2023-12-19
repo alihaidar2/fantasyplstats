@@ -2,30 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Fixture } from '../types/Fixture';
 import { Team } from '../types/Team';
 import dynamic from 'next/dynamic';
-// import  HeatMap from 'react-heatmap-grid'
 // If you are using dynamic import
 const HeatMap = dynamic<HeatMapProps>(
     () => import('react-heatmap-grid').then(mod => mod.default || mod.HeatMap),
-    {
-        ssr: false,
-        loading: () => <p>Loading...</p>
-    }
+    { ssr: false, }
 );
-const MIN_VALUE = 1040;
-const MAX_VALUE = 1370;
 
 const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selectedHeatmap }) => {
     const [teams, setTeams] = useState<Team[]>([]); // passed to heatmap
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
     const [selectedGameweekRange, setSelectedGameweeks] = useState(5); // Default value
-    const [teamFixtureDictionary, setTeamFixtureDictionary] = useState<{ [teamName: string]: SimpleFixture[] }>({});
-    const [isLoading, setIsLoading] = useState(true);
     const [teamFixtureArray, setTeamFixtureArray] = useState<TeamData[]>([]);
     const [sortDirection, setSortDirection] = useState({});
 
 
     useEffect(() => {
-        setIsLoading(true);
         fetch('/api/fixtures')
             .then(response => response.json())
             .then(data => {
@@ -139,8 +130,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
 
     // Gets color based on difficulty
     const getDifficultyColor = (difficultyScore) => {
-        console.log("difficultyScore: ", difficultyScore);
-    
         if (difficultyScore === undefined) {
             return 'white'; // Handle undefined scores
         } else if (difficultyScore <= 27) {
@@ -159,32 +148,23 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
         // Constants
         const MIN_RATIO = 0.76;   // Minimum expected ratio
         const MAX_RATIO = 1.32;  // Maximum expected ratio (adjust based on your data)
-    
+
         // Ensure defense is not zero to prevent division by zero
         defense = defense === 0 ? 1 : defense;
-    
+
         // Calculate the ratio
         let ratio = attack / defense;
-    
+
         // Linear scaling of the ratio to the 0-100 range
         let scaledScore = (ratio - MIN_RATIO) / (MAX_RATIO - MIN_RATIO) * 100;
-    
+
         // Clamping the score between 0 and 100
         scaledScore = Math.max(0, Math.min(scaledScore, 100));
-    
+
         return scaledScore;
     };
-    
-    
-    
 
-    // Example use
-    const attackStrength = 1200;
-    const defenseStrength = 1100;
-    const difficultyScore = calculateDifficulty(attackStrength, defenseStrength);
-    console.log("Difficulty Score: ", difficultyScore);
-
-
+    // Sort on a column
     const handleColumnHeaderClick = (columnIndex) => {
         // Determine the current sort direction for the column
         const currentDirection = sortDirection[columnIndex] || 'asc'; // Default to ascending
@@ -274,7 +254,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
 
 
 export default FixturesHeatmapCustom;
-
 
 
 
