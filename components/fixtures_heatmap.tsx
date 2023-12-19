@@ -215,6 +215,7 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                         </div>
                     ))}
                 </div>
+                <div className='max-w-full overflow-x-auto'>
                 <HeatMap
                     xLabels={gameweeks.slice(0, selectedGameweekRange)}
                     yLabels={teamFixtureArray.map(team => team.teamName)}
@@ -247,6 +248,8 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                         }
                     }}
                 />
+                </div>
+                
             </div>
         </div>
     );
