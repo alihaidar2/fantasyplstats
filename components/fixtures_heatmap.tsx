@@ -15,9 +15,6 @@ const MIN_VALUE = 1040;
 const MAX_VALUE = 1370;
 
 const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selectedHeatmap }) => {
-
-    console.log("selectedHeatmap: ", selectedHeatmap)
-
     const [teams, setTeams] = useState<Team[]>([]); // passed to heatmap
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
     const [selectedGameweekRange, setSelectedGameweeks] = useState(5); // Default value
@@ -32,10 +29,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
         fetch('/api/fixtures')
             .then(response => response.json())
             .then(data => {
-                console.log("teams: ", data.teams)
-                console.log("fixtures: ", data.fixtures)
-                // setTeams(data.teams);
-
                 // Gets heatmap data as 2D array
                 const heatmapData = getHeatmapData(data.teams, data.fixtures);
 
@@ -69,7 +62,7 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
     }, [selectedGameweekRange, selectedHeatmap]);
 
 
-    // At run time, get options for dropdown
+    // Gameweeks initial population
     const generateGameweekOptions = (): JSX.Element[] => {
         let options: JSX.Element[] = [];
         for (let i = 1; i <= gameweeks.length; i++) {
@@ -77,11 +70,12 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
         }
         return options;
     };
-    // Set selectedGameweeks to new value
+    // Set selectedGameweeks to new value when changed in dropdown
     const handleGameweekRangeChange = (event) => {
-        setSelectedGameweeks(Number(event.target.value)); // this sets it but it doesnt reload with the proper data
+        setSelectedGameweeks(Number(event.target.value));
     };
-    // function to get heatmap data in useEffect()
+
+    // Function to get heatmap data in useEffect()
     function getHeatmapData(teams: Team[], fixtures: Fixture[]) {
         // Initialize an object to hold all teams with their opponents and difficulties
         const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } = {};
@@ -99,28 +93,31 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
 
             if (homeTeam && awayTeam) {
                 const homeAttackStrength = homeTeam.strength_attack_home;
-                const awayDefenseStrength = awayTeam.strength_defence_away;
-                const awayAttackStrength = awayTeam.strength_attack_away;
                 const homeDefenseStrength = homeTeam.strength_defence_home;
+                const homeOverallStrength = homeTeam.strength_overall_home;
+
+                const awayAttackStrength = awayTeam.strength_attack_away;
+                const awayDefenseStrength = awayTeam.strength_defence_away;
+                const awayOverallStrength = awayTeam.strength_overall_away;
+
                 let difficultyForHome;
                 let difficultyForAway;
 
 
                 if (selectedHeatmap == 'attack') {
                     difficultyForHome = calculateDifficulty(homeAttackStrength, awayDefenseStrength);
-                } 
+                    difficultyForAway = calculateDifficulty(awayAttackStrength, homeDefenseStrength);
+
+                }
                 else if (selectedHeatmap == 'defense') {
                     difficultyForHome = calculateDifficulty(homeDefenseStrength, awayAttackStrength);
+                    difficultyForAway = calculateDifficulty(awayDefenseStrength, homeAttackStrength);
+                } else if (selectedHeatmap == 'overall') {
+                    difficultyForHome = calculateDifficulty(homeOverallStrength, awayOverallStrength);
+                    difficultyForAway = calculateDifficulty(awayOverallStrength, homeOverallStrength);
                 }
-                
 
-                if (selectedHeatmap == 'attack') {
-                    difficultyForAway = calculateDifficulty(awayAttackStrength, homeDefenseStrength);
-                } 
-                else if (selectedHeatmap == 'defense') {
-                    difficultyForHome = calculateDifficulty(awayDefenseStrength, homeAttackStrength);
-                }
-                
+                // Add to dictionary
                 teamsOpponentsAndDifficulties[homeTeam.short_name].push({
                     opponentName: awayTeam.short_name,
                     difficulty: difficultyForHome,
@@ -132,7 +129,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                 });
             }
         });
-        // });
 
         // Creates 2D array of fixtures, need to create a dictionary to map keys to this from teams
         return Object.values(teamsOpponentsAndDifficulties).map(
@@ -140,40 +136,53 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
         );
 
     }
+
+    // Gets color based on difficulty
     const getDifficultyColor = (difficultyScore) => {
-        console.log("difficultyScore: ", difficultyScore )
+        console.log("difficultyScore: ", difficultyScore);
+    
         if (difficultyScore === undefined) {
-            return 'white';    // Easiest section
-        }if (difficultyScore <= 63.63) {
-            return 'darkred';    // Easiest section
-        } else if (difficultyScore <= 73.63) {
-            return 'red';        // Moderately easy
-        } else if (difficultyScore <= 86.63) {
-            return 'orange';     // Hard (Larger range)
+            return 'white'; // Handle undefined scores
+        } else if (difficultyScore <= 27) {
+            return 'darkred';        // Very Hard (76-100)
+        } else if (difficultyScore <= 45) {
+            return 'red'; // Hard (51-75)
+        } else if (difficultyScore <= 63) {
+            return 'orange'; // Moderate (26-50)
         } else {
-            return 'green';      // Very Easy (Larger range)
+            return 'green'; // Easy (0-25)
         }
     };
-    
-    
 
-
-
-
+    // Gets difficulty between 0-100
     const calculateDifficulty = (attack, defense) => {
-        // To prevent division by zero, ensure defense is not zero
-        if (defense === 0) {
-            defense = 1;
-        }
-        const ratio = attack / defense;
-        console.log("Attack: ", attack)
-        console.log("defense: ", defense)
-        console.log("ratio: ", ratio)
-        // Normalize the ratio to a scale of 0-100
-        return (ratio / (MAX_VALUE / MIN_VALUE)) * 100;
+        // Constants
+        const MIN_RATIO = 0.76;   // Minimum expected ratio
+        const MAX_RATIO = 1.32;  // Maximum expected ratio (adjust based on your data)
+    
+        // Ensure defense is not zero to prevent division by zero
+        defense = defense === 0 ? 1 : defense;
+    
+        // Calculate the ratio
+        let ratio = attack / defense;
+    
+        // Linear scaling of the ratio to the 0-100 range
+        let scaledScore = (ratio - MIN_RATIO) / (MAX_RATIO - MIN_RATIO) * 100;
+    
+        // Clamping the score between 0 and 100
+        scaledScore = Math.max(0, Math.min(scaledScore, 100));
+    
+        return scaledScore;
     };
     
+    
+    
 
+    // Example use
+    const attackStrength = 1200;
+    const defenseStrength = 1100;
+    const difficultyScore = calculateDifficulty(attackStrength, defenseStrength);
+    console.log("Difficulty Score: ", difficultyScore);
 
 
     const handleColumnHeaderClick = (columnIndex) => {
