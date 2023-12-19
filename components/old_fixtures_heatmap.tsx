@@ -14,7 +14,7 @@ const HeatMap = dynamic<HeatMapProps>(
 
 const FixturesHeatmap: React.FC = () => {
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
-    const [selectedGameweekRange, setSelectedGameweeks] = useState(5); // Default value
+    const [selectedGameweekRange, setSelectedGameweeks] = useState(3); // Default value
     const [teamFixtureDictionary, setTeamFixtureDictionary] = useState<{ [teamName: string]: SimpleFixture[] }>({});
     const [isLoading, setIsLoading] = useState(true);
     const [teamFixtureArray, setTeamFixtureArray] = useState<TeamData[]>([]);
@@ -172,7 +172,7 @@ const FixturesHeatmap: React.FC = () => {
         <div>
             <div>
                 <label
-                    className='italic pl-2' htmlFor="gameweek-select">Choose Gameweeks:</label>
+                    className='underline pl-2' htmlFor="gameweek-select">Gameweek Range:</label>
                 <select id="gameweek-select" value={selectedGameweekRange} onChange={handleGameweekRangeChange} className='text-sm' style={{ backgroundColor: '#E0E6D3' }}>
                     {generateGameweekOptions()}
                 </select>
