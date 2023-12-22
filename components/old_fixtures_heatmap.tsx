@@ -26,12 +26,8 @@ const FixturesHeatmap: React.FC = () => {
         fetch('/api/fixtures')
             .then(response => response.json())
             .then(data => {
-                console.log("teams: ", data.teams)
-                console.log("fixtures: ", data.fixtures)
-                // setTeams(data.teams);
-
                 // Gets heatmap data as 2D array
-                const heatmapData = getHeatmapData(data.teams, data.fixtures);
+                const heatmapData = getHeatmapData(data.teams, data.fixtures, selectedGameweekRange);
 
                 // Create array of objects {team, fixtures, score}
                 const teamFixtureArray = data.teams.reduce((acc, team, index) => {
@@ -74,54 +70,45 @@ const FixturesHeatmap: React.FC = () => {
         setSelectedGameweeks(Number(event.target.value)); // this sets it but it doesnt reload with the proper data
     };
     // function to get heatmap data in useEffect()
-    function getHeatmapData(teams: Team[], fixtures: Fixture[]) {
-
-        // I NEED TO MODIFY THIS TO 
-        // 1. CHECK IF TEAM IS HOME AND AWAY FOR FIXTURE
-        // 2. RETRIEVE CORRECT STAT AND OPPONENT'S OPPOSITE STAT
-        // 3. CALCULATE AND STORE DIFFICULTY 
-
-        // Initialize an object to hold all teams with their opponents and difficulties
+    function getHeatmapData(teams: Team[], fixtures: Fixture[], totalGameWeeks: number) {
         const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } = {};
-
-        // Populate the object with team names as keys
+    
+        // Initialize each team with placeholders for each game week
         teams.forEach(team => {
-            teamsOpponentsAndDifficulties[team.short_name] = [];
+            teamsOpponentsAndDifficulties[team.short_name] = Array.from({ length: totalGameWeeks }, () => ({
+                opponentName: 'BGW',
+                difficulty: 0
+            }));
         });
-
-        // Go through each fixture and add the opponent team and their difficulty
+    
+        // Populate the actual fixtures data
         fixtures.forEach(fixture => {
-            // get home and away team
-            console.log("fixture: ", fixture)
-            const homeTeam = teams.find(t => t.team_id === fixture.team_h);
-            const awayTeam = teams.find(t => t.team_id === fixture.team_a);
-            console.log("homeTeam: ", homeTeam)
-            console.log("awayTeam: ", awayTeam)
-
-            // TODO: here you need to fetch the team from the teams table and get its score 
-            // add the opponent name and difficulty at the HOME team key
-            if (homeTeam) {
-                teamsOpponentsAndDifficulties[homeTeam.short_name].push({
-                    opponentName: awayTeam!.short_name,
-                    difficulty: fixture.team_h_difficulty,
-                });
-            }
-
-            // add the opponent name and difficulty at the AWAY team key
-            if (awayTeam) {
-                teamsOpponentsAndDifficulties[awayTeam.short_name].push({
-                    opponentName: homeTeam!.short_name,
-                    difficulty: fixture.team_a_difficulty
-                });
+            const gameWeekIndex = gameweeks.indexOf(fixture.event);
+    
+            if (gameWeekIndex >= 0 && gameWeekIndex < totalGameWeeks) {
+                const homeTeam = teams.find(t => t.team_id === fixture.team_h);
+                const awayTeam = teams.find(t => t.team_id === fixture.team_a);
+    
+                if (homeTeam) {
+                    teamsOpponentsAndDifficulties[homeTeam.short_name][gameWeekIndex] = {
+                        opponentName: awayTeam ? awayTeam.short_name : '',
+                        difficulty: fixture.team_h_difficulty,
+                    };
+                }
+    
+                if (awayTeam) {
+                    teamsOpponentsAndDifficulties[awayTeam.short_name][gameWeekIndex] = {
+                        opponentName: homeTeam ? homeTeam.short_name : '',
+                        difficulty: fixture.team_a_difficulty,
+                    };
+                }
             }
         });
-
-        // Creates 2D array of fixtures, need to create a dictionary to map keys to this from teams
-        return Object.values(teamsOpponentsAndDifficulties).map(
-            (teamFixtures: SimpleFixture[]) => teamFixtures
-        );
-
+    
+        // Convert to array format expected by the heatmap
+        return Object.values(teamsOpponentsAndDifficulties).map(teamFixtures => teamFixtures);
     }
+    
     // used for cell color rendering
     const getDifficultyColor = (difficulty: number): string => {
         switch (difficulty) {
@@ -165,7 +152,6 @@ const FixturesHeatmap: React.FC = () => {
 
         // Set the updated, sorted array to the state
         setTeamFixtureArray(updatedTeamFixtureArray);
-        console.log("columnIndex: ", columnIndex)
     };
 
     return (
@@ -194,13 +180,21 @@ const FixturesHeatmap: React.FC = () => {
                     data={teamFixtureArray.map(team => team.difficulties.map(fixture => fixture.difficulty))}
                     cellStyle={(background, value, min, max, data, x, y) => {
                         const backgroundColor = getDifficultyColor(value);
+                        let textColor = 'white'; // Default text color
+                    
+                        // Change text color to black if difficulty is 0
+                        if (value === 0) {
+                            textColor = 'black';
+                        }
+                    
                         return {
                             background: backgroundColor,
                             fontSize: '11px',
-                            color: 'white',
+                            color: textColor,
                             // other styles...
                         };
                     }}
+                    
                     cellRender={(x, y, teamName) => {
                         // Find the team object by teamName
                         const team = teamFixtureArray.find(t => t.teamName === teamName);

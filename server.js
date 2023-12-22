@@ -8,8 +8,6 @@ const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const { Client } = require('pg');
-const DATABASE_URL = "postgres://wmpfowrpdqvafv:2a52e05375cb04034b99147dfc185b9a1f7090b7f2a845239a115e46b1b00073@ec2-3-210-173-88.compute-1.amazonaws.com:5432/d10r5uceimqi2s"
-
 
 app.prepare().then(async () => {
   const server = express();
@@ -17,9 +15,8 @@ app.prepare().then(async () => {
   // Database Operations
   try {
     console.log('Updating database...');
-    // await initializeDatabase()
-    // updateData();
-
+    await initializeDatabase()
+    updateData();
     console.log('Database initialization completed.');
 
   } catch (error) {
@@ -44,12 +41,10 @@ app.prepare().then(async () => {
 async function initializeDatabase() {
 
   const client = new Client({
-    connectionString: DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-    ssl: {
-      rejectUnauthorized: false
-    }
+    connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
+    ssl: false // Disable SSL
   });
-  
+
   client.connect();
 
   const script = await fs.readFile(path.join(__dirname, 'queries\\create_tables_pg.sql'), 'utf8');
@@ -57,43 +52,53 @@ async function initializeDatabase() {
 
   for (const statement of statements) {
     if (statement.trim()) {
-      console.log("st")
       await client.query(statement);
     }
   }
-  // await connection.execute(script);
   await client.end();
 }
 
 // POPULATE ALL TABLES
 async function updateData() {
-  // const connection = await createConnection();
   const connection = new Client({
-    connectionString: DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-    ssl: {
-      rejectUnauthorized: false
-    }
+    connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
+    ssl: false // Disable SSL
   });
-  
+
   connection.connect();
-  
+
   try {
     await deleteAllData(connection);
+    await updateSeasons(connection);
     await updateTeams(connection);
     await updateFixtures(connection);
     await updatePlayers(connection);
+    await updateGameweeks(connection);
   } finally {
     // connection.end();
   }
 }
 
+// Delete existing data
 async function deleteAllData(connection) {
-  // Delete existing data
   console.log("Deleting existing data...")
-  await connection.execute(`DELETE FROM FIXTURES;`);
-  await connection.execute(`DELETE FROM PLAYERS;`);
-  await connection.execute(`DELETE FROM TEAMS;`);
+  await connection.query(`DELETE FROM FIXTURES;`);
+  await connection.query(`DELETE FROM PLAYERS;`);
+  await connection.query(`DELETE FROM TEAMS;`);
+  await connection.query(`DELETE FROM GAMEWEEKS;`);
   console.log("Deleted data")
+}
+
+
+// Insert the Season
+async function updateSeasons(connection) {
+  const sql = `
+    INSERT INTO Seasons (
+        season_id, start_year, end_year
+    ) VALUES (2324, 2023, 2024)
+  `;
+  await connection.query(sql);
+  console.log("Added seasons")
 }
 
 async function updatePlayers(connection) {
@@ -327,18 +332,54 @@ async function insertTeam(team, connection) {
 }
 
 
-// Create connection to local DB
-async function createConnection() {
-  try {
-    return await mysql2.createConnection({
-      host: "localhost",
-      user: "root",
-      password: "password",
-      database: "fantasy_pl",
-      multipleStatements: true
-    });
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    throw error; // Re-throw the error for further handling if necessary
+async function updateGameweeks(connection) {
+  const url = "https://fantasy.premierleague.com/api/bootstrap-static"; // Replace with your API URL
+
+  const response = await fetch(url);
+  const data = await response.json();
+  const gameweeks = data.events; // Adjust according to the actual response structure
+
+  for (const gameweek of gameweeks) {
+    await insertGameweek(gameweek, connection);
   }
+  console.log("All gameweeks have been inserted successfully.");
+}
+
+async function insertGameweek(gameweek, connection) {
+  const sql = `
+    INSERT INTO gameweeks (
+        id, name, deadline_time, average_entry_score, 
+        finished, data_checked, highest_scoring_entry, 
+        deadline_time_epoch, deadline_time_game_offset, 
+        highest_score, is_previous, is_current, 
+        is_next, cup_leagues_created, h2h_ko_matches_created, 
+        most_selected, most_transferred_in, top_element, 
+        transfers_made, most_captained, most_vice_captained
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+  `;
+  const values = [
+    gameweek.id,
+    gameweek.name,
+    new Date(gameweek.deadline_time).toISOString().slice(0, 19).replace('T', ' '),
+    gameweek.average_entry_score,
+    gameweek.finished,
+    gameweek.data_checked,
+    gameweek.highest_scoring_entry,
+    gameweek.deadline_time_epoch,
+    gameweek.deadline_time_game_offset,
+    gameweek.highest_score,
+    gameweek.is_previous,
+    gameweek.is_current,
+    gameweek.is_next,
+    gameweek.cup_leagues_created,
+    gameweek.h2h_ko_matches_created,
+    gameweek.most_selected,
+    gameweek.most_transferred_in,
+    gameweek.top_element,
+    gameweek.transfers_made,
+    gameweek.most_captained,
+    gameweek.most_vice_captained
+  ];
+
+  await connection.query(sql, values);
 }

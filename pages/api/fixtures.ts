@@ -3,22 +3,27 @@ import { Fixture } from '../../types/Fixture';
 import { Team } from '../../types/Team';
 
 const { Pool } = require('pg');
-const DATABASE_URL = "postgres://eetdwhppadriof:e909012393f4e817781918401f97fb94ed63e7aa2332dcb90ac247a026deef9d@ec2-52-21-61-131.compute-1.amazonaws.com:5432/d4tbcijvjag8vo"
 
 const pool = new Pool({
-  connectionString: DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-  ssl: {
-    rejectUnauthorized: false
-  }
+  connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
+  ssl: false
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    // Fetch the current or upcoming gameweek
+    const currentGameweekResult = await pool.query('SELECT * FROM gameweeks WHERE finished = false ORDER BY deadline_time LIMIT 1');
+    const currentGameweek = currentGameweekResult.rows[0];
+
     const teamsResult = await pool.query('SELECT * FROM teams');
     const teamsArray = teamsResult.rows;
 
-    const fixturesResult = await pool.query('SELECT * FROM fixtures WHERE finished = false');
+    // Fetch fixtures for the current gameweek
+    const fixturesResult = await pool.query('SELECT * FROM fixtures WHERE event >= $1', [currentGameweek.id]);
     const fixturesArray = fixturesResult.rows;
+
+    console.log("teamsArray: ", teamsArray)
+    console.log("fixturesArray: ", fixturesArray)
 
     // Transform rows to match the Fixture type
     const fixtures: Fixture[] = fixturesArray.map((fixture: any) => {

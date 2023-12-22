@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS Fixtures;
 DROP TABLE IF EXISTS Players;
 DROP TABLE IF EXISTS Teams;
 DROP TABLE IF EXISTS Seasons;
+DROP TABLE IF EXISTS Gameweeks;
 
 CREATE TABLE Seasons (
     season_id INT PRIMARY KEY,
@@ -144,4 +145,28 @@ CREATE TABLE Players (
     selected_rank_type INT,
     starts_per_90 FLOAT,
     clean_sheets_per_90 FLOAT
+);
+
+CREATE TABLE Gameweeks (
+    id INT PRIMARY KEY,
+    name VARCHAR(255),
+    deadline_time TIMESTAMP,
+    average_entry_score INT,
+    finished BOOLEAN,
+    data_checked BOOLEAN,
+    highest_scoring_entry INT,
+    deadline_time_epoch BIGINT,
+    deadline_time_game_offset INT,
+    highest_score INT,
+    is_previous BOOLEAN,
+    is_current BOOLEAN,
+    is_next BOOLEAN,
+    cup_leagues_created BOOLEAN,
+    h2h_ko_matches_created BOOLEAN,
+    most_selected INT,
+    most_transferred_in INT,
+    top_element INT,
+    transfers_made BIGINT,
+    most_captained INT,
+    most_vice_captained INT
 );

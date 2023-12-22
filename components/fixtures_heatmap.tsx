@@ -14,14 +14,25 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
     const [selectedGameweekRange, setSelectedGameweeks] = useState(3); // Default value
     const [teamFixtureArray, setTeamFixtureArray] = useState<TeamData[]>([]);
     const [sortDirection, setSortDirection] = useState({});
+    const [isLoading, setIsLoading] = useState(true); // Initialize with true or false
+
+
 
 
     useEffect(() => {
+        setIsLoading(true);
+
         fetch('/api/fixtures')
             .then(response => response.json())
             .then(data => {
+
+                console.log("Fetched Data:", data); // Log to verify data
+
+                console.log("teams: ", data.teams)
+                console.log("fixtures: ", data.fixtures)
                 // Gets heatmap data as 2D array
-                const heatmapData = getHeatmapData(data.teams, data.fixtures);
+                const heatmapData = getHeatmapData(data.teams, data.fixtures, selectedGameweekRange);
+                console.log("heatmapData: ", heatmapData)
 
                 // Create array of objects {team, fixtures, score}
                 const teamFixtureArray = data.teams.reduce((acc, team, index) => {
@@ -46,10 +57,15 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                 // Get remaining Gameweeks
                 const uniqueGameweeks: number[] = Array.from(new Set(data.fixtures.map(fixture => fixture.event))); // all remaining gws
                 setGameweeks(uniqueGameweeks);
+                setIsLoading(false);
+
 
                 console.log("teamFixtureArray: ", teamFixtureArray)
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                setIsLoading(false); // Error occurred, stop loading
+            });
     }, [selectedGameweekRange, selectedHeatmap]);
 
 
@@ -66,71 +82,64 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
         setSelectedGameweeks(Number(event.target.value));
     };
 
-    // Function to get heatmap data in useEffect()
-    function getHeatmapData(teams: Team[], fixtures: Fixture[]) {
-        // Initialize an object to hold all teams with their opponents and difficulties
+    function getHeatmapData(teams: Team[], fixtures: Fixture[], totalGameWeeks: number) {
         const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } = {};
 
-        // Populate the object with team names as keys
+        // Initialize each team with placeholders for each game week
         teams.forEach(team => {
-            teamsOpponentsAndDifficulties[team.short_name] = [];
+            teamsOpponentsAndDifficulties[team.short_name] = Array.from({ length: totalGameWeeks }, () => ({
+                opponentName: 'BGW',
+                difficulty: 0
+            }));
         });
 
+        // Process each actual fixture
         fixtures.forEach(fixture => {
-            // ... (existing code to get home and away team)
+            const gameWeekIndex = gameweeks.indexOf(fixture.event);
+
+            if (gameWeekIndex === -1 || gameWeekIndex >= totalGameWeeks) {
+                // Skip processing this fixture if it's not in the selected range
+                return;
+            }
 
             const homeTeam = teams.find(t => t.team_id === fixture.team_h);
             const awayTeam = teams.find(t => t.team_id === fixture.team_a);
 
             if (homeTeam && awayTeam) {
-                const homeAttackStrength = homeTeam.strength_attack_home;
-                const homeDefenseStrength = homeTeam.strength_defence_home;
-                const homeOverallStrength = homeTeam.strength_overall_home;
+                let difficultyForHome = 0;
+                let difficultyForAway = 0;
 
-                const awayAttackStrength = awayTeam.strength_attack_away;
-                const awayDefenseStrength = awayTeam.strength_defence_away;
-                const awayOverallStrength = awayTeam.strength_overall_away;
-
-                let difficultyForHome;
-                let difficultyForAway;
-
-
+                // Calculate difficulties based on selected heatmap
                 if (selectedHeatmap == 'attack') {
-                    difficultyForHome = calculateDifficulty(homeAttackStrength, awayDefenseStrength);
-                    difficultyForAway = calculateDifficulty(awayAttackStrength, homeDefenseStrength);
-
-                }
-                else if (selectedHeatmap == 'defense') {
-                    difficultyForHome = calculateDifficulty(homeDefenseStrength, awayAttackStrength);
-                    difficultyForAway = calculateDifficulty(awayDefenseStrength, homeAttackStrength);
+                    difficultyForHome = calculateDifficulty(homeTeam.strength_attack_home, awayTeam.strength_defence_away);
+                    difficultyForAway = calculateDifficulty(awayTeam.strength_attack_away, homeTeam.strength_defence_home);
+                } else if (selectedHeatmap == 'defense') {
+                    difficultyForHome = calculateDifficulty(homeTeam.strength_defence_home, awayTeam.strength_attack_away);
+                    difficultyForAway = calculateDifficulty(awayTeam.strength_defence_away, homeTeam.strength_attack_home);
                 } else if (selectedHeatmap == 'overall') {
-                    difficultyForHome = calculateDifficulty(homeOverallStrength, awayOverallStrength);
-                    difficultyForAway = calculateDifficulty(awayOverallStrength, homeOverallStrength);
+                    difficultyForHome = calculateDifficulty(homeTeam.strength_overall_home, awayTeam.strength_overall_away);
+                    difficultyForAway = calculateDifficulty(awayTeam.strength_overall_away, homeTeam.strength_overall_home);
                 }
 
-                // Add to dictionary
-                teamsOpponentsAndDifficulties[homeTeam.short_name].push({
+                // Update the fixture for the home and away teams for the specific game week
+                teamsOpponentsAndDifficulties[homeTeam.short_name][gameWeekIndex] = {
                     opponentName: awayTeam.short_name,
-                    difficulty: difficultyForHome,
-                });
-
-                teamsOpponentsAndDifficulties[awayTeam.short_name].push({
+                    difficulty: difficultyForHome
+                };
+                teamsOpponentsAndDifficulties[awayTeam.short_name][gameWeekIndex] = {
                     opponentName: homeTeam.short_name,
                     difficulty: difficultyForAway
-                });
+                };
             }
         });
 
-        // Creates 2D array of fixtures, need to create a dictionary to map keys to this from teams
-        return Object.values(teamsOpponentsAndDifficulties).map(
-            (teamFixtures: SimpleFixture[]) => teamFixtures
-        );
-
+        // Return the processed data
+        return Object.values(teamsOpponentsAndDifficulties).map(teamFixtures => teamFixtures);
     }
 
     // Gets color based on difficulty
     const getDifficultyColor = (difficultyScore) => {
-        if (difficultyScore === undefined) {
+        if (difficultyScore === 0) {
             return 'white'; // Handle undefined scores
         } else if (difficultyScore <= 27) {
             return 'darkred';        // Very Hard (76-100)
@@ -192,7 +201,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
 
         // Set the updated, sorted array to the state
         setTeamFixtureArray(updatedTeamFixtureArray);
-        console.log("columnIndex: ", columnIndex)
     };
 
     return (
@@ -216,40 +224,51 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                     ))}
                 </div>
                 <div className='max-w-full overflow-x-auto'>
-                <HeatMap
-                    xLabels={gameweeks.slice(0, selectedGameweekRange)}
-                    yLabels={teamFixtureArray.map(team => team.teamName)}
-                    data={teamFixtureArray.map(team => team.difficulties.map(fixture => fixture.difficulty))}
-                    cellStyle={(background, value, min, max, data, x, y) => {
-                        const backgroundColor = getDifficultyColor(value);
-                        return {
-                            background: backgroundColor,
-                            fontSize: '11px',
-                            color: 'white',
-                            // other styles...
-                        };
-                    }}
-                    cellRender={(x, y, teamName) => {
-                        // Find the team object by teamName
-                        const team = teamFixtureArray.find(t => t.teamName === teamName);
+                    {isLoading ? (
+                        <div>Loading...</div> // Show loading indicator
+                    ) : (
+                        <div>
+                            <HeatMap
+                                xLabels={gameweeks.slice(0, selectedGameweekRange)}
+                                yLabels={teamFixtureArray.map(team => team.teamName)}
+                                data={teamFixtureArray.map(team => team.difficulties.map(fixture => fixture.difficulty))}
+                                cellStyle={(background, value, min, max, data, x, y) => {
+                                    const backgroundColor = getDifficultyColor(value);
+                                    let textColor = 'white'; // Default text color
+                                    if (value === 0) {
+                                        textColor = 'black';
+                                    }
+                                    return {
+                                        background: getDifficultyColor(value),
+                                        fontSize: '11px',
+                                        color: textColor,
+                                        // other styles...
+                                    };
+                                }}
+                                cellRender={(x, y, teamName) => {
+                                    // Find the team object by teamName
+                                    const team = teamFixtureArray.find(t => t.teamName === teamName);
 
-                        // Check if the team is found and the difficulties array has the expected data
-                        if (team && team.difficulties[y - gameweeks[0]]) {
-                            const fixture = team.difficulties[y - gameweeks[0]];
-                            // Render the cell with the opponent name
-                            return (
-                                <div>
-                                    {fixture.opponentName}
-                                </div>
-                            );
-                        } else {
-                            // Return a default or empty element if no data is found
-                            return <div>---</div>;
-                        }
-                    }}
-                />
+                                    // Check if the team is found and the difficulties array has the expected data
+                                    if (team && team.difficulties[y - gameweeks[0]]) {
+                                        const fixture = team.difficulties[y - gameweeks[0]];
+                                        // Render the cell with the opponent name
+                                        return (
+                                            <div>
+                                                {fixture.opponentName}
+                                            </div>
+                                        );
+                                    } else {
+                                        // Return a default or empty element if no data is found
+                                        return <div>---</div>;
+                                    }
+                                }}
+                            />
+                        </div>
+                    )}
+
                 </div>
-                
+
             </div>
         </div>
     );
