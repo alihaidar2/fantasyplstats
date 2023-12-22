@@ -15,7 +15,7 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
     const [teamFixtureArray, setTeamFixtureArray] = useState<TeamData[]>([]);
     const [sortDirection, setSortDirection] = useState({});
     const [isLoading, setIsLoading] = useState(true); // Initialize with true or false
-
+    
 
 
 
