@@ -1,29 +1,61 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { Fixture } from '../../types/Fixture';
-import { Team } from '../../types/Team';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { Fixture } from "../../types/Fixture";
+import { Team } from "../../types/Team";
 
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-  ssl: false
+  ssl: false,
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const TOTAL_GAMEWEEKS = 38;
+let currentGameweek;
+let remainingGameweeks;
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     // Fetch the current or upcoming gameweek
-    const currentGameweekResult = await pool.query('SELECT * FROM gameweeks WHERE finished = false ORDER BY deadline_time LIMIT 1');
-    const currentGameweek = currentGameweekResult.rows[0];
+    const currentGameweekResult = await pool.query(
+      "SELECT * FROM gameweeks WHERE finished = false ORDER BY deadline_time LIMIT 1"
+    );
+    currentGameweek = currentGameweekResult.rows[0].id;
+    remainingGameweeks = TOTAL_GAMEWEEKS - currentGameweek
 
-    const teamsResult = await pool.query('SELECT * FROM teams');
+    // Fetch all teams
+    const teamsResult = await pool.query("SELECT * FROM teams");
     const teamsArray = teamsResult.rows;
 
     // Fetch fixtures for the current gameweek
-    const fixturesResult = await pool.query('SELECT * FROM fixtures WHERE event >= $1', [currentGameweek.id]);
+    const fixturesResult = await pool.query(
+      "SELECT * FROM fixtures WHERE event >= $1",
+      [currentGameweek]
+    );
     const fixturesArray = fixturesResult.rows;
 
-    console.log("teamsArray: ", teamsArray)
-    console.log("fixturesArray: ", fixturesArray)
+    console.log("teamsArray: ", teamsArray);
+    console.log("fixturesArray: ", fixturesArray);
+
+    // these arent heatmaps but the difficulty and team names
+    const heatmapAttack = calculateHeatmapData(
+      teamsArray,
+      fixturesArray,
+      "attack"
+    );
+
+    const heatmapDefense = calculateHeatmapData(
+      teamsArray,
+      fixturesArray,
+      "defense"
+    );
+    const heatmapOverall = calculateHeatmapData(
+      teamsArray,
+      fixturesArray,
+      "overall"
+    );
 
     // Transform rows to match the Fixture type
     const fixtures: Fixture[] = fixturesArray.map((fixture: any) => {
@@ -72,8 +104,124 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Process the data for the heatmap
-    res.status(200).json({teams: teams, fixtures: fixtures});
+    res.status(200).json({ teams: teams, fixtures: fixtures, heatmapAttack: heatmapAttack, heatmapDefense: heatmapDefense, heatmapOverall: heatmapOverall });
   } catch (error) {
-    res.status(500).json({ message: 'Could not fetch data' });
+    res.status(500).json({ message: "Could not fetch data" });
   }
 }
+
+function calculateHeatmapData(teams: any, fixtures: any, type: string) {
+  const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } =
+    {};
+
+  const totalGameweeks = TOTAL_GAMEWEEKS - currentGameweek;
+
+  // Initialize each team with placeholders for each game week
+  teams.forEach((team) => {
+    teamsOpponentsAndDifficulties[team.short_name] = Array.from(
+      { length: totalGameweeks },
+      () => ({
+        opponentName: "BGW",
+        difficulty: 0,
+      })
+    );
+  });
+
+  // Process each actual fixture
+  fixtures.forEach((fixture) => {
+    const fixtureGameweek = fixture.event;
+
+    if (fixtureGameweek === -1) {
+      // Skip processing this fixture if it's not in the selected range
+      return;
+    }
+
+    const homeTeam = teams.find((t) => t.team_id === fixture.team_h);
+    const awayTeam = teams.find((t) => t.team_id === fixture.team_a);
+
+    if (homeTeam && awayTeam) {
+      let difficultyForHome = 0;
+      let difficultyForAway = 0;
+
+      // Calculate difficulties based on selected heatmap
+      if (type == "attack") {
+        difficultyForHome = calculateDifficulty(
+          homeTeam.strength_attack_home,
+          awayTeam.strength_defence_away
+        );
+        difficultyForAway = calculateDifficulty(
+          awayTeam.strength_attack_away,
+          homeTeam.strength_defence_home
+        );
+      } else if (type == "defense") {
+        difficultyForHome = calculateDifficulty(
+          homeTeam.strength_defence_home,
+          awayTeam.strength_attack_away
+        );
+        difficultyForAway = calculateDifficulty(
+          awayTeam.strength_defence_away,
+          homeTeam.strength_attack_home
+        );
+      } else if (type == "overall") {
+        difficultyForHome = calculateDifficulty(
+          homeTeam.strength_overall_home,
+          awayTeam.strength_overall_away
+        );
+        difficultyForAway = calculateDifficulty(
+          awayTeam.strength_overall_away,
+          homeTeam.strength_overall_home
+        );
+      }
+      // Calculate dictionary index
+      const index = fixtureGameweek % (TOTAL_GAMEWEEKS - remainingGameweeks)
+
+      // Update the fixture for the home and away teams for the specific game week
+      teamsOpponentsAndDifficulties[homeTeam.short_name][index] = {
+        opponentName: awayTeam.short_name,
+        difficulty: difficultyForHome,
+      };
+      teamsOpponentsAndDifficulties[awayTeam.short_name][index] = {
+        opponentName: homeTeam.short_name,
+        difficulty: difficultyForAway,
+      };
+    }
+  });
+
+  const test = Object.values(teamsOpponentsAndDifficulties).map(
+    (teamFixtures) => teamFixtures
+  );
+
+  return teamsOpponentsAndDifficulties;
+  console.log("test: ", test)
+
+  // Return the processed data
+  return Object.values(teamsOpponentsAndDifficulties).map(
+    (teamFixtures) => teamFixtures
+  );
+}
+
+interface SimpleFixture {
+  opponentName: string;
+  difficulty: number;
+}
+
+// Gets difficulty between 0-100
+const calculateDifficulty = (attack, defense) => {
+  // Constants
+  const MIN_RATIO = 0.76; // Minimum expected ratio
+  const MAX_RATIO = 1.32; // Maximum expected ratio (adjust based on your data)
+
+  // Ensure defense is not zero to prevent division by zero
+  defense = defense === 0 ? 1 : defense;
+
+  // Calculate the ratio
+  let ratio = attack / defense;
+
+  // Linear scaling of the ratio to the 0-100 range
+  let scaledScore = ((ratio - MIN_RATIO) / (MAX_RATIO - MIN_RATIO)) * 100;
+
+  // Clamping the score between 0 and 100
+  scaledScore = Math.max(0, Math.min(scaledScore, 100));
+
+  return scaledScore;
+};

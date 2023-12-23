@@ -11,11 +11,11 @@ const HeatMap = dynamic<HeatMapProps>(
 const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selectedHeatmap }) => {
     const [teams, setTeams] = useState<Team[]>([]); // passed to heatmap
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
-    const [selectedGameweekRange, setSelectedGameweeks] = useState(3); // Default value
+    const [selectedGameweekRange, setSelectedGameweeks] = useState(20); // Default value
     const [teamFixtureArray, setTeamFixtureArray] = useState<TeamData[]>([]);
     const [sortDirection, setSortDirection] = useState({});
     const [isLoading, setIsLoading] = useState(true); // Initialize with true or false
-    
+
 
 
 
@@ -30,27 +30,63 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
 
                 console.log("teams: ", data.teams)
                 console.log("fixtures: ", data.fixtures)
-                // Gets heatmap data as 2D array
-                const heatmapData = getHeatmapData(data.teams, data.fixtures, selectedGameweekRange);
+                console.log("heatmapAttack: ", data.heatmapAttack)
+                console.log("heatmapDefense: ", data.heatmapDefense)
+                console.log("heatmapOverall: ", data.heatmapOverall)
+
+                // Set heatmapData based on selectedHeatmap
+                // Basically saying use this data for the heatmap
+                let heatmapData: HeatmapData;
+                switch (selectedHeatmap) {
+                    case 'attack':
+                        heatmapData = data.heatmapAttack;
+                        break;
+                    case 'defence':
+                        heatmapData = data.heatmapDefence;
+                        break;
+                    case 'overall':
+                        heatmapData = data.heatmapOverall;
+                        break;
+                    default:
+                        heatmapData = data.heatmapAttack; // Or however you want to handle the default case
+                        break;
+                }
+
                 console.log("heatmapData: ", heatmapData)
 
                 // Create array of objects {team, fixtures, score}
-                const teamFixtureArray = data.teams.reduce((acc, team, index) => {
-                    // Slice the difficulties array to include only elements up to selectedGameweekRange
-                    const relevantDifficulties = heatmapData[index].slice(0, selectedGameweekRange);
+                // const teamFixtureArray = data.teams.reduce((acc, team, index) => {
+                //     // Slice the difficulties array to include only elements up to selectedGameweekRange
+                //     const relevantDifficulties = heatmapData[index].slice(0, selectedGameweekRange);
 
-                    // Calculate the average score from the sliced difficulties
-                    const score = relevantDifficulties.reduce((sum, val) => sum + val.difficulty, 0) / relevantDifficulties.length;
+                //     // Calculate the average score from the sliced difficulties
+                //     const score = relevantDifficulties.reduce((sum, val) => sum + val.difficulty, 0) / relevantDifficulties.length;
 
-                    // Create an object with the team name, full difficulties, and the calculated score
-                    acc.push({
-                        teamName: team.short_name,
-                        difficulties: heatmapData[index],
-                        score: score
-                    });
+                //     // Create an object with the team name, full difficulties, and the calculated score
+                //     acc.push({
+                //         teamName: team.short_name,
+                //         difficulties: heatmapData[index],
+                //         score: score
+                //     });
 
-                    return acc;
-                }, []);
+                //     return acc;
+                // }, []);
+
+                const teamFixtureArray = Object.entries(heatmapData).map(([teamName, fixtures]) => {
+                    // Calculate the average score from the entire difficulties array
+                    const totalDifficulty = fixtures.reduce((sum, fixture) => sum + fixture.difficulty, 0);
+                    const averageDifficulty = fixtures.length > 0 ? totalDifficulty / fixtures.length : 0;
+                
+                    return {
+                        teamName: teamName,
+                        difficulties: fixtures,
+                        score: averageDifficulty
+                    };
+                });
+
+                // console.log("teamFixtureArray2: ", teamFixtureArray2)
+                
+                
                 teamFixtureArray.sort((a, b) => b.score - a.score);
                 setTeamFixtureArray(teamFixtureArray);
 
@@ -314,4 +350,8 @@ interface HeatMapProps {
         y: number,
         team: string
     ) => JSX.Element;
+}
+
+interface HeatmapData {
+    [teamName: string]: SimpleFixture[];
 }
