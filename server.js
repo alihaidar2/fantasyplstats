@@ -38,24 +38,17 @@ app.prepare().then(async () => {
 
 
 // RECREATE ALL DATABASE TABLES
-async function initializeDatabase() {
-
-  const client = new Client({
-    connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-    ssl: false // Disable SSL
-  });
-
-  client.connect();
+async function initializeDatabase(connection) {
 
   const script = await fs.readFile(path.join(__dirname, 'queries\\create_tables_pg.sql'), 'utf8');
   const statements = script.split(';');
 
   for (const statement of statements) {
     if (statement.trim()) {
-      await client.query(statement);
+      await connection.query(statement);
     }
   }
-  await client.end();
+  await connection.end();
 }
 
 // POPULATE ALL TABLES
@@ -68,6 +61,7 @@ async function updateData() {
   connection.connect();
 
   try {
+    await initializeDatabase(connection)
     await deleteAllData(connection);
     await updateSeasons(connection);
     await updateTeams(connection);
