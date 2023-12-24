@@ -15,8 +15,8 @@ app.prepare().then(async () => {
   // Database Operations
   try {
     console.log('Updating database...');
-    // await initializeDatabase()
-    // updateData();
+    await initializeDatabase()
+    updateData();
     console.log('Database initialization completed.');
 
   } catch (error) {
@@ -38,17 +38,24 @@ app.prepare().then(async () => {
 
 
 // RECREATE ALL DATABASE TABLES
-async function initializeDatabase(connection) {
+async function initializeDatabase() {
+
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
+    ssl: false // Disable SSL
+  });
+
+  client.connect();
 
   const script = await fs.readFile(path.join(__dirname, 'queries\\create_tables_pg.sql'), 'utf8');
   const statements = script.split(';');
 
   for (const statement of statements) {
     if (statement.trim()) {
-      await connection.query(statement);
+      await client.query(statement);
     }
   }
-  await connection.end();
+  await client.end();
 }
 
 // POPULATE ALL TABLES
@@ -61,7 +68,6 @@ async function updateData() {
   connection.connect();
 
   try {
-    await initializeDatabase(connection)
     await deleteAllData(connection);
     await updateSeasons(connection);
     await updateTeams(connection);
