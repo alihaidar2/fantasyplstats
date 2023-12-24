@@ -29,7 +29,7 @@ export default async function handler(
     const teamsResult = await pool.query("SELECT * FROM teams");
     const teamsArray = teamsResult.rows;
 
-    // Fetch fixtures for the current gameweek
+    // Fetch fixtures for remaining gameweeks
     const fixturesResult = await pool.query(
       "SELECT * FROM fixtures WHERE event >= $1",
       [currentGameweek]
@@ -39,13 +39,14 @@ export default async function handler(
     console.log("teamsArray: ", teamsArray);
     console.log("fixturesArray: ", fixturesArray);
 
-    // these arent heatmaps but the difficulty and team names
+
+
+    // Build Dictionary : shortName - fixtures(+diff)
     const heatmapAttack = calculateHeatmapData(
       teamsArray,
       fixturesArray,
       "attack"
     );
-
     const heatmapDefense = calculateHeatmapData(
       teamsArray,
       fixturesArray,
@@ -114,12 +115,12 @@ function calculateHeatmapData(teams: any, fixtures: any, type: string) {
   const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } =
     {};
 
-  const totalGameweeks = TOTAL_GAMEWEEKS - currentGameweek;
+  const remainingGameweeks = TOTAL_GAMEWEEKS - currentGameweek;
 
   // Initialize each team with placeholders for each game week
   teams.forEach((team) => {
     teamsOpponentsAndDifficulties[team.short_name] = Array.from(
-      { length: totalGameweeks },
+      { length: remainingGameweeks },
       () => ({
         opponentName: "BGW",
         difficulty: 0,
@@ -173,8 +174,8 @@ function calculateHeatmapData(teams: any, fixtures: any, type: string) {
         );
       }
       // Calculate dictionary index
-      const index = fixtureGameweek % (TOTAL_GAMEWEEKS - remainingGameweeks)
-
+      let index = fixtureGameweek - (TOTAL_GAMEWEEKS - remainingGameweeks)
+     
       // Update the fixture for the home and away teams for the specific game week
       teamsOpponentsAndDifficulties[homeTeam.short_name][index] = {
         opponentName: awayTeam.short_name,
@@ -192,12 +193,6 @@ function calculateHeatmapData(teams: any, fixtures: any, type: string) {
   );
 
   return teamsOpponentsAndDifficulties;
-  console.log("test: ", test)
-
-  // Return the processed data
-  return Object.values(teamsOpponentsAndDifficulties).map(
-    (teamFixtures) => teamFixtures
-  );
 }
 
 interface SimpleFixture {

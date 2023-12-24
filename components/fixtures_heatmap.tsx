@@ -11,13 +11,10 @@ const HeatMap = dynamic<HeatMapProps>(
 const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selectedHeatmap }) => {
     const [teams, setTeams] = useState<Team[]>([]); // passed to heatmap
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
-    const [selectedGameweekRange, setSelectedGameweeks] = useState(20); // Default value
+    const [selectedGameweekRange, setSelectedGameweeks] = useState(21); // Default value
     const [teamFixtureArray, setTeamFixtureArray] = useState<TeamData[]>([]);
     const [sortDirection, setSortDirection] = useState({});
     const [isLoading, setIsLoading] = useState(true); // Initialize with true or false
-
-
-
 
     useEffect(() => {
         setIsLoading(true);
@@ -55,23 +52,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                 console.log("heatmapData: ", heatmapData)
 
                 // Create array of objects {team, fixtures, score}
-                // const teamFixtureArray = data.teams.reduce((acc, team, index) => {
-                //     // Slice the difficulties array to include only elements up to selectedGameweekRange
-                //     const relevantDifficulties = heatmapData[index].slice(0, selectedGameweekRange);
-
-                //     // Calculate the average score from the sliced difficulties
-                //     const score = relevantDifficulties.reduce((sum, val) => sum + val.difficulty, 0) / relevantDifficulties.length;
-
-                //     // Create an object with the team name, full difficulties, and the calculated score
-                //     acc.push({
-                //         teamName: team.short_name,
-                //         difficulties: heatmapData[index],
-                //         score: score
-                //     });
-
-                //     return acc;
-                // }, []);
-
                 const teamFixtureArray = Object.entries(heatmapData).map(([teamName, fixtures]) => {
                     // Calculate the average score from the entire difficulties array
                     const totalDifficulty = fixtures.reduce((sum, fixture) => sum + fixture.difficulty, 0);
@@ -83,9 +63,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                         score: averageDifficulty
                     };
                 });
-
-                // console.log("teamFixtureArray2: ", teamFixtureArray2)
-                
                 
                 teamFixtureArray.sort((a, b) => b.score - a.score);
                 setTeamFixtureArray(teamFixtureArray);
@@ -94,8 +71,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                 const uniqueGameweeks: number[] = Array.from(new Set(data.fixtures.map(fixture => fixture.event))); // all remaining gws
                 setGameweeks(uniqueGameweeks);
                 setIsLoading(false);
-
-
                 console.log("teamFixtureArray: ", teamFixtureArray)
             })
             .catch(error => {
@@ -117,61 +92,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
     const handleGameweekRangeChange = (event) => {
         setSelectedGameweeks(Number(event.target.value));
     };
-
-    function getHeatmapData(teams: Team[], fixtures: Fixture[], totalGameWeeks: number) {
-        const teamsOpponentsAndDifficulties: { [teamName: string]: SimpleFixture[] } = {};
-
-        // Initialize each team with placeholders for each game week
-        teams.forEach(team => {
-            teamsOpponentsAndDifficulties[team.short_name] = Array.from({ length: totalGameWeeks }, () => ({
-                opponentName: 'BGW',
-                difficulty: 0
-            }));
-        });
-
-        // Process each actual fixture
-        fixtures.forEach(fixture => {
-            const gameWeekIndex = gameweeks.indexOf(fixture.event);
-
-            if (gameWeekIndex === -1 || gameWeekIndex >= totalGameWeeks) {
-                // Skip processing this fixture if it's not in the selected range
-                return;
-            }
-
-            const homeTeam = teams.find(t => t.team_id === fixture.team_h);
-            const awayTeam = teams.find(t => t.team_id === fixture.team_a);
-
-            if (homeTeam && awayTeam) {
-                let difficultyForHome = 0;
-                let difficultyForAway = 0;
-
-                // Calculate difficulties based on selected heatmap
-                if (selectedHeatmap == 'attack') {
-                    difficultyForHome = calculateDifficulty(homeTeam.strength_attack_home, awayTeam.strength_defence_away);
-                    difficultyForAway = calculateDifficulty(awayTeam.strength_attack_away, homeTeam.strength_defence_home);
-                } else if (selectedHeatmap == 'defense') {
-                    difficultyForHome = calculateDifficulty(homeTeam.strength_defence_home, awayTeam.strength_attack_away);
-                    difficultyForAway = calculateDifficulty(awayTeam.strength_defence_away, homeTeam.strength_attack_home);
-                } else if (selectedHeatmap == 'overall') {
-                    difficultyForHome = calculateDifficulty(homeTeam.strength_overall_home, awayTeam.strength_overall_away);
-                    difficultyForAway = calculateDifficulty(awayTeam.strength_overall_away, homeTeam.strength_overall_home);
-                }
-
-                // Update the fixture for the home and away teams for the specific game week
-                teamsOpponentsAndDifficulties[homeTeam.short_name][gameWeekIndex] = {
-                    opponentName: awayTeam.short_name,
-                    difficulty: difficultyForHome
-                };
-                teamsOpponentsAndDifficulties[awayTeam.short_name][gameWeekIndex] = {
-                    opponentName: homeTeam.short_name,
-                    difficulty: difficultyForAway
-                };
-            }
-        });
-
-        // Return the processed data
-        return Object.values(teamsOpponentsAndDifficulties).map(teamFixtures => teamFixtures);
-    }
 
     // Gets color based on difficulty
     const getDifficultyColor = (difficultyScore) => {
