@@ -96,17 +96,20 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
     // Gets color based on difficulty
     const getDifficultyColor = (difficultyScore) => {
         if (difficultyScore === 0) {
-            return 'white'; // Handle undefined scores
-        } else if (difficultyScore <= 27) {
-            return 'darkred';        // Very Hard (76-100)
-        } else if (difficultyScore <= 45) {
-            return 'red'; // Hard (51-75)
-        } else if (difficultyScore <= 63) {
-            return 'orange'; // Moderate (26-50)
+            return 'white'; // Special case for no difficulty
+        } else if (difficultyScore <= 20) {
+            return 'darkred'; // Easy (1-20)
+        } else if (difficultyScore <= 40) {
+            return 'red'; // Fairly Easy (21-40)
+        } else if (difficultyScore <= 60) {
+            return 'orange'; // Moderate (41-60)
+        } else if (difficultyScore <= 80) {
+            return 'olivedrab'; // Hard (61-80)
         } else {
-            return 'green'; // Easy (0-25)
+            return 'green'; // Very Hard (81-100)
         }
     };
+    
 
     // Gets difficulty between 0-100
     const calculateDifficulty = (attack, defense) => {

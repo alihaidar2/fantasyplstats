@@ -6,7 +6,10 @@ const { Pool } = require("pg");
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-  ssl: false,
+  ssl: {
+    rejectUnauthorized: false
+  },
+  
 });
 
 const TOTAL_GAMEWEEKS = 38;

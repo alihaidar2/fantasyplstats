@@ -42,7 +42,10 @@ async function initializeDatabase() {
 
   const client = new Client({
     connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-    ssl: false // Disable SSL
+    // ssl: false // Disable SSL
+    ssl: {
+      rejectUnauthorized: false
+    },
   });
 
   client.connect();
@@ -58,11 +61,14 @@ async function initializeDatabase() {
   await client.end();
 }
 
-// POPULATE ALL TABLES
+// POPULATE ALL TABLES ---- THIS NEEDS TO BE RUN
 async function updateData() {
   const connection = new Client({
     connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-    ssl: false // Disable SSL
+    // ssl: false // Disable SSL
+    ssl: {
+      rejectUnauthorized: false
+    },
   });
 
   connection.connect();
@@ -82,6 +88,7 @@ async function updateData() {
 // Delete existing data
 async function deleteAllData(connection) {
   console.log("Deleting existing data...")
+  await connection.query(`DELETE FROM SEASONS;`);
   await connection.query(`DELETE FROM FIXTURES;`);
   await connection.query(`DELETE FROM PLAYERS;`);
   await connection.query(`DELETE FROM TEAMS;`);
