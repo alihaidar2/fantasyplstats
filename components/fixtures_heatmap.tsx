@@ -11,7 +11,7 @@ const HeatMap = dynamic<HeatMapProps>(
 const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selectedHeatmap }) => {
     const [teams, setTeams] = useState<Team[]>([]); // passed to heatmap
     const [gameweeks, setGameweeks] = useState<number[]>([]); // Initialize as an empty array
-    const [selectedGameweekRange, setSelectedGameweeks] = useState(21); // Default value
+    const [selectedGameweekRange, setSelectedGameweeks] = useState(3); // Default value
     const [teamFixtureArray, setTeamFixtureArray] = useState<TeamData[]>([]);
     const [sortDirection, setSortDirection] = useState({});
     const [isLoading, setIsLoading] = useState(true); // Initialize with true or false

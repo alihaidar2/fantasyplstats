@@ -42,7 +42,7 @@ async function initializeDatabase() {
 
   const client = new Client({
     connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-    // ssl: false // Disable SSL
+// ssl: false // Disable SSL
     ssl: {
       rejectUnauthorized: false
     },
