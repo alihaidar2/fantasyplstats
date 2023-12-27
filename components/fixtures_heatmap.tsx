@@ -35,6 +35,9 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                 // Basically saying use this data for the heatmap
                 let heatmapData: HeatmapData;
                 switch (selectedHeatmap) {
+                    case 'simple':
+                        heatmapData = data.heatmapSimple;
+                        break;
                     case 'attack':
                         heatmapData = data.heatmapAttack;
                         break;
@@ -49,7 +52,7 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                         break;
                 }
 
-                console.log("heatmapData: ", heatmapData)
+                // console.log("heatmapData: ", heatmapData)
 
                 // Create array of objects {team, fixtures, score}
                 const teamFixtureArray = Object.entries(heatmapData).map(([teamName, fixtures]) => {
@@ -71,7 +74,7 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                 const uniqueGameweeks: number[] = Array.from(new Set(data.fixtures.map(fixture => fixture.event))); // all remaining gws
                 setGameweeks(uniqueGameweeks);
                 setIsLoading(false);
-                console.log("teamFixtureArray: ", teamFixtureArray)
+                // console.log("teamFixtureArray: ", teamFixtureArray)
             })
             .catch(error => {
                 console.error('Error:', error);

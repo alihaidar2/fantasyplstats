@@ -15,8 +15,8 @@ app.prepare().then(async () => {
   // Database Operations
   try {
     console.log('Updating database...');
-    await initializeDatabase()
-    updateData();
+    // await initializeDatabase()
+    // updateData();
     console.log('Database initialization completed.');
 
   } catch (error) {

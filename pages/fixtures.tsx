@@ -28,11 +28,12 @@ const Fixtures: React.FC = () => {
             ? <p className='italic pt-1 pb-3 px-3'>The Simple Heatmap is as its name suggests. Each team has a strength and it uses that to determine the difficulty of the next few fixtures</p>
             : <p className='italic pt-1 pb-3 px-3'>The Advanced Heatmaps delve a little bit deeper into the data. Using the teams' overall, attack and defense stats, as well as their home and away records, the difficulties of each team's next few fixtures are generated. </p>
           }
+          <FixturesHeatmap selectedHeatmap={selectedHeatmap} />
           {/* Conditional rendering of the heatmap components */}
-          {selectedHeatmap === 'simple'
+          {/* {selectedHeatmap === 'simple'
             ? <OldFixturesHeatmap />
             : <FixturesHeatmap selectedHeatmap={selectedHeatmap} />
-          }
+          } */}
           {/* <p className='italic pt-1 pb-3 px-3'>The Advanced Heatmaps delve a little bit deeper into the data. Using the teams' overall, attack and defense stats, as well as their home and away records, the difficulties of each team's next few fixtures are generated. </p>
           <FixturesHeatmap selectedHeatmap={selectedHeatmap} /> */}
         </div>

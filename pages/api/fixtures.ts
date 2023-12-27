@@ -7,9 +7,8 @@ const { Pool } = require("pg");
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
   ssl: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   },
-  
 });
 
 const TOTAL_GAMEWEEKS = 38;
@@ -26,7 +25,7 @@ export default async function handler(
       "SELECT * FROM gameweeks WHERE finished = false ORDER BY deadline_time LIMIT 1"
     );
     currentGameweek = currentGameweekResult.rows[0].id;
-    remainingGameweeks = TOTAL_GAMEWEEKS - currentGameweek
+    remainingGameweeks = TOTAL_GAMEWEEKS - currentGameweek;
 
     // Fetch all teams
     const teamsResult = await pool.query("SELECT * FROM teams");
@@ -42,9 +41,12 @@ export default async function handler(
     console.log("teamsArray: ", teamsArray);
     console.log("fixturesArray: ", fixturesArray);
 
-
-
     // Build Dictionary : shortName - fixtures(+diff)
+    const heatmapSimple = calculateHeatmapData(
+      teamsArray,
+      fixturesArray,
+      "simple"
+    );
     const heatmapAttack = calculateHeatmapData(
       teamsArray,
       fixturesArray,
@@ -108,7 +110,16 @@ export default async function handler(
     });
 
     // Process the data for the heatmap
-    res.status(200).json({ teams: teams, fixtures: fixtures, heatmapAttack: heatmapAttack, heatmapDefense: heatmapDefense, heatmapOverall: heatmapOverall });
+    res
+      .status(200)
+      .json({
+        teams: teams,
+        fixtures: fixtures,
+        heatmapSimple: heatmapSimple,
+        heatmapAttack: heatmapAttack,
+        heatmapDefense: heatmapDefense,
+        heatmapOverall: heatmapOverall,
+      });
   } catch (error) {
     res.status(500).json({ message: "Could not fetch data" });
   }
@@ -132,7 +143,7 @@ function calculateHeatmapData(teams: any, fixtures: any, type: string) {
   });
 
   // Process each actual fixture
-  fixtures.forEach((fixture) => {
+  fixtures.forEach((fixture: Fixture) => {
     const fixtureGameweek = fixture.event;
 
     if (fixtureGameweek === -1) {
@@ -148,7 +159,10 @@ function calculateHeatmapData(teams: any, fixtures: any, type: string) {
       let difficultyForAway = 0;
 
       // Calculate difficulties based on selected heatmap
-      if (type == "attack") {
+      if (type == "simple") {
+        difficultyForHome = fixture.team_h_difficulty * 20;
+        difficultyForAway = fixture.team_a_difficulty * 20;
+      } else if (type == "attack") {
         difficultyForHome = calculateDifficulty(
           homeTeam.strength_attack_home,
           awayTeam.strength_defence_away
@@ -177,8 +191,8 @@ function calculateHeatmapData(teams: any, fixtures: any, type: string) {
         );
       }
       // Calculate dictionary index
-      let index = fixtureGameweek - (TOTAL_GAMEWEEKS - remainingGameweeks)
-     
+      let index = fixtureGameweek - (TOTAL_GAMEWEEKS - remainingGameweeks);
+
       // Update the fixture for the home and away teams for the specific game week
       teamsOpponentsAndDifficulties[homeTeam.short_name][index] = {
         opponentName: awayTeam.short_name,
