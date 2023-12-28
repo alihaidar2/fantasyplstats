@@ -74,7 +74,6 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
                 const uniqueGameweeks: number[] = Array.from(new Set(data.fixtures.map(fixture => fixture.event))); // all remaining gws
                 setGameweeks(uniqueGameweeks);
                 setIsLoading(false);
-                // console.log("teamFixtureArray: ", teamFixtureArray)
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -98,6 +97,19 @@ const FixturesHeatmapCustom: React.FC<{ selectedHeatmap: string }> = ({ selected
 
     // Gets color based on difficulty
     const getDifficultyColor = (difficultyScore) => {
+        if (selectedHeatmap === 'simple') {
+            if (difficultyScore === 0) {
+                return 'white'; // Special case for no difficulty
+            } else if (difficultyScore === 20) {
+                return 'darkred'; // Easy (1-20)
+            } else if (difficultyScore === 40) {
+                return 'red'; // Fairly Easy (21-40)
+            } else if (difficultyScore === 60) {
+                return 'orange'; // Moderate (41-60)
+            } else if (difficultyScore === 80) {
+                return 'green'; // Hard (61-80)
+            } 
+        }
         if (difficultyScore === 0) {
             return 'white'; // Special case for no difficulty
         } else if (difficultyScore <= 20) {

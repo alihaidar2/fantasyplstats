@@ -4,6 +4,7 @@ import { Team } from "../../types/Team";
 
 const { Pool } = require("pg");
 
+// db connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
   ssl: {
@@ -11,6 +12,8 @@ const pool = new Pool({
   },
 });
 
+// constants
+const difficultyMapping = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 };
 const TOTAL_GAMEWEEKS = 38;
 let currentGameweek;
 let remainingGameweeks;
@@ -110,16 +113,14 @@ export default async function handler(
     });
 
     // Process the data for the heatmap
-    res
-      .status(200)
-      .json({
-        teams: teams,
-        fixtures: fixtures,
-        heatmapSimple: heatmapSimple,
-        heatmapAttack: heatmapAttack,
-        heatmapDefense: heatmapDefense,
-        heatmapOverall: heatmapOverall,
-      });
+    res.status(200).json({
+      teams: teams,
+      fixtures: fixtures,
+      heatmapSimple: heatmapSimple,
+      heatmapAttack: heatmapAttack,
+      heatmapDefense: heatmapDefense,
+      heatmapOverall: heatmapOverall,
+    });
   } catch (error) {
     res.status(500).json({ message: "Could not fetch data" });
   }
@@ -160,8 +161,13 @@ function calculateHeatmapData(teams: any, fixtures: any, type: string) {
 
       // Calculate difficulties based on selected heatmap
       if (type == "simple") {
-        difficultyForHome = fixture.team_h_difficulty * 20;
-        difficultyForAway = fixture.team_a_difficulty * 20;
+        difficultyForHome = fixture.team_h_difficulty;
+        difficultyForHome =
+          (difficultyMapping[difficultyForHome] || difficultyForHome) * 20;
+
+        difficultyForAway = fixture.team_a_difficulty;
+        difficultyForAway =
+          (difficultyMapping[difficultyForAway] || difficultyForAway) * 20;
       } else if (type == "attack") {
         difficultyForHome = calculateDifficulty(
           homeTeam.strength_attack_home,
