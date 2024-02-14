@@ -1,4 +1,3 @@
-const mysql2 = require('mysql2/promise')
 const next = require('next');
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev }); // Initialize the Next.js application
@@ -42,7 +41,6 @@ async function initializeDatabase() {
 
   const client = new Client({
     connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-// ssl: false // Disable SSL
     ssl: {
       rejectUnauthorized: false
     },

@@ -1,17 +1,24 @@
-import React from 'react';
-import Link from 'next/link';
+import React from "react";
+import Link from "next/link";
 
 const Header: React.FC = () => {
   return (
-    <header className='sticky top-0 z-50 bg-green-700'>
+    <header className="sticky top-0 z-50 bg-green-700">
       <nav className="flex items-center py-2 px-2.5">
         <Link href="/">
-          <img src={'/fpl_logo2.png'} className='h-9 cursor-pointer' alt='FPL Logo' />
+          <img
+            src={"/fpl_logo2.png"}
+            className="h-9 cursor-pointer"
+            alt="FPL Logo"
+          />
         </Link>
 
         <div className="flex space-x-4">
           <Link href="/">
             <p className="text-white cursor-pointer pl-4">Home</p>
+          </Link>
+          <Link href="/chatbot">
+            <p className="text-white cursor-pointer">Chatbot</p>
           </Link>
           <Link href="/fixtures">
             <p className="text-white cursor-pointer">Fixtures</p>
