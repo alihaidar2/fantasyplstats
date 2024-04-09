@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { Fixture } from "../../types/Fixture";
 import { Team } from "../../types/Team";
 
-const client = require("./db.js");
+const { client } = require("./db/db-client");
 
 // constants
 const difficultyMapping = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 };

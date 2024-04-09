@@ -1,7 +1,11 @@
-const next = require('next');
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev }); // Initialize the Next.js application
 const express = require('express');
+const next = require('next');
+
+const port = parseInt(process.env.PORT, 10) || 3000;
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = app.getRequestHandler();
+
 const path = require('path');
 const OpenAI = require("openai");
 const apiKey = process.env.OPENAI_API_KEY; // Access the API key
@@ -28,6 +32,11 @@ app.prepare().then(async () => {
     console.error('Error during database operations:', error);
     process.exit(1); // Exit if there is an error in DB operations
   }
+
+  // you need this - this catch-all route passes all other requests to Next.js
+  server.all('*', (req, res) => {
+    return handle(req, res);
+  });
 
   const port = 3000;
   server.listen(port, (err) => { // Use the httpServer to listen
