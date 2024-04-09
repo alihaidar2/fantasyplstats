@@ -2,15 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { Fixture } from "../../types/Fixture";
 import { Team } from "../../types/Team";
 
-const { Pool } = require("pg");
-
-// db connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in your environment variables
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+const client = require("./db.js");
 
 // constants
 const difficultyMapping = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 };
@@ -24,25 +16,25 @@ export default async function handler(
 ) {
   try {
     // Fetch the current or upcoming gameweek
-    const currentGameweekResult = await pool.query(
+    const currentGameweekResult = await client.query(
       "SELECT * FROM gameweeks WHERE finished = false ORDER BY deadline_time LIMIT 1"
     );
     currentGameweek = currentGameweekResult.rows[0].id;
     remainingGameweeks = TOTAL_GAMEWEEKS - currentGameweek;
 
     // Fetch all teams
-    const teamsResult = await pool.query("SELECT * FROM teams");
+    const teamsResult = await client.query("SELECT * FROM teams");
     const teamsArray = teamsResult.rows;
 
     // Fetch fixtures for remaining gameweeks
-    const fixturesResult = await pool.query(
+    const fixturesResult = await client.query(
       "SELECT * FROM fixtures WHERE event >= $1",
       [currentGameweek]
     );
     const fixturesArray = fixturesResult.rows;
 
-    console.log("teamsArray: ", teamsArray);
-    console.log("fixturesArray: ", fixturesArray);
+    // console.log("teamsArray: ", teamsArray);
+    // console.log("fixturesArray: ", fixturesArray);
 
     // Build Dictionary : shortName - fixtures(+diff)
     const heatmapSimple = calculateHeatmapData(
