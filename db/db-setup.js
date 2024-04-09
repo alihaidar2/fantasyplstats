@@ -3,6 +3,8 @@ const path = require('path');
 const client = require('./db-client'); // Ensure this path points to your db.js
 
 async function initializeDatabase() {
+  const client = await pool.connect();
+
   try {
     const script = await fs.readFile(path.join(__dirname, 'queries', 'create_tables_pg.sql'), 'utf8');
     const statements = script.split(';').filter(statement => statement.trim());
@@ -15,11 +17,13 @@ async function initializeDatabase() {
   } catch (error) {
     console.error('Error during database initialization:', error);
     throw error; // Rethrow the error to handle it in the calling function or stop the process.
+  } finally {
+    client.release(); // Always release the client back to the pool
   }
 }
 
 async function updateData() {
-  
+  const client = await pool.connect();
     try {
       await deleteAllData(client);
       await updateSeasons(client);
@@ -28,7 +32,7 @@ async function updateData() {
       await updatePlayers(client);
       await updateGameweeks(client);
     } finally {
-      // client.end();
+      client.release(); // Always release the client back to the pool
     }
   }
   

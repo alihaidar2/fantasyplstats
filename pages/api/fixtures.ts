@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { Fixture } from "../../types/Fixture";
 import { Team } from "../../types/Team";
 
-const { client } = require("./db/db-client");
+const pool = require("../../db/db-client"); // Adjust the path as needed
 
 // constants
 const difficultyMapping = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 };
@@ -14,6 +14,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const client = await pool.connect();
   try {
     // Fetch the current or upcoming gameweek
     const currentGameweekResult = await client.query(
@@ -115,6 +116,8 @@ export default async function handler(
     });
   } catch (error) {
     res.status(500).json({ message: "Could not fetch data" });
+  } finally {
+    client.release();
   }
 }
 
