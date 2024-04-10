@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
-const client = require('./db-client'); // Ensure this path points to your db.js
+const pool = require("./db-client");
 
 async function initializeDatabase() {
   const client = await pool.connect();
