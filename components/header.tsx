@@ -17,9 +17,9 @@ const Header: React.FC = () => {
           <Link href="/">
             <p className="text-white cursor-pointer pl-4">Home</p>
           </Link>
-          <Link href="/chatbot">
+          {/* <Link href="/chatbot">
             <p className="text-white cursor-pointer">Chatbot</p>
-          </Link>
+          </Link> */}
           <Link href="/fixtures">
             <p className="text-white cursor-pointer">Fixtures</p>
           </Link>
