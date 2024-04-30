@@ -3,6 +3,5 @@
 @tailwind utilities;
 
 body {
-  background-color: #E0E6D3; /* Replace with your desired color */
-  /* other styles */
+  background-color: #E0E6D3; /* green background */
 }

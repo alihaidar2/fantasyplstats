@@ -6,20 +6,21 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-const path = require('path');
-const OpenAI = require("openai");
-const apiKey = process.env.OPENAI_API_KEY; // Access the API key
+// const path = require('path');
+// const OpenAI = require("openai");
+// const apiKey = process.env.OPENAI_API_KEY; // Access the API key
 const { initializeDatabase, updateData } = require('./db/db-setup'); // Adjust the path as needed
 
 
 
 app.prepare().then(async () => {
   const server = express();
-  server.use(express.json())
-  
-  // const openai = new OpenAI({
-  //   apiKey: apiKey,
-  // });
+  // server.use(express.json())
+  server.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).send('Internal Server Errorr');
+});
+
 
   // Database Operations
   try {
@@ -38,7 +39,6 @@ app.prepare().then(async () => {
     return handle(req, res);
   });
 
-  const port = 3000;
   server.listen(port, (err) => { // Use the httpServer to listen
     if (err) throw err;
     console.log(`> Ready on http://localhost:${port}`);
