@@ -7,7 +7,7 @@ const Header: React.FC = () => {
       <nav className="flex items-center py-2 px-2.5">
         <Link href="/">
           <img
-            src={"/fpl_logo2.png"}
+            src={"/fpl_logo_main.png"}
             className="h-9 cursor-pointer"
             alt="FPL Logo"
           />
@@ -17,19 +17,15 @@ const Header: React.FC = () => {
           <Link href="/">
             <p className="text-white cursor-pointer pl-4">Home</p>
           </Link>
-          {/* <Link href="/chatbot">
+          <Link href="/chat">
             <p className="text-white cursor-pointer">Chatbot</p>
-          </Link> */}
+          </Link>
           <Link href="/fixtures">
             <p className="text-white cursor-pointer">Fixtures</p>
           </Link>
-          {/* Additional links can be uncommented as needed */}
         </div>
 
-        {/* Placeholder for additional right-aligned elements */}
-        <div>
-          {/* Right-aligned elements like a search icon, user profile, etc. */}
-        </div>
+        <div></div>
       </nav>
     </header>
   );
