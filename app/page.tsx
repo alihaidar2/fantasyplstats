@@ -20,16 +20,16 @@ export default function Page() {
             Master Your Fantasy League
           </h1>
           <p className="mb-4 italic text-center">
-            Unlock advanced soccer stats and predictive heatmaps to gain an edge
-            over the competition.
+            Unlock advanced soccer stats to gain an edge over the competition.
           </p>
           <div className="text-center">
-            {/* <Link
+            <Link
               href="/fixtures"
               className="inline-block bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors m-1"
             >
-              Explore Heatmaps
+              Track Fixtures
             </Link>
+            {/*
             <Link
               href="/chat"
               className="inline-block bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors m-1"
