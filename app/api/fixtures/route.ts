@@ -28,11 +28,11 @@ export async function GET() {
     );
 
     // Get unique gameweeks from future fixtures
-    const gameweeks = [
-      ...new Set(
-        futureFixtures.map((fixture: { event: any }) => fixture.event)
-      ),
-    ].sort((a, b) => a - b); // Sort gameweeks
+    const gameweeks = Array.from(
+      new Set<number>(
+        futureFixtures.map((fixture: { event: number }) => fixture.event)
+      )
+    ).sort((a, b) => a - b); // Sort gameweeks
 
     // Create a map of team_id to short_name for quick lookup
     const teamsMap = teams.reduce(
