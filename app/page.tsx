@@ -24,8 +24,8 @@ export default function Page() {
             over the competition.
           </p>
           <div className="text-center">
-            <Link
-              href="/"
+            {/* <Link
+              href="/fixtures"
               className="inline-block bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors m-1"
             >
               Explore Heatmaps
@@ -35,7 +35,7 @@ export default function Page() {
               className="inline-block bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors m-1"
             >
               Start chatting
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

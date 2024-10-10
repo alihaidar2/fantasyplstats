@@ -17,12 +17,12 @@ const Header: React.FC = () => {
           <Link href="/">
             <p className="text-white cursor-pointer pl-4">Home</p>
           </Link>
-          <Link href="/chat">
-            <p className="text-white cursor-pointer">Chatbot</p>
-          </Link>
           <Link href="/fixtures">
             <p className="text-white cursor-pointer">Fixtures</p>
           </Link>
+          {/* <Link href="/chat">
+            <p className="text-white cursor-pointer">Chatbot</p>
+          </Link> */}
         </div>
 
         <div></div>
