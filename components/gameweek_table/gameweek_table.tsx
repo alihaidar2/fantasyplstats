@@ -1,6 +1,6 @@
 import { Tooltip } from "@mui/material";
 import React from "react";
-import { Column, useSortBy, useTable } from "react-table";
+import { Column, TableState, useSortBy, useTable } from "react-table";
 
 // Define types for the team and fixture data
 interface Fixture {
@@ -130,8 +130,9 @@ export const GameweekTable = ({
     {
       columns,
       data,
-      initialState: { sortBy: [{ id: "average_score", desc: false }] },
-      disableSortRemove: true, // Ensure the table does not revert to an unsorted state
+      initialState: {
+        sortBy: [{ id: "average_score", desc: false }],
+      } as Partial<TableState<TeamData>>,
     },
     useSortBy
   );
