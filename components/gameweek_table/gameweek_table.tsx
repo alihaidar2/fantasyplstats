@@ -178,7 +178,9 @@ export const GameweekTable = ({
             <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
               {headerGroup.headers.map((column) => (
                 <th
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                  {...column.getHeaderProps(
+                    (column as any).getSortByToggleProps()
+                  )}
                   key={column.id}
                   className={`px-4 py-2 text-left text-sm font-medium text-gray-700 ${getColumnWidthClass(
                     column.id
@@ -187,9 +189,14 @@ export const GameweekTable = ({
                     column.id
                   )}`}
                 >
+                  {/* Render Header */}
                   {column.render("Header")}
                   <span className="ml-1 text-xs text-gray-500">
-                    {column.isSorted ? (column.isSortedDesc ? "▼" : "▲") : ""}
+                    {(column as any).isSorted
+                      ? (column as any).isSortedDesc
+                        ? "▼"
+                        : "▲"
+                      : ""}
                   </span>
                 </th>
               ))}

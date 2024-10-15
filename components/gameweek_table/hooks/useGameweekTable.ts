@@ -56,8 +56,6 @@ export const useGameweekTable = () => {
     const teamColumn: Column<TeamData> = {
       Header: "Team",
       accessor: "short_name",
-      id: "short_name",
-      //   disableSortBy: true,
     };
 
     const averageScoreColumn: Column<TeamData> = {
