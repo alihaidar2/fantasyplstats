@@ -11,11 +11,12 @@ export async function GET() {
 
     // Fetch teams
     const teamsCollection = dbClient.collection("teams");
-    const teamsCursor = await teamsCollection.find({});
-    const teams = await teamsCursor.toArray(); // Convert to array
-
     console.log("teamsCollection: ", teamsCollection);
+
+    const teamsCursor = await teamsCollection.find({});
     console.log("teamsCursor: ", teamsCursor);
+
+    const teams = await teamsCursor.toArray(); // Convert to array
     console.log("teams: ", teams);
 
     // Fetch fixtures
