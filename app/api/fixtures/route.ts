@@ -7,15 +7,25 @@ export async function GET() {
   try {
     console.log("Fetching fixtures and teams from the database...");
 
+    console.log("dbClient: ", dbClient);
+
     // Fetch teams
     const teamsCollection = dbClient.collection("teams");
     const teamsCursor = await teamsCollection.find({});
     const teams = await teamsCursor.toArray(); // Convert to array
 
+    console.log("teamsCollection: ", teamsCollection);
+    console.log("teamsCursor: ", teamsCursor);
+    console.log("teams: ", teams);
+
     // Fetch fixtures
     const fixturesCollection = dbClient.collection("fixtures");
     const fixturesCursor = await fixturesCollection.find({});
     const fixtures = await fixturesCursor.toArray(); // Convert to array
+
+    console.log("fixturesCollection: ", fixturesCollection);
+    console.log("fixturesCursor: ", fixturesCursor);
+    console.log("fixtures: ", fixtures);
 
     // Get current date
     const currentDate = new Date();
