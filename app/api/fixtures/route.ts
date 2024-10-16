@@ -16,6 +16,9 @@ export async function GET() {
     const teamsCursor = await teamsCollection.find({});
     console.log("teamsCursor: ", teamsCursor);
 
+    const result = await dbClient.collection("teams").findOne(); // Try findOne instead of find()
+    console.log("One team: ", result);
+
     const teams = await teamsCursor.toArray(); // Convert to array
     console.log("teams: ", teams);
 
