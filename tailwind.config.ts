@@ -1,20 +1,20 @@
 import type { Config } from "tailwindcss";
 
-const config: Config = {
+export default {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./scripts/**/*.{ts,tsx}", // if you use Tailwind dynamically in scripts
+    "./lib/**/*.{ts,tsx}", // if you use Tailwind dynamically in lib
   ],
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
       },
     },
   },
   plugins: [],
-};
-export default config;
+} satisfies Config;

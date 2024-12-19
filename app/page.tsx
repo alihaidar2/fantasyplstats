@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function Page() {
+export default function Home() {
   return (
     <div
       className="relative h-screen bg-cover bg-center"
@@ -16,10 +16,10 @@ export default function Page() {
         <div className="bg-white p-6 sm:p-8 md:p-10 w-full max-w-2xl rounded-lg shadow-2xl">
           {" "}
           {/* Adjust width and padding */}
-          <h1 className="text-2xl font-bold mb-2 text-center">
+          <h1 className="text-2xl font-bold mb-2 text-center text-black">
             Master Your Fantasy League
           </h1>
-          <p className="mb-4 italic text-center">
+          <p className="mb-4 italic text-center text-black">
             Unlock advanced soccer stats to gain an edge over the competition.
           </p>
           <div className="text-center">

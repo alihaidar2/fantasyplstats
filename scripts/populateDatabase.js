@@ -1,58 +1,80 @@
-const db = require("./astraClient");
-const { v4: uuidv4 } = require("uuid");
+import dotenv from "dotenv";
+import axios from "axios";
+import { CosmosClient } from "@azure/cosmos";
 
-const seasonId = 2425; // Assuming a constant season_id
+// Load environment variables from .env.local file
+dotenv.config({ path: './.env.local' }); // Explicitly specify the path to the .env file
+const endpoint = process.env.COSMOS_DB_ENDPOINT;
+const key = process.env.COSMOS_DB_KEY;
+const db_name = process.env.COSMOS_DB_DATABASE;
+const client = new CosmosClient({ endpoint, key });
+const database = client.database(db_name); // Your Cosmos DB database name
+
+const seasonId = 2425; // Current Season ID
+
+// Function to insert/update data into Cosmos DB container
+async function upsertData(containerName, data) {
+  const container = database.container(containerName);
+
+  for (const item of data) {
+    try {
+      await container.items.upsert(item); // Upsert to insert or update data
+      console.log(`Successfully upserted item with ID: ${item.id}`);
+    } catch (error) {
+      console.error("Error upserting item:", error);
+    }
+  }
+}
 
 // Delete existing data
 async function deleteAllData() {
   console.log("Deleting existing data...");
+
   try {
-    await db.collection("seasons").deleteMany({});
-    await db.collection("fixtures").deleteMany({});
-    await db.collection("players").deleteMany({});
-    await db.collection("teams").deleteMany({});
-    await db.collection("gameweeks").deleteMany({});
+    const containers = ["seasons", "fixtures", "players", "teams", "gameweeks"];
+    for (const containerName of containers) {
+      const container = database.container(containerName);
+      const { resources: items } = await container.items
+        .query("SELECT * FROM c")
+        .fetchAll();
+      for (const item of items) {
+        await container.item(item.id, item.partitionKey).delete();
+      }
+    }
     console.log("Deleted data");
   } catch (error) {
     console.error("Error deleting data:", error);
   }
 }
 
-// Insert the Season
+// Update Seasons
 async function updateSeasons() {
   try {
-    await db.collection("seasons").insertOne({
-      season_id: seasonId,
-      start_year: 2024,
-      end_year: 2025,
-    });
-    console.log("Added seasons");
+    await upsertData("seasons", [
+      {
+        id: `season_${seasonId}`,
+        season_id: seasonId,
+        start_year: 2024,
+        end_year: 2025,
+      },
+    ]);
+    console.log("Seasons data upserted successfully.");
   } catch (error) {
     console.error("Error adding seasons:", error);
   }
 }
 
+// Insert and update Players
 async function updatePlayers() {
   try {
     const url = "https://fantasy.premierleague.com/api/bootstrap-static";
-    const response = await fetch(url);
-    const data = await response.json();
-    const players = data.elements;
+    const response = await axios.get(url);
+    const players = response.data.elements;
 
-    for (const player of players) {
-      await insertPlayer(player);
-    }
-    console.log("All players have been inserted successfully.");
-  } catch (error) {
-    console.error("Error updating players:", error);
-  }
-}
-
-async function insertPlayer(player: any) {
-  try {
-    await db.collection("players").insertOne({
-      player_id: player.id,
+    const playersData = players.map((player) => ({
+      id: `player_${player.id}`,
       season_id: seasonId,
+      player_id: player.id,
       chance_of_playing_next_round: player.chance_of_playing_next_round,
       chance_of_playing_this_round: player.chance_of_playing_this_round,
       code: player.code,
@@ -148,34 +170,26 @@ async function insertPlayer(player: any) {
       selected_rank_type: player.selected_rank_type,
       starts_per_90: parseFloat(player.starts_per_90),
       clean_sheets_per_90: parseFloat(player.clean_sheets_per_90),
-    });
+    }));
+
+    await upsertData("players", playersData);
+    console.log("Players data upserted successfully.");
   } catch (error) {
-    console.error("Error inserting player:", error);
+    console.error("Error updating players:", error);
   }
 }
 
+// Insert and update Fixtures
 async function updateFixtures() {
   try {
     const url = "https://fantasy.premierleague.com/api/fixtures";
-    const response = await fetch(url);
-    const fixtures = await response.json();
+    const response = await axios.get(url);
+    const fixtures = response.data;
 
-    for (const fixture of fixtures) {
-      if (fixture.event != null) {
-        await insertFixture(fixture);
-      }
-    }
-    console.log("All fixtures have been inserted successfully.");
-  } catch (error) {
-    console.error("Error updating fixtures:", error);
-  }
-}
-
-async function insertFixture(fixture: any) {
-  try {
-    await db.collection("fixtures").insertOne({
-      fixture_id: fixture.id,
+    const fixturesData = fixtures.map((fixture) => ({
+      id: `fixture_${fixture.id}`,
       season_id: seasonId,
+      fixture_id: fixture.id,
       event: fixture.event,
       finished: fixture.finished,
       kickoff_time: new Date(fixture.kickoff_time).toISOString(),
@@ -188,79 +202,62 @@ async function insertFixture(fixture: any) {
       team_h_difficulty: fixture.team_h_difficulty,
       team_a_difficulty: fixture.team_a_difficulty,
       pulse_id: fixture.pulse_id,
-    });
+    }));
+
+    await upsertData("fixtures", fixturesData);
+    console.log("Fixtures data upserted successfully.");
   } catch (error) {
-    console.error("Error inserting fixture:", error);
+    console.error("Error updating fixtures:", error);
   }
 }
 
+// Insert and update Teams
 async function updateTeams() {
   try {
     const url = "https://fantasy.premierleague.com/api/bootstrap-static/";
-    const response = await fetch(url);
-    const data = await response.json();
-    const teams = data.teams;
+    const response = await axios.get(url);
+    const teams = response.data.teams;
 
-    for (const team of teams) {
-      await insertTeam(team);
-    }
-    console.log("All teams have been inserted successfully.");
-  } catch (error) {
-    console.error("Error updating teams:", error);
-  }
-}
-
-async function insertTeam(team: any) {
-  try {
-    await db.collection("teams").insertOne({
+    const teamsData = teams.map((team) => ({
+      id: `team_${team.id}`,
       season_id: seasonId,
       team_id: team.id,
-      code: team.code,
-      draw: team.draw,
-      form: team.form,
-      loss: team.loss,
       team_name: team.name,
-      played: team.played,
-      points: team.points,
-      position: team.position,
       short_name: team.short_name,
+      points: team.points,
       strength: team.strength,
-      team_division: team.team_division,
-      unavailable: team.unavailable,
-      win: team.win,
       strength_overall_home: team.strength_overall_home,
       strength_overall_away: team.strength_overall_away,
       strength_attack_home: team.strength_attack_home,
       strength_attack_away: team.strength_attack_away,
       strength_defence_home: team.strength_defence_home,
       strength_defence_away: team.strength_defence_away,
+      draw: team.draw,
+      loss: team.loss,
+      win: team.win,
+      team_division: team.team_division,
+      unavailable: team.unavailable,
       pulse_id: team.pulse_id,
-    });
+    }));
+    console.log("teamsData: ", teamsData);
+
+    await upsertData("teams", teamsData);
+
+    console.log("Teams data upserted successfully.");
   } catch (error) {
-    console.error("Error inserting team:", error);
+    console.error("Error updating teams:", error);
   }
 }
 
+// Insert and update Gameweeks
 async function updateGameweeks() {
   try {
     const url = "https://fantasy.premierleague.com/api/bootstrap-static";
-    const response = await fetch(url);
-    const data = await response.json();
-    const gameweeks = data.events;
+    const response = await axios.get(url);
+    const gameweeks = response.data.events;
 
-    for (const gameweek of gameweeks) {
-      await insertGameweek(gameweek);
-    }
-    console.log("All gameweeks have been inserted successfully.");
-  } catch (error) {
-    console.error("Error updating gameweeks:", error);
-  }
-}
-
-async function insertGameweek(gameweek: any) {
-  try {
-    await db.collection("gameweeks").insertOne({
-      id: gameweek.id,
+    const gameweeksData = gameweeks.map((gameweek) => ({
+      id: `gameweek_${gameweek.id}`,
       name: gameweek.name,
       deadline_time: new Date(gameweek.deadline_time).toISOString(),
       average_entry_score: gameweek.average_entry_score,
@@ -281,24 +278,29 @@ async function insertGameweek(gameweek: any) {
       transfers_made: gameweek.transfers_made,
       most_captained: gameweek.most_captained,
       most_vice_captained: gameweek.most_vice_captained,
-    });
+    }));
+
+    await upsertData("gameweeks", gameweeksData);
+    console.log("Gameweeks data upserted successfully.");
   } catch (error) {
-    console.error("Error inserting gameweek:", error);
+    console.error("Error updating gameweeks:", error);
   }
 }
 
+// Initialize the database with data
 async function initializeDatabase() {
   try {
-    await deleteAllData();
-    updateSeasons();
-    updateTeams();
-    updateFixtures();
-    updatePlayers();
-    updateGameweeks();
-    console.log("Database initialized successfully.");
+    await deleteAllData(); // Clean the database
+    await updateSeasons();
+    await updateTeams();
+    await updateFixtures();
+    await updatePlayers();
+    await updateGameweeks();
+    console.log("Database initialized and updated successfully.");
   } catch (error) {
     console.error("Error initializing database:", error);
   }
 }
 
+// Run the initialize function
 initializeDatabase().catch(console.error);

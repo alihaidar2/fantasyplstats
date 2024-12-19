@@ -1,6 +1,7 @@
+// components/Footer.tsx
 import React from "react";
 
-const Footer: React.FC = () => {
+const Footer = () => {
   return (
     <footer className="sticky bottom-0 z-10 bg-green-700 py-4 px-2.5 text-white flex items-center justify-between">
       <div className="flex-grow">

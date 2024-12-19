@@ -1,0 +1,9 @@
+/* styles.css */
+.data-grid .MuiDataGrid-cell {
+  border-right: 1px solid rgba(224, 224, 224, 1);
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+}
+
+.data-grid .MuiDataGrid-columnHeaders {
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+}

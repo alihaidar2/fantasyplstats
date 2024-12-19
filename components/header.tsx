@@ -1,7 +1,8 @@
+// components/Header.tsx
 import React from "react";
-import Link from "next/link";
+import Link from "next/link"; // Or use any routing library
 
-const Header: React.FC = () => {
+const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-green-700">
       <nav className="flex items-center py-2 px-2.5">
@@ -20,11 +21,7 @@ const Header: React.FC = () => {
           <Link href="/fixtures">
             <p className="text-white cursor-pointer">Fixtures</p>
           </Link>
-          {/* <Link href="/chat">
-            <p className="text-white cursor-pointer">Chatbot</p>
-          </Link> */}
         </div>
-
         <div></div>
       </nav>
     </header>

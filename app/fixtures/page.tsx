@@ -3,30 +3,33 @@ import { GameweekTable } from "@/components/gameweek_table/gameweek_table";
 import { Typography, Slider } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
-const GameweeksTablePage = () => {
+const FixturesPage = () => {
   const [data, setData] = useState([]);
   const [gameweeks, setGameweeks] = useState<number[]>([]);
-  const [selectedRange, setSelectedRange] = useState([
+  const [selectedRange, setSelectedRange] = useState<number[]>([
     gameweeks[0],
     gameweeks[3],
   ]);
 
   useEffect(() => {
-    fetch("/api/fixtures")
-      .then((res) => res.json())
-      .then(({ structuredTeams, gameweeks }) => {
-        setData(structuredTeams); // The new data structure includes `teams`
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/fixtures");
+        const { structuredTeams, gameweeks } = await response.json();
+        setData(structuredTeams);
         setGameweeks(gameweeks);
         setSelectedRange([gameweeks[0], gameweeks[3]]);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error fetching data: ", err);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   // Handler to update selected gameweek range
-  const handleSliderChange = (event: any, newValue: any) => {
-    setSelectedRange(newValue);
+  const handleSliderChange = (event: unknown, newValue: number | number[]) => {
+    setSelectedRange(newValue as number[]);
   };
 
   // Filter gameweeks based on selected range
@@ -35,13 +38,15 @@ const GameweeksTablePage = () => {
   );
 
   return (
-    <div className=" bg-gray-100 justify-center items-center">
-      <div className="p-4 bg-white rounded-lg shadow-md">
+    <div className="bg-gray-200 justify-center items-center ">
+      <div className="p-4  rounded-lg shadow-md">
         <h2 className="text-2xl font-semibold mb-4">
           Fixture Difficulty Table
         </h2>
-        {/* Gameweek Range Slider */}
-        <Typography gutterBottom>Gameweek Range</Typography>
+
+        <Typography gutterBottom>
+          Gameweek Range [{selectedRange[0]} - {selectedRange[1]}]
+        </Typography>
         <Slider
           value={selectedRange}
           min={Math.min(...gameweeks)}
@@ -50,17 +55,13 @@ const GameweeksTablePage = () => {
           valueLabelDisplay="auto"
           aria-labelledby="range-slider"
         />
-        <Typography>
-          Showing Gameweeks {selectedRange[0]} to {selectedRange[1]}
-        </Typography>
+
         {data.length > 0 ? (
-          <div>
-            <GameweekTable
-              data={data}
-              gameweeks={filteredGameweeks}
-              selectedRange={selectedRange}
-            />
-          </div>
+          <GameweekTable
+            data={data}
+            gameweeks={filteredGameweeks}
+            selectedRange={selectedRange}
+          />
         ) : (
           <p>Loading...</p>
         )}
@@ -69,4 +70,4 @@ const GameweeksTablePage = () => {
   );
 };
 
-export default GameweeksTablePage;
+export default FixturesPage;
