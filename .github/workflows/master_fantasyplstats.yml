@@ -64,14 +64,14 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
-        # Debug Step: List the files in the deployment package
-      - name: Debug: List Files in Deployment Package
+      # Debug Step: List the files in the deployment package
+      - name: Debug - List Files in Deployment Package
         run: |
           echo "Files in the deployment package:"
           ls -al
 
       # Debug Step: Print Environment Variables
-      - name: Debug: Print Environment Variables
+      - name: Debug - Print Environment Variables
         run: |
           echo "COSMOS_DB_ENDPOINT: $COSMOS_DB_ENDPOINT"
           echo "Node.js Version:"
@@ -96,7 +96,7 @@ jobs:
           package: .
 
       # Debug Step: Output deployment result
-      - name: Debug: Deployment Result
+      - name: Debug - Deployment Result
         if: always()
         run: |
           echo "Deployment step finished with status: ${{ job.status }}"
