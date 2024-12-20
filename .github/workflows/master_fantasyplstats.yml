@@ -17,8 +17,6 @@ jobs:
       COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
       COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
 
-
-
     steps:
       - uses: actions/checkout@v4
 
@@ -34,8 +32,7 @@ jobs:
           npm run test --if-present
 
       - name: Zip artifact for deployment
-        run: |
-          zip -r release.zip .next public package.json package-lock.json
+        run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
