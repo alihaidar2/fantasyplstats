@@ -51,8 +51,8 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
       COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
-    COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
-    COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
+      COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
+      COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
     permissions:
       id-token: write #This is required for requesting the JWT
 
