@@ -9,6 +9,7 @@ const endpoint = process.env.COSMOS_DB_ENDPOINT!;
 const key = process.env.COSMOS_DB_KEY!;
 const databaseId = process.env.COSMOS_DB_DATABASE!;
 
+console.log("process.env: ", process.env);
 console.log("endpoint: ", endpoint);
 console.log("key: ", key);
 console.log("databaseId: ", databaseId);
