@@ -1,8 +1,8 @@
 import { CosmosClient } from "@azure/cosmos";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 
 // Load environment variables from .env.local file
-dotenv.config();
+// dotenv.config();
 
 // Use environment variables to connect to Cosmos DB
 const endpoint = process.env.COSMOS_DB_ENDPOINT!;
