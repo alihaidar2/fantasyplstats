@@ -3,6 +3,8 @@ import { GameweekTable } from "@/components/gameweek_table/gameweek_table";
 import { Typography, Slider } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
+console.log(`Listening on port ${process.env.PORT}`);
+
 const FixturesPage = () => {
   const [data, setData] = useState([]);
   const [gameweeks, setGameweeks] = useState<number[]>([]);

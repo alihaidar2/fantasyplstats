@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+console.log(`Listening on port ${process.env.PORT}`);
+
 export default function Home() {
   return (
     <div
