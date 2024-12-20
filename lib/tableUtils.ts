@@ -1,4 +1,4 @@
-// Function to return a color based on difficulty rating
+// Determine cell style for fixture table
 export const getCellStyle = (value?: unknown, columnId?: string) => {
   const baseClass =
     "px-4 py-2 text-sm rounded-full text-center hover:bg-opacity-50";
