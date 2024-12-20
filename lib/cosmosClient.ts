@@ -9,6 +9,10 @@ const endpoint = process.env.COSMOS_DB_ENDPOINT!;
 const key = process.env.COSMOS_DB_KEY!;
 const databaseId = process.env.COSMOS_DB_DATABASE!;
 
+console.log("endpoint: ", endpoint);
+console.log("key: ", key);
+console.log("databaseId: ", databaseId);
+
 if (!endpoint) {
   throw new Error("COSMOS_DB_ENDPOINT environment variable is missing");
 }
