@@ -12,13 +12,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
-      COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
-      COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
-
-
-
     steps:
       - uses: actions/checkout@v4
 
@@ -46,9 +39,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
-      COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
-      COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
+      PORT: 8080  # Set the port to 8080 for Azure compatibility    
     needs: build
     
 
