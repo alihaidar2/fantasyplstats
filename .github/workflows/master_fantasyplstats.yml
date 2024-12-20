@@ -72,10 +72,16 @@ jobs:
 
       # Debug Step: Print Environment Variables
       - name: Debug - Print Environment Variables
+          env:
+          COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
+          COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
+          COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
         run: |
           echo "COSMOS_DB_ENDPOINT: $COSMOS_DB_ENDPOINT"
           echo "Node.js Version:"
           node -v
+          echo "PORT: $PORT"
+
 
       - name: Install dependencies on Azure
         run: npm install --production 
