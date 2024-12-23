@@ -90,6 +90,13 @@ jobs:
 
       - name: List contents of the `.next` folder
         run: ls -la .next
+
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: npm run build
+
       
       - name: Login to Azure
         uses: azure/login@v2
