@@ -32,7 +32,8 @@ jobs:
           npm run test --if-present
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: zip -r release.zip .next public package.json package-lock.json node_modules
+
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -68,6 +69,10 @@ jobs:
         run: |
           echo "Files in the deployment package:"
           ls -al
+          
+      - name: Install dependencies
+        run: npm ci --production
+
 
       # Debug Step: Print Environment Variables
       - name: Debug - Print Environment Variables
