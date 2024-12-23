@@ -87,6 +87,9 @@ jobs:
 
       - name: Install dependencies on Azure
         run: npm install --production 
+
+      - name: List contents of the `.next` folder
+        run: ls -la .next
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -102,6 +105,9 @@ jobs:
           app-name: 'fantasyplstats'
           slot-name: 'Production'
           package: .
+      
+      - name: Check deployment package contents
+        run: zipinfo release.zip
 
       # Debug Step: Output deployment result
       - name: Debug - Deployment Result
