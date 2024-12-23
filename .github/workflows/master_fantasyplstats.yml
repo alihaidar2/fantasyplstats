@@ -44,7 +44,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      PORT: 8080  # Set the port to 8080 for Azure compatibility    
+      PORT: 8080  # Set the port to 8080 for Azure compatibility  
+      DEBUG: next:*
+  
     needs: build
     
 

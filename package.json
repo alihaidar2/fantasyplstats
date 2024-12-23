@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "PORT=${PORT:-8080} next start || (echo 'Startup Failed'; exit 1)",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
