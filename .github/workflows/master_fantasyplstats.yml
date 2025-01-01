@@ -19,6 +19,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B3D6D9792685485288BF2AE4FB8597FB }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_35C2D6896B3648DABE9236A84EEA8C56 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5AD7C998561D4806951BB6DD96790104 }}
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
