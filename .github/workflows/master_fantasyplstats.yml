@@ -9,6 +9,11 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+
     env:
       COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
       COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
