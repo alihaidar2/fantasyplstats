@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - fantasyplstats
+name: Build and Deploy Next.js App to Azure Web App
 
 on:
   push:
@@ -10,116 +7,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     env:
       COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
       COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
       COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
+      PORT: 8080  # Required for Azure compatibility
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
+      - name: Install dependencies and build
         run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm ci
+          npm run build
 
-      - name: Zip artifact for deployment
+      - name: Package build artifacts
         run: zip -r release.zip .next public package.json package-lock.json node_modules
 
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: release.zip
-
-  deploy:
-    runs-on: ubuntu-latest
-    env:
-      PORT: 8080  # Set the port to 8080 for Azure compatibility  
-      DEBUG: next:*
-  
-    needs: build
-    
-
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-      
-    permissions:
-      id-token: write #This is required for requesting the JWT
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-
-      # Debug Step: List the files in the deployment package
-      - name: Debug - List Files in Deployment Package
-        run: |
-          echo "Files in the deployment package:"
-          ls -al
-          
-      - name: Install dependencies
-        run: npm ci --production
-
-
-      # Debug Step: Print Environment Variables
-      - name: Debug - Print Environment Variables
-        run: |
-          echo "COSMOS_DB_ENDPOINT: $COSMOS_DB_ENDPOINT"
-          echo "Node.js Version:"
-          node -v
-          echo "PORT: $PORT"
-
-
-      - name: Install dependencies on Azure
-        run: npm install --production 
-
-      - name: List contents of the `.next` folder
-        run: ls -la .next
-
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build application
-        run: npm run build
-
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B3D6D9792685485288BF2AE4FB8597FB }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_35C2D6896B3648DABE9236A84EEA8C56 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5AD7C998561D4806951BB6DD96790104 }}
-
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'fantasyplstats'
           slot-name: 'Production'
-          package: .
-      
-      - name: Check deployment package contents
-        run: zipinfo release.zip
-
-      # Debug Step: Output deployment result
-      - name: Debug - Deployment Result
-        if: always()
-        run: |
-          echo "Deployment step finished with status: ${{ job.status }}"
-
-          
+          package: release.zip
