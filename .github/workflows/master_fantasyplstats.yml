@@ -24,6 +24,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # debug directory
+      - name: Debug project structure
+        run: ls -la
+      - name: Debug app directory
+        run: ls -la app || echo "No app directory found"
+      - name: Debug pages directory
+        run: ls -la pages || echo "No pages directory found"
+
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
