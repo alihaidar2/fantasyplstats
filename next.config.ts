@@ -1,17 +1,5 @@
 import type { NextConfig } from "next";
 
-interface CustomExperimentalConfig {
-  appDir?: boolean;
-}
-
-interface CustomNextConfig extends Omit<NextConfig, "experimental"> {
-  experimental?: CustomExperimentalConfig;
-}
-
-const nextConfig: CustomNextConfig = {
-  experimental: {
-    appDir: true,
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;
