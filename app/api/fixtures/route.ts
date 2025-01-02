@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import database from "@/lib/cosmosClient";
+import database from "@/app/lib/cosmosClient";
 import { Fixture, Team } from "@/types";
 
 export async function GET() {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { useGameweekTable } from "./hooks/useGameweekTable"; // Import the hook
-import { getCellStyle } from "@/lib/tableUtils";
+import { getCellStyle } from "@/app/lib/tableUtils";
 import { TeamFixtures } from "@/types";
 
 export const GameweekTable = ({
