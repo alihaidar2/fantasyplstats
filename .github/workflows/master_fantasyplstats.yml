@@ -24,13 +24,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # debug directory
+      # debug 
       - name: Debug project structure
         run: ls -la
       - name: Debug app directory
         run: ls -la app || echo "No app directory found"
       - name: Debug pages directory
         run: ls -la pages || echo "No pages directory found"
+      - name: Debug components directory
+        run: ls -la components || echo "No components directory found"
+      - name: Debug lib directory
+        run: ls -la lib || echo "No lib directory found"
 
 
       - name: Login to Azure
@@ -51,7 +55,7 @@ jobs:
           npm run build
 
       - name: Package build artifacts
-        run: zip -r release.zip .next public package.json package-lock.json node_modules app
+        run: zip release.zip ./* -r
 
       - name: Debug ZIP contents
         run: unzip -l release.zip
