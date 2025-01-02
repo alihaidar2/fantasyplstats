@@ -75,6 +75,10 @@ on:
       - master
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     name: Build Next.js App
@@ -121,15 +125,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
 
-  
-
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
-    permissions:
-      id-token: write
-      contents: read
       
     steps:
       - name: Download artifact
