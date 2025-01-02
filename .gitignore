@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# federated credential for github actions
+federated-credential.json
+
+# linux zip
+fantasyplstats.tar

@@ -51,7 +51,7 @@ jobs:
           npm run build
 
       - name: Package build artifacts
-        run: zip -r release.zip .next public package.json package-lock.json node_modules
+        run: zip -r release.zip
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
