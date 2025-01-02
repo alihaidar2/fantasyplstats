@@ -1,4 +1,8 @@
 import { CosmosClient } from "@azure/cosmos";
+import dotenv from "dotenv";
+
+// Load environment variables from .env.local file
+dotenv.config();
 
 console.log("process.env: ", process.env);
 console.log("process: ", process);
