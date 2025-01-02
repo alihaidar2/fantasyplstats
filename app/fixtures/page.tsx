@@ -40,7 +40,7 @@ const FixturesPage = () => {
   // );
 
   return (
-    <div>
+    <div className="bg-gray-200 justify-center items-center ">
       <h1>Fixtures Page</h1>
       <p>Static content goes here...</p>
     </div>
