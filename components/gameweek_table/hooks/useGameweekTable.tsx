@@ -1,4 +1,4 @@
-import { sortByDifficulty } from "@/app/lib/tableUtils";
+import { sortByDifficulty } from "@/lib/tableUtils";
 import { TeamFixture, TeamFixtures } from "@/types";
 import { useMemo } from "react";
 import { useTable, useSortBy, Column } from "react-table";
