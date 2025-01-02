@@ -3,6 +3,14 @@ import database from "@/lib/cosmosClient";
 import { Fixture, Team } from "@/types";
 
 export async function GET() {
+  // Check if the database is initialized
+  if (!database) {
+    return NextResponse.json(
+      { error: "Database connection not initialized" },
+      { status: 500 }
+    );
+  }
+
   try {
     // console.log(`Listening on port ${process.env.PORT}`);
 
