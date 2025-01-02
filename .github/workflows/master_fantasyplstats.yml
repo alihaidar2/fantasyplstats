@@ -122,8 +122,8 @@ jobs:
     needs: build
 
   permissions:
-      id-token: write
-      contents: read
+    id-token: write
+    contents: read
 
     environment:
       name: 'Production'
