@@ -57,7 +57,7 @@ export const GameweekTable = ({
                   return (
                     <td
                       {...cell.getCellProps()}
-                      key={cell.column.id}
+                      key={`${row.id}-${cell.column.id}`}
                       className={`${style}`}
                     >
                       {cell.render("Cell")}

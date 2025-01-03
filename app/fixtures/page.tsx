@@ -39,7 +39,9 @@ const FixturesPage = () => {
           Fixture Difficulty Table
         </h2>
         <Typography gutterBottom>
-          Gameweek Range [{selectedRange[0]} - {selectedRange[1]}]
+          {gameweeks.length > 0
+            ? `Gameweek Range (${selectedRange[0]} - ${selectedRange[1]})`
+            : "Gameweek Range"}
         </Typography>
         <Slider
           value={selectedRange}
