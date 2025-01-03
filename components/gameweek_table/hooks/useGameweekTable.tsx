@@ -1,7 +1,7 @@
 import { sortByDifficulty } from "@/lib/tableUtils";
 import { TeamFixture, TeamFixtures } from "@/types";
 import { useMemo } from "react";
-import { useTable, useSortBy, Column } from "react-table";
+import { useTable, useSortBy, Column, TableState } from "react-table";
 
 export const useGameweekTable = (
   data: TeamFixtures[],
@@ -76,6 +76,14 @@ export const useGameweekTable = (
       {
         columns,
         data,
+        initialState: {
+          sortBy: [
+            {
+              id: "average_score", // Sort the "average_score" column
+              desc: false, // default order
+            },
+          ],
+        } as Partial<TableState<TeamFixtures>>,
       },
       useSortBy
     );
