@@ -21,7 +21,7 @@ const databaseId = process.env.COSMOS_DB_DATABASE!;
 const client = endpoint && key ? new CosmosClient({ endpoint, key }) : null;
 
 // Reference the database only if the client is initialized
-const database: Database | null = client ? client.database(databaseId!) : null;
+const database: Database | null = client ? client.database(databaseId) : null;
 
 if (database) {
   console.log("Cosmos DB database initialized:", databaseId);

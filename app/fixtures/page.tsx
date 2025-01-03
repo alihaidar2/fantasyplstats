@@ -1,6 +1,6 @@
 "use client";
 import { GameweekTable } from "@/components/gameweek_table/gameweek_table";
-import { Typography, Slider } from "@mui/material";
+import { Typography, Slider, CircularProgress } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
 console.log(`Listening on port ${process.env.PORT}`);
@@ -58,8 +58,11 @@ const FixturesPage = () => {
             selectedRange={selectedRange}
           />
         ) : (
-          <div className="bg-gray-200 justify-center items-center ">
-            <p>Loading...</p>
+          <div
+            className="flex justify-center items-center h-screen bg-gray-200"
+            style={{ minHeight: "100vh" }}
+          >
+            <CircularProgress />
           </div>
         )}
       </div>

@@ -19,16 +19,6 @@ jobs:
         with:
           submodules: true
           lfs: false
-      
-      # - name: Install Dependencies
-      #   run: npm install
-
-      # - name: Build
-      #   run: npm run build
-      #   env:
-      #     COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
-      #     COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
-      #     COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
 
       - name: Build And Deploy
         id: builddeploy
