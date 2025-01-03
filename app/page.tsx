@@ -48,10 +48,3 @@ export default function Home() {
     </>
   );
 }
-
-// Server-side rendering
-export async function getServerSideProps() {
-  return {
-    props: {}, // No dynamic data, just ensure SSR is enabled
-  };
-}
