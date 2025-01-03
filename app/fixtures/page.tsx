@@ -3,8 +3,6 @@ import { GameweekTable } from "@/components/gameweek_table/gameweek_table";
 import { Typography, Slider, CircularProgress } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
-console.log(`Listening on port ${process.env.PORT}`);
-
 const FixturesPage = () => {
   const [data, setData] = useState([]);
   const [gameweeks, setGameweeks] = useState<number[]>([]);
@@ -59,7 +57,7 @@ const FixturesPage = () => {
           />
         ) : (
           <div
-            className="flex justify-center items-center h-screen bg-gray-200"
+            className="flex flex-col items-center bg-gray-200"
             style={{ minHeight: "100vh" }}
           >
             <CircularProgress />

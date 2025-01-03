@@ -3,11 +3,11 @@ import dotenv from "dotenv";
 
 // Load environment variables from .env.local file
 dotenv.config();
-console.log("in cosmos client");
 
 // Use environment variables to connect to Cosmos DB
 const endpoint = process.env.COSMOS_DB_ENDPOINT!;
 const key = process.env.COSMOS_DB_KEY!;
+
 // Check for required environment variables
 if (!endpoint || !key) {
   console.error("Missing Cosmos DB endpoint or key environment variables");
