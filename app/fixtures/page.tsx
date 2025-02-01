@@ -5,19 +5,21 @@ import React, { useEffect, useState } from "react";
 
 const FixturesPage = () => {
   const [data, setData] = useState([]);
-  const [gameweeks, setGameweeks] = useState<number[]>([]);
+  const [gameweekIds, setGameweeks] = useState<number[]>([]);
   const [selectedRange, setSelectedRange] = useState<number[]>([
-    gameweeks[0],
-    gameweeks[3],
+    gameweekIds[0], // ✅ Always safe to use the first gameweek
+    gameweekIds.length > 3
+      ? gameweekIds[3]
+      : gameweekIds[gameweekIds.length - 1], // Adjusts dynamically
   ]);
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch("/api/fixtures");
-        const { structuredTeams, gameweeks } = await response.json();
+        const { structuredTeams, gameweekIds } = await response.json();
         setData(structuredTeams);
-        setGameweeks(gameweeks);
-        setSelectedRange([gameweeks[0], gameweeks[3]]);
+        setGameweeks(gameweekIds);
+        setSelectedRange([gameweekIds[0], gameweekIds[3]]);
       } catch (err) {
         console.error("Error fetching data: ", err);
       }
@@ -29,7 +31,7 @@ const FixturesPage = () => {
     setSelectedRange(newValue as number[]);
   };
   // Filter gameweeks based on selected range
-  const filteredGameweeks = gameweeks.filter(
+  const filteredGameweeks = gameweekIds.filter(
     (gwId) => gwId >= selectedRange[0] && gwId <= selectedRange[1]
   );
   return (
@@ -39,14 +41,14 @@ const FixturesPage = () => {
           Fixture Difficulty Table
         </h2>
         <Typography gutterBottom>
-          {gameweeks.length > 0
+          {gameweekIds.length > 0
             ? `Gameweek Range (${selectedRange[0]} - ${selectedRange[1]})`
             : "Gameweek Range"}
         </Typography>
         <Slider
           value={selectedRange}
-          min={Math.min(...gameweeks)}
-          max={Math.max(...gameweeks)}
+          min={Math.min(...gameweekIds)}
+          max={Math.max(...gameweekIds)}
           onChange={handleSliderChange}
           valueLabelDisplay="auto"
           aria-labelledby="range-slider"

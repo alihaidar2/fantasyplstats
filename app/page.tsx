@@ -9,7 +9,7 @@ export default function Home() {
         <link rel="preload" as="image" href="/fpl-background.png" />
       </Head>
       <div className={styles.container}>
-        <div className={styles.overlay}></div>
+        {/* <div className={styles.overlay}></div> */}
 
         {/* Floating card */}
         <div className={styles.cardWrapper}>

@@ -16,6 +16,7 @@ export async function GET() {
 
     const fixturesContainer = database.container("fixtures");
     const teamsContainer = database.container("teams");
+    const gameweeksContainer = database.container("gameweeks");
 
     // Fetch teams from Cosmos DB
     const teamsQuery = "SELECT * FROM c"; // Query to fetch all teams
@@ -29,16 +30,38 @@ export async function GET() {
       .query(fixturesQuery)
       .fetchAll();
 
-    // Get current date to filter fixtures
-    const currentDate = new Date();
+    // Fetch gameweeks from Cosmos DB
+    const gameweeksQuery = "SELECT * FROM c WHERE c.is_next = true";
+    const { resources: gameweeks } = await gameweeksContainer.items
+      .query(gameweeksQuery)
+      .fetchAll();
 
-    // Filter fixtures to future
+    // Ensure we have a next gameweek
+    const nextGameweek = gameweeks.length > 0 ? gameweeks[0] : null;
+
+    if (!nextGameweek) {
+      console.error("No next gameweek found!");
+      return NextResponse.json(
+        { error: "No next gameweek available" },
+        { status: 404 }
+      );
+    }
+
+    console.log("Next Gameweek:", nextGameweek);
+
+    // Convert gameweek ID to int
+    const nextGameweekId = parseInt(
+      nextGameweek.id.replace("gameweek_", ""),
+      10
+    );
+
+    // Filter fixtures to only include those from the next gameweek
     const futureFixtures = fixtures.filter(
-      (fixture: Fixture) => new Date(fixture.kickoff_time) > currentDate
+      (fixture: Fixture) => fixture.event >= nextGameweekId
     );
 
     // Get unique gameweeks
-    const gameweeks = Array.from(
+    const gameweekIds = Array.from(
       new Set(futureFixtures.map((fixture: Fixture) => fixture.event))
     ).sort((a, b) => a - b);
 
@@ -77,7 +100,7 @@ export async function GET() {
     });
 
     // Return the structured teams and gameweeks as JSON response
-    return NextResponse.json({ structuredTeams, gameweeks });
+    return NextResponse.json({ structuredTeams, gameweekIds });
   } catch (error) {
     console.error("Error fetching fixtures and teams:", error);
     return NextResponse.json(
