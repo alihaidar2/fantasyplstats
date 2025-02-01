@@ -12,8 +12,6 @@ export async function GET() {
   }
 
   try {
-    // console.log(`Listening on port ${process.env.PORT}`);
-
     const fixturesContainer = database.container("fixtures");
     const teamsContainer = database.container("teams");
     const gameweeksContainer = database.container("gameweeks");
