@@ -1,5 +1,6 @@
 "use client";
 
+import ManagerTeamTable from "@/components/manager_team_table/manager_team_table";
 import { useEffect, useState } from "react";
 
 type Player = {
@@ -16,6 +17,7 @@ const DifferentialPage = () => {
   const [error, setError] = useState("");
   const [managerId, setManagerId] = useState(DEFAULT_MANAGER_ID); // Input field for manager ID
 
+  // fetch manager team
   const fetchManagerTeam = async () => {
     setLoading(true);
     setError("");
@@ -59,19 +61,7 @@ const DifferentialPage = () => {
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {players.length > 0 && (
-        <div>
-          <h2>Managers FPL Team</h2>
-          <ul>
-            {players.map((player) => (
-              <li key={player.player_id}>
-                <strong>{player.web_name}</strong> (Price:{" "}
-                {player.now_cost / 10}M)
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {!loading && players.length > 0 && <ManagerTeamTable players={players} />}
     </div>
   );
 };

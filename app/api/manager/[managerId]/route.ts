@@ -30,6 +30,7 @@ export async function GET(
       );
     }
 
+    // TODO: create player class that has all the info i need
     const fplData = await fplResponse.json();
     const selectedPlayerIds = fplData.picks.map((pick: any) => pick.element);
 
