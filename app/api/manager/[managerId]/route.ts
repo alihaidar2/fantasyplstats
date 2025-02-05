@@ -3,7 +3,7 @@ import database from "@/lib/cosmosClient";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { managerId?: string } }
+  context: { params: { managerId: string } }
 ) {
   // Check if the database is initialized
   if (!database) {
@@ -12,11 +12,11 @@ export async function GET(
       { status: 500 }
     );
   }
-  if (!params?.managerId) {
+  if (!context.params.managerId) {
     return NextResponse.json({ error: "Missing manager ID" }, { status: 400 });
   }
 
-  const managerId = params.managerId;
+  const managerId = context.params.managerId;
   const gameweek = "24"; // ✅ Consider making this dynamic later
 
   console.log(`Fetching FPL team for managerId: ${managerId}`);
