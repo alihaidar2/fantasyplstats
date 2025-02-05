@@ -20,12 +20,32 @@ export async function GET(
     return NextResponse.json({ error: "Missing manager ID" }, { status: 400 });
   }
 
-  const gameweek = "24"; // ✅ Consider making this dynamic later
+  // const gameweek = "24"; // ✅ Consider making this dynamic later
 
   console.log(`Fetching FPL team for managerId: ${managerId}`);
 
   try {
-    // ✅ Step 1: Fetch manager's team from the FPL API
+    // ✅ Step 1: Fetch the current gameweek (`is_current = true`)
+    const gameweeksContainer = database.container("gameweeks");
+    const { resources: currentGameweeks } = await gameweeksContainer.items
+      .query({
+        query: "SELECT * FROM c WHERE c.is_current = true",
+      })
+      .fetchAll();
+
+    // ✅ Handle case where no current gameweek exists
+    if (!currentGameweeks.length) {
+      return NextResponse.json(
+        { error: "No current gameweek found in database" },
+        { status: 500 }
+      );
+    }
+
+    // ✅ Extract the gameweek number dynamically
+    const gameweek = currentGameweeks[0].id.replace("gameweek_", "");
+    console.log(`Fetched current gameweek: ${gameweek}`);
+
+    // ✅ Step 2: Fetch manager's team from the FPL API
     const fplUrl = `https://fantasy.premierleague.com/api/entry/${managerId}/event/${gameweek}/picks/`;
     const fplResponse = await fetch(fplUrl);
 
@@ -42,7 +62,7 @@ export async function GET(
     );
     console.log("selectedPlayerIds: ", selectedPlayerIds);
 
-    // ✅ Step 2: Fetch only the manager's players from CosmosDB
+    // ✅ Step 3: Fetch only the manager's players from CosmosDB
     const playersContainer = database.container("players");
     const { resources: managerTeam } = await playersContainer.items
       .query({
