@@ -80,7 +80,7 @@ export const useGameweekTable = (
           sortBy: [
             {
               id: "average_score", // Sort the "average_score" column
-              desc: false, // default order
+              desc: true, // default order
             },
           ],
         } as Partial<TableState<TeamFixtures>>,

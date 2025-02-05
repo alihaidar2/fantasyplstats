@@ -30,7 +30,8 @@ export const GameweekTable = ({
                   key={column.id}
                   className={`font-medium text-gray-700 ${getCellStyle(
                     column.Header,
-                    column.id
+                    column.id,
+                    true
                   )}`}
                 >
                   {column.render("Header")}
@@ -51,7 +52,8 @@ export const GameweekTable = ({
                 {row.cells.map((cell) => {
                   const style = getCellStyle(
                     cell.value.difficulty,
-                    cell.column.id
+                    cell.column.id,
+                    false
                   );
 
                   return (

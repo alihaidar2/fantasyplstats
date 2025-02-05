@@ -1,88 +1,76 @@
-"use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from "react";
+import Player from "@/types/player";
+import { useManagerTeamTable } from "./hooks/useManagerTeamTable";
+import { getCellStyle } from "@/lib/tableUtils";
 
-import { useMemo } from "react";
-import { useTable, Column } from "react-table";
-
-type Player = {
-  player_id: number;
-  web_name: string;
-  now_cost: number;
-};
-
-type ManagerTeamTableProps = {
+interface ManagerTeamTableProps {
   players: Player[];
-};
+}
 
 const ManagerTeamTable: React.FC<ManagerTeamTableProps> = ({ players }) => {
-  // ✅ Memoize columns
-  const columns: Column<Player>[] = useMemo(
-    () => [
-      { Header: "Name", accessor: "web_name" },
-      {
-        Header: "Price (M)",
-        accessor: "now_cost",
-        Cell: ({ value }: { value: number }) => (value / 10).toFixed(1),
-      },
-    ],
-    []
-  );
-
-  const tableData = useMemo(() => players, [players]);
-
-  // ✅ Use React Table
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable<Player>({
-      columns,
-      data: tableData,
-    });
+  const { tableInstance } = useManagerTeamTable(players);
 
   return (
-    <table
-      {...getTableProps()}
-      style={{ width: "100%", borderCollapse: "collapse", marginTop: "10px" }}
-    >
-      <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr
-            {...headerGroup.getHeaderGroupProps()}
-            key={headerGroup.id}
-            style={{ backgroundColor: "#ddd" }}
-          >
-            {headerGroup.headers.map((column) => (
-              <th
-                {...column.getHeaderProps()}
-                key={column.id}
-                style={{ padding: "8px", border: "1px solid black" }}
-              >
-                {column.render("Header")}
-              </th>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row) => {
-          prepareRow(row);
-          return (
-            <tr
-              {...row.getRowProps()}
-              key={row.id}
-              style={{ textAlign: "center" }}
-            >
-              {row.cells.map((cell) => (
-                <td
-                  {...cell.getCellProps()}
-                  key={`${row.id}-${cell.column.id}`}
-                  style={{ padding: "8px", border: "1px solid black" }}
+    <div className="overflow-x-auto w-full">
+      <table
+        {...tableInstance.getTableProps()}
+        className="min-w-full border-separate border-spacing text-center"
+      >
+        <thead>
+          {tableInstance.headerGroups.map((headerGroup) => (
+            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+              {headerGroup.headers.map((column: any) => (
+                <th
+                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                  key={column.id}
+                  className={`font-medium text-gray-700 ${getCellStyle(
+                    column.Header as string,
+                    column.id,
+                    true
+                  )}`}
                 >
-                  {cell.render("Cell")}
-                </td>
+                  {column.render("Header")}
+                  <span className="ml-1 text-xs text-gray-500">
+                    {column.isSorted ? (column.isSortedDesc ? "▼" : "▲") : ""}
+                  </span>
+                </th>
               ))}
             </tr>
-          );
-        })}
-      </tbody>
-    </table>
+          ))}
+        </thead>
+        <tbody {...tableInstance.getTableBodyProps()}>
+          {tableInstance.rows.map((row) => {
+            tableInstance.prepareRow(row);
+
+            return (
+              <tr
+                {...row.getRowProps()}
+                key={row.id}
+                className="hover:bg-gray-100"
+              >
+                {row.cells.map((cell) => {
+                  const style = getCellStyle(
+                    cell.value.difficulty,
+                    cell.column.id,
+                    false
+                  );
+                  return (
+                    <td
+                      {...cell.getCellProps()}
+                      key={cell.column.id}
+                      className={`${style}`}
+                    >
+                      {cell.render("Cell")}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 };
 

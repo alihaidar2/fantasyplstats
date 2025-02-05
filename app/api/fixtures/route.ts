@@ -45,8 +45,6 @@ export async function GET() {
       );
     }
 
-    console.log("Next Gameweek:", nextGameweek);
-
     // Convert gameweek ID to int
     const nextGameweekId = parseInt(
       nextGameweek.id.replace("gameweek_", ""),

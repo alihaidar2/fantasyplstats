@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import database from "@/lib/cosmosClient";
 
 export async function GET(
-  request: Request,
-  { params }: { params: { managerId: string } }
+  req: NextRequest,
+  { params }: { params: { managerId?: string } }
 ) {
   // Check if the database is initialized
   if (!database) {
@@ -12,42 +12,45 @@ export async function GET(
       { status: 500 }
     );
   }
+  if (!params?.managerId) {
+    return NextResponse.json({ error: "Missing manager ID" }, { status: 400 });
+  }
 
-  const { managerId } = params;
-  const gameweek = "24"; // You can make this dynamic later
-  console.log("managerId: ", managerId);
+  const managerId = params.managerId;
+  const gameweek = "24"; // ✅ Consider making this dynamic later
+
+  console.log(`Fetching FPL team for managerId: ${managerId}`);
 
   try {
-    // Fetch the manager's team from the FPL API
+    // ✅ Step 1: Fetch manager's team from the FPL API
     const fplUrl = `https://fantasy.premierleague.com/api/entry/${managerId}/event/${gameweek}/picks/`;
     const fplResponse = await fetch(fplUrl);
-    console.log("fplResponse: ", fplResponse);
 
     if (!fplResponse.ok) {
       return NextResponse.json(
-        { error: "Failed to fetch manager's team" },
+        { error: "Failed to fetch manager's team from FPL API" },
         { status: 500 }
       );
     }
 
-    // TODO: create player class that has all the info i need
     const fplData = await fplResponse.json();
-    const selectedPlayerIds = fplData.picks.map((pick: any) => pick.element);
-
-    // Fetch all players from Cosmos DB
-    const playersContainer = database.container("players");
-    const { resources: allPlayers } = await playersContainer.items
-      .query("SELECT * FROM c")
-      .fetchAll();
-
-    // Filter to only include the manager's selected players
-    const managerTeam = allPlayers.filter((player) =>
-      selectedPlayerIds.includes(player.player_id)
+    const selectedPlayerIds: number[] = fplData.picks.map(
+      (pick: { element: number }) => pick.element
     );
+    console.log("selectedPlayerIds: ", selectedPlayerIds);
+
+    // ✅ Step 2: Fetch only the manager's players from CosmosDB
+    const playersContainer = database.container("players");
+    const { resources: managerTeam } = await playersContainer.items
+      .query({
+        query: `SELECT * FROM c WHERE ARRAY_CONTAINS(@ids, c.player_id)`,
+        parameters: [{ name: "@ids", value: selectedPlayerIds }],
+      })
+      .fetchAll();
 
     return NextResponse.json(managerTeam);
   } catch (error) {
-    console.error("Error fetching manager's team:", error);
+    console.error("🚨 Error fetching manager's team:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
