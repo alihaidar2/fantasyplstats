@@ -4,10 +4,10 @@ import database from "@/lib/cosmosClient";
 // Mark this route as dynamic:
 export const dynamic = "force-dynamic";
 
-export async function GET(
+export const GET: (
   req: NextRequest,
-  context: { params: { managerId: string } }
-) {
+  context: { params: Promise<{ managerId: string }> }
+) => Promise<NextResponse> = async (req, context) => {
   // Check if the database is initialized
   if (!database) {
     return NextResponse.json(
@@ -15,7 +15,7 @@ export async function GET(
       { status: 500 }
     );
   }
-  const managerId = await context.params.managerId;
+  const { managerId } = await context.params;
   if (!managerId) {
     return NextResponse.json({ error: "Missing manager ID" }, { status: 400 });
   }
@@ -23,7 +23,7 @@ export async function GET(
   console.log(`Fetching FPL team for managerId: ${managerId}`);
 
   try {
-    // ✅ Step 1: Fetch the current gameweek (`is_current = true`)
+    // Fv✅ Step 1: Fetch the current gameweek (`is_current = true`)
     const gameweeksContainer = database.container("gameweeks");
     const { resources: currentGameweeks } = await gameweeksContainer.items
       .query({
@@ -77,4 +77,4 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+};
