@@ -1,10 +1,9 @@
 import database from "@/lib/cosmosClient";
 // import { CosmosClient } from "@azure/cosmos";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 
 // Load environment variables from .env.local file
-dotenv.config({ path: "./.env.local" }); // Explicitly specify the path to the .env file
-const container = database!.container("managers");
+// dotenv.config({ path: "./.env.local" }); // Explicitly specify the path to the .env file
 
 // ✅ API Handler for Searching by Team Name (App Router)
 export async function GET(req: Request) {
@@ -22,8 +21,10 @@ export async function GET(req: Request) {
       );
     }
 
+    const managerContainer = database!.container("managers");
+
     // ✅ Query CosmosDB for `team_name` matches (case-insensitive)
-    const { resources } = await container.items
+    const { resources } = await managerContainer.items
       .query({
         query:
           "SELECT c.entry_id, c.team_name FROM c WHERE CONTAINS(LOWER(c.team_name), @query)",
