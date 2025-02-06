@@ -1,5 +1,9 @@
-import type { NextConfig } from "next";
+import { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {},
+  },
+};
 
 export default nextConfig;
