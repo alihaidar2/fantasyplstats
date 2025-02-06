@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import database from "@/lib/cosmosClient";
 
 // Mark this route as dynamic:
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  request: Request,
-  { params }: { params: { managerId: string } }
+  req: NextRequest,
+  context: { params: { managerId: string } }
 ) {
   // Check if the database is initialized
   if (!database) {
@@ -15,12 +15,10 @@ export async function GET(
       { status: 500 }
     );
   }
-  const { managerId } = params;
+  const managerId = await context.params.managerId;
   if (!managerId) {
     return NextResponse.json({ error: "Missing manager ID" }, { status: 400 });
   }
-
-  // const gameweek = "24"; // ✅ Consider making this dynamic later
 
   console.log(`Fetching FPL team for managerId: ${managerId}`);
 
