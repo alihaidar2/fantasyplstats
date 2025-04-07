@@ -22,34 +22,52 @@ export const GameweekTable = ({
         className="min-w-full border-separate border-spacing "
       >
         <thead>
-          {tableInstance.headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-              {headerGroup.headers.map((column: any) => (
-                <th
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
-                  key={column.id}
-                  className={`font-medium text-gray-700 ${getCellStyle(
-                    column.Header,
-                    column.id,
-                    true
-                  )}`}
-                >
-                  {column.render("Header")}
-                  <span className="ml-1 text-xs text-gray-500">
-                    {column.isSorted ? (column.isSortedDesc ? "▼" : "▲") : ""}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          ))}
+          {tableInstance.headerGroups.map((headerGroup) => {
+            const headerGroupProps = headerGroup.getHeaderGroupProps();
+            return (
+              <tr
+                {...headerGroupProps}
+                key={headerGroupProps.key || headerGroup.id}
+              >
+                {headerGroup.headers.map((column: any) => {
+                  const headerProps = column.getHeaderProps(
+                    column.getSortByToggleProps()
+                  );
+                  return (
+                    <th
+                      {...headerProps}
+                      key={headerProps.key || column.id}
+                      className={`font-medium text-gray-700 ${getCellStyle(
+                        column.Header,
+                        column.id,
+                        true
+                      )}`}
+                    >
+                      {column.render("Header")}
+                      <span className="ml-1 text-xs text-gray-500">
+                        {column.isSorted
+                          ? column.isSortedDesc
+                            ? "▼"
+                            : "▲"
+                          : ""}
+                      </span>
+                    </th>
+                  );
+                })}
+              </tr>
+            );
+          })}
         </thead>
+
         <tbody {...tableInstance.getTableBodyProps()}>
           {tableInstance.rows.map((row) => {
             tableInstance.prepareRow(row);
+            const rowProps = row.getRowProps();
 
             return (
-              <tr {...row.getRowProps()} key={row.id}>
+              <tr {...rowProps} key={rowProps.key || row.id}>
                 {row.cells.map((cell) => {
+                  const cellProps = cell.getCellProps();
                   const style = getCellStyle(
                     cell.value.difficulty,
                     cell.column.id,
@@ -58,8 +76,8 @@ export const GameweekTable = ({
 
                   return (
                     <td
-                      {...cell.getCellProps()}
-                      key={`${row.id}-${cell.column.id}`}
+                      {...cellProps}
+                      key={cellProps.key || `${row.id}-${cell.column.id}`}
                       className={`${style}`}
                     >
                       {cell.render("Cell")}

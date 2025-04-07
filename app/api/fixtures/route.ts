@@ -3,74 +3,95 @@ import database from "@/lib/cosmosClient";
 import { Fixture, Team } from "@/types";
 
 export async function GET() {
-  // Check if the database is initialized
-  if (!database) {
-    return NextResponse.json(
-      { error: "Database connection not initialized" },
-      { status: 500 }
-    );
-  }
-
   try {
+    console.log("[API] Starting GET /api/fixtures");
+
+    if (!database) {
+      console.error("[API] ❌ Database connection not initialized");
+      return NextResponse.json(
+        { error: "Database connection not initialized" },
+        { status: 500 }
+      );
+    }
+
     const fixturesContainer = database.container("fixtures");
     const teamsContainer = database.container("teams");
     const gameweeksContainer = database.container("gameweeks");
 
-    // Fetch teams from Cosmos DB
-    const teamsQuery = "SELECT * FROM c"; // Query to fetch all teams
-    const { resources: teams } = await teamsContainer.items
-      .query(teamsQuery)
-      .fetchAll();
+    console.log("[API] ✅ Containers initialized");
 
-    // Fetch fixtures from Cosmos DB
-    const fixturesQuery = "SELECT * FROM c"; // Query to fetch all fixtures
-    const { resources: fixtures } = await fixturesContainer.items
-      .query(fixturesQuery)
-      .fetchAll();
+    let teams, fixtures, gameweeks;
 
-    // Fetch gameweeks from Cosmos DB
-    const gameweeksQuery = "SELECT * FROM c WHERE c.is_next = true";
-    const { resources: gameweeks } = await gameweeksContainer.items
-      .query(gameweeksQuery)
-      .fetchAll();
+    try {
+      console.log("[API] 🔄 Fetching teams...");
+      const { resources } = await teamsContainer.items
+        .query("SELECT * FROM c")
+        .fetchAll();
+      teams = resources;
+      console.log(`[API] ✅ Retrieved ${teams.length} teams`);
+    } catch (err) {
+      console.error("[API] ❌ Failed fetching teams:", err);
+      throw new Error("Failed fetching teams");
+    }
 
-    // Ensure we have a next gameweek
-    const nextGameweek = gameweeks.length > 0 ? gameweeks[0] : null;
+    try {
+      console.log("[API] 🔄 Fetching fixtures...");
+      const { resources } = await fixturesContainer.items
+        .query("SELECT * FROM c")
+        .fetchAll();
+      fixtures = resources;
+      console.log(`[API] ✅ Retrieved ${fixtures.length} fixtures`);
+    } catch (err) {
+      console.error("[API] ❌ Failed fetching fixtures:", err);
+      throw new Error("Failed fetching fixtures");
+    }
 
+    try {
+      console.log("[API] 🔄 Fetching next gameweek...");
+      const { resources } = await gameweeksContainer.items
+        .query("SELECT * FROM c WHERE c.is_next = true")
+        .fetchAll();
+      gameweeks = resources;
+      console.log(`[API] ✅ Retrieved ${gameweeks.length} next gameweek(s)`);
+    } catch (err) {
+      console.error("[API] ❌ Failed fetching gameweeks:", err);
+      throw new Error("Failed fetching gameweeks");
+    }
+
+    const nextGameweek = gameweeks[0];
     if (!nextGameweek) {
-      console.error("No next gameweek found!");
+      console.error("[API] ❌ No next gameweek found!");
       return NextResponse.json(
         { error: "No next gameweek available" },
         { status: 404 }
       );
     }
 
-    // Convert gameweek ID to int
     const nextGameweekId = parseInt(
       nextGameweek.id.replace("gameweek_", ""),
       10
     );
+    console.log(`[API] 📆 Next gameweek ID: ${nextGameweekId}`);
 
-    // Filter fixtures to only include those from the next gameweek
     const futureFixtures = fixtures.filter(
       (fixture: Fixture) => fixture.event >= nextGameweekId
     );
-
-    // Get unique gameweeks
     const gameweekIds = Array.from(
       new Set(futureFixtures.map((fixture: Fixture) => fixture.event))
-    ).sort((a, b) => a - b);
+    ).sort((a, b) => (a as number) - (b as number));
 
-    // Create a map of team_id to short_name for easy lookup
+    console.log(
+      `[API] 📊 ${futureFixtures.length} future fixtures, gameweeks: ${gameweekIds}`
+    );
+
     const teamsMap = teams.reduce(
       (acc: { [key: number]: string }, team: Team) => {
-        acc[team.team_id] = team.short_name; // Using `team_id` as the key
+        acc[team.team_id] = team.short_name;
         return acc;
       },
       {}
     );
 
-    // Structure the teams with their upcoming fixtures
     const structuredTeams = teams.map((team: Team) => {
       const teamFixtures = futureFixtures
         .filter(
@@ -95,13 +116,22 @@ export async function GET() {
       return { short_name: team.short_name, fixtures: teamFixtures };
     });
 
-    // Return the structured teams and gameweeks as JSON response
+    console.log("[API] ✅ Successfully structured teams");
+
     return NextResponse.json({ structuredTeams, gameweekIds });
-  } catch (error) {
-    console.error("Error fetching fixtures and teams:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch data" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("[API] ❌ Final catch -", error.message);
+      return NextResponse.json(
+        { error: "Failed to fetch data", message: error.message },
+        { status: 500 }
+      );
+    } else {
+      console.error("[API] ❌ Final catch - Unknown error", error);
+      return NextResponse.json(
+        { error: "Failed to fetch data", message: "Unknown error" },
+        { status: 500 }
+      );
+    }
   }
 }
