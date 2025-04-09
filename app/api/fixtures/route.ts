@@ -14,9 +14,28 @@ export async function GET() {
       );
     }
 
-    const fixturesContainer = database.container("fixtures");
-    const teamsContainer = database.container("teams");
-    const gameweeksContainer = database.container("gameweeks");
+    let fixturesContainer, teamsContainer, gameweeksContainer;
+
+    try {
+      fixturesContainer = database.container("fixtures");
+      console.log("[API] ✅ fixturesContainer initialized");
+    } catch (e) {
+      console.error("[API] ❌ Error initializing fixturesContainer:", e);
+    }
+
+    try {
+      teamsContainer = database.container("teams");
+      console.log("[API] ✅ teamsContainer initialized");
+    } catch (e) {
+      console.error("[API] ❌ Error initializing teamsContainer:", e);
+    }
+
+    try {
+      gameweeksContainer = database.container("gameweeks");
+      console.log("[API] ✅ gameweeksContainer initialized");
+    } catch (e) {
+      console.error("[API] ❌ Error initializing gameweeksContainer:", e);
+    }
 
     console.log("[API] ✅ Containers initialized");
 
