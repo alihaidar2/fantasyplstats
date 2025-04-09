@@ -44,6 +44,16 @@ jobs:
           output_location: ".next" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
 
+      - name: ✅ Log Environment Variables
+        run: |
+          echo "🔍 COSMOS_DB_ENDPOINT: $COSMOS_DB_ENDPOINT"
+          echo "🔍 COSMOS_DB_DATABASE: $COSMOS_DB_DATABASE"
+          echo "🔐 COSMOS_DB_KEY is set: ${{ secrets.COSMOS_DB_KEY != '' }}"
+        env:
+          COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
+          COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
+          COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
+
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
