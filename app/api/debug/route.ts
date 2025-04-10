@@ -9,7 +9,7 @@ export async function GET() {
     const envVars = {
       COSMOS_DB_ENDPOINT: process.env.COSMOS_DB_ENDPOINT ?? "undefined",
       COSMOS_DB_DATABASE: process.env.COSMOS_DB_DATABASE ?? "undefined",
-      COSMOS_DB_KEY: process.env.COSMOS_DB_KEY ? "[REDACTED]" : "undefined",
+      COSMOS_DB_KEY: process.env.COSMOS_DB_KEY ? "[REDACTED]" : "undefine",
       NODE_ENV: process.env.NODE_ENV ?? "undefined",
     };
 
