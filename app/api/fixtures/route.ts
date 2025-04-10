@@ -7,6 +7,7 @@ export async function GET() {
     console.log("[API] Starting GET /api/fixtures");
 
     const database = getDatabase();
+    console.log("database: ", database);
 
     if (!database) {
       console.error("[API] ❌ Database connection not initialized");
