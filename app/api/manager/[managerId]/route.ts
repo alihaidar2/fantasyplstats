@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import database from "@/lib/cosmosClient";
+import { getDatabase } from "@/lib/cosmosClient";
 
 // Mark this route as dynamic:
 export const dynamic = "force-dynamic";
 
-export const GET: (
+export const GET = async (
   req: NextRequest,
   context: { params: Promise<{ managerId: string }> }
-) => Promise<NextResponse> = async (req, context) => {
+): Promise<NextResponse> => {
+  const database = getDatabase();
+
   // Check if the database is initialized
   if (!database) {
     return NextResponse.json(
@@ -15,15 +17,17 @@ export const GET: (
       { status: 500 }
     );
   }
+
   const { managerId } = await context.params;
+
   if (!managerId) {
     return NextResponse.json({ error: "Missing manager ID" }, { status: 400 });
   }
 
-  console.log(`Fetching FPL team for managerId: ${managerId}`);
+  console.log(`📡 Fetching FPL team for managerId: ${managerId}`);
 
   try {
-    // Fv✅ Step 1: Fetch the current gameweek (`is_current = true`)
+    // ✅ Step 1: Fetch the current gameweek (`is_current = true`)
     const gameweeksContainer = database.container("gameweeks");
     const { resources: currentGameweeks } = await gameweeksContainer.items
       .query({
@@ -31,7 +35,6 @@ export const GET: (
       })
       .fetchAll();
 
-    // ✅ Handle case where no current gameweek exists
     if (!currentGameweeks.length) {
       return NextResponse.json(
         { error: "No current gameweek found in database" },
@@ -39,9 +42,8 @@ export const GET: (
       );
     }
 
-    // ✅ Extract the gameweek number dynamically
     const gameweek = currentGameweeks[0].id.replace("gameweek_", "");
-    console.log(`Fetched current gameweek: ${gameweek}`);
+    console.log(`📆 Fetched current gameweek: ${gameweek}`);
 
     // ✅ Step 2: Fetch manager's team from the FPL API
     const fplUrl = `https://fantasy.premierleague.com/api/entry/${managerId}/event/${gameweek}/picks/`;
@@ -58,7 +60,7 @@ export const GET: (
     const selectedPlayerIds: number[] = fplData.picks.map(
       (pick: { element: number }) => pick.element
     );
-    console.log("selectedPlayerIds: ", selectedPlayerIds);
+    console.log("🧠 selectedPlayerIds:", selectedPlayerIds);
 
     // ✅ Step 3: Fetch only the manager's players from CosmosDB
     const playersContainer = database.container("players");
