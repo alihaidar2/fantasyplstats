@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import database from "@/lib/cosmosClient";
+import { getDatabase } from "@/lib/cosmosClient";
 import { Fixture, Team } from "@/types";
 
 export async function GET() {
   try {
     console.log("[API] Starting GET /api/fixtures");
+
+    const database = getDatabase();
 
     if (!database) {
       console.error("[API] ❌ Database connection not initialized");
@@ -14,28 +16,9 @@ export async function GET() {
       );
     }
 
-    let fixturesContainer, teamsContainer, gameweeksContainer;
-
-    try {
-      fixturesContainer = database.container("fixtures");
-      console.log("[API] ✅ fixturesContainer initialized");
-    } catch (e) {
-      console.error("[API] ❌ Error initializing fixturesContainer:", e);
-    }
-
-    try {
-      teamsContainer = database.container("teams");
-      console.log("[API] ✅ teamsContainer initialized");
-    } catch (e) {
-      console.error("[API] ❌ Error initializing teamsContainer:", e);
-    }
-
-    try {
-      gameweeksContainer = database.container("gameweeks");
-      console.log("[API] ✅ gameweeksContainer initialized");
-    } catch (e) {
-      console.error("[API] ❌ Error initializing gameweeksContainer:", e);
-    }
+    const fixturesContainer = database.container("fixtures");
+    const teamsContainer = database.container("teams");
+    const gameweeksContainer = database.container("gameweeks");
 
     console.log("[API] ✅ Containers initialized");
 

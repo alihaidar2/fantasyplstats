@@ -1,32 +1,25 @@
 import { CosmosClient, Database } from "@azure/cosmos";
-import dotenv from "dotenv";
 
-// Load environment variables from .env.local file
-dotenv.config();
+let cachedDatabase: Database | null = null;
 
-// Use environment variables to connect to Cosmos DB
-const endpoint = process.env.COSMOS_DB_ENDPOINT!;
-const key = process.env.COSMOS_DB_KEY!;
+export function getDatabase(): Database | null {
+  const endpoint = process.env.COSMOS_DB_ENDPOINT;
+  const key = process.env.COSMOS_DB_KEY;
+  const databaseId = process.env.COSMOS_DB_DATABASE;
 
-// Check for required environment variables
-if (!endpoint || !key) {
-  console.error("Missing Cosmos DB endpoint or key environment variables");
-  console.log("COSMOS_DB_ENDPOINT:", endpoint || "undefined");
-  console.log("COSMOS_DB_KEY:", key ? "Key is present" : "Key is missing");
+  if (!endpoint || !key || !databaseId) {
+    console.error("❌ Missing Cosmos DB environment variables:");
+    console.log("COSMOS_DB_ENDPOINT:", endpoint || "undefined");
+    console.log("COSMOS_DB_KEY is set:", !!key);
+    console.log("COSMOS_DB_DATABASE:", databaseId || "undefined");
+    return null;
+  }
+
+  if (!cachedDatabase) {
+    const client = new CosmosClient({ endpoint, key });
+    cachedDatabase = client.database(databaseId);
+    console.log("✅ Cosmos DB database initialized:", databaseId);
+  }
+
+  return cachedDatabase;
 }
-
-const databaseId = process.env.COSMOS_DB_DATABASE!;
-
-// Initialize Cosmos DB client only if environment variables are defined
-const client = endpoint && key ? new CosmosClient({ endpoint, key }) : null;
-
-// Reference the database only if the client is initialized
-const database: Database | null = client ? client.database(databaseId) : null;
-
-if (database) {
-  console.log("Cosmos DB database initialized:", databaseId);
-} else {
-  console.warn("Cosmos DB database not initialized due to missing variables");
-}
-
-export default database;
