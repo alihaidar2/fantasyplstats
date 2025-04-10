@@ -1,13 +1,20 @@
-import database from "@/lib/cosmosClient";
-// import { CosmosClient } from "@azure/cosmos";
-// import dotenv from "dotenv";
-
-// Load environment variables from .env.local file
-// dotenv.config({ path: "./.env.local" }); // Explicitly specify the path to the .env file
+import { getDatabase } from "@/lib/cosmosClient";
 
 // ✅ API Handler for Searching by Team Name (App Router)
 export async function GET(req: Request) {
   try {
+    const database = getDatabase();
+
+    if (!database) {
+      return new Response(
+        JSON.stringify({ error: "Database connection not initialized" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("query");
 
@@ -21,7 +28,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const managerContainer = database!.container("managers");
+    const managerContainer = database.container("managers");
 
     // ✅ Query CosmosDB for `team_name` matches (case-insensitive)
     const { resources } = await managerContainer.items
