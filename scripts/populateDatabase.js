@@ -3,12 +3,21 @@ import axios from "axios";
 import { CosmosClient } from "@azure/cosmos";
 
 // Load environment variables from .env.local file
-dotenv.config({ path: './.env.local' }); // Explicitly specify the path to the .env file
+dotenv.config({ path: '../.env.local' }); // Explicitly specify the path to the .env file
 const endpoint = process.env.COSMOS_DB_ENDPOINT;
+console.log("endpoint: ", endpoint)
+
 const key = process.env.COSMOS_DB_KEY;
+console.log("key: ", key)
+
 const db_name = process.env.COSMOS_DB_DATABASE;
+console.log("db_name: ", db_name)
+
 const client = new CosmosClient({ endpoint, key });
+console.log("client: ", client)
+
 const database = client.database(db_name); // Your Cosmos DB database name
+console.log("database: ", database)
 
 const seasonId = 2425; // Current Season ID
 
