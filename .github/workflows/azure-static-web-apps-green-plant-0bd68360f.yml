@@ -5,47 +5,30 @@ on:
     branches:
       - master
   pull_request:
-    types: [opened, synchronize, reopened, closed]
     branches:
       - master
+    types: [opened, synchronize, reopened]
 
 jobs:
-  build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+  build_and_deploy:
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
+    name: Build and Deploy
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          lfs: false
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
 
-      - name: Install Dependencies
+      - name: 📦 Install dependencies
         run: npm install
 
-      - name: Build
+      - name: 🛠️ Build project
         run: npm run build
         env:
           COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
           COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
           COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
 
-      # - name: Build And Deploy
-      #   id: builddeploy
-      #   uses: Azure/static-web-apps-deploy@v1
-      #   with:
-      #     azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GREEN_PLANT_0BD68360F }}
-      #     repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
-      #     action: "upload"
-      #     ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-      #     # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-      #     app_location: "./" # App source code path
-      #     api_location: "" # Api source code path - optional
-      #     output_location: ".next" # Built app content directory - optional
-      #     ###### End of Repository/Build Configurations ######
-
-      - name: Build And Deploy
-        id: builddeploy
+      - name: 🚀 Deploy to Azure Static Web Apps
+        id: deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GREEN_PLANT_0BD68360F }}
@@ -58,27 +41,3 @@ jobs:
           COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
           COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
           COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
-
-
-
-      - name: ✅ Log Environment Variables
-        run: |
-          echo "🔍 COSMOS_DB_ENDPOINT: $COSMOS_DB_ENDPOINT"
-          echo "🔍 COSMOS_DB_DATABASE: $COSMOS_DB_DATABASE"
-          echo "🔐 COSMOS_DB_KEY is set: ${{ secrets.COSMOS_DB_KEY != '' }}"
-        env:
-          COSMOS_DB_ENDPOINT: ${{ secrets.COSMOS_DB_ENDPOINT }}
-          COSMOS_DB_KEY: ${{ secrets.COSMOS_DB_KEY }}
-          COSMOS_DB_DATABASE: ${{ secrets.COSMOS_DB_DATABASE }}
-
-  close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job
-    steps:
-      - name: Close Pull Request
-        id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GREEN_PLANT_0BD68360F }}
-          action: "close"
