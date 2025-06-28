@@ -45,6 +45,8 @@ export interface Player {
   expected_assists: string;
   expected_goal_involvements: string;
   expected_goals_conceded: string;
+  photo: string;
+  team_code: number;
 }
 
 export interface BootstrapData {

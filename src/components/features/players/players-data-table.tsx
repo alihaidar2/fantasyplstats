@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/select";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import type { Player } from "@/types/players";
+import Link from "next/link";
+import { Spinner } from "@/components/common/Spinner";
 
 interface PlayersDataTableProps {
   players: Player[];
@@ -129,9 +131,11 @@ export function PlayersDataTable({
         const player = row.original;
         const fullName = `${player.first_name} ${player.second_name}`;
         return (
-          <div className="font-medium text-gray-900 dark:text-white truncate pl-2 pr-18 min-w-[250px]">
-            {fullName}
-          </div>
+          <Link href={`/players/${player.id}`} className="block">
+            <div className="font-medium text-gray-900 dark:text-white truncate pl-2 pr-18 min-w-[250px] hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
+              {fullName}
+            </div>
+          </Link>
         );
       },
     },
@@ -297,13 +301,9 @@ export function PlayersDataTable({
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="border-2 border-gray-200 bg-white shadow-lg dark:bg-gray-900 dark:border-gray-700">
         <CardContent className="p-8">
-          <div className="flex items-center justify-center">
-            <div className="text-gray-500 dark:text-gray-400">
-              Loading players...
-            </div>
-          </div>
+          <Spinner />
         </CardContent>
       </Card>
     );

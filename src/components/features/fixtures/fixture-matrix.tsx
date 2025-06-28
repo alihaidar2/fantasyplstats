@@ -3,10 +3,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import * as Slider from "@radix-ui/react-slider";
-import { Loader } from "lucide-react";
 import { flexRender } from "@tanstack/react-table";
 import { getDifficultyColor } from "@/lib/utils";
 import { useFixtureMatrix } from "@/hooks/use-fixture-matrix";
+import { Spinner } from "@/components/common/Spinner";
 
 export default function FixtureMatrix() {
   const { range, setRange, isLoading, error, table } = useFixtureMatrix();
@@ -54,13 +54,15 @@ export default function FixtureMatrix() {
       </div>
 
       {/* ── fixture table ─────────────────────────────────── */}
-      <Card className="overflow-x-auto flex-1 min-h-0 flex flex-col dark:bg-gray-900">
-        <CardContent className="p-4 flex-1 flex flex-col min-h-0">
-          {isLoading ? (
-            <div className="flex flex-1 items-center justify-center min-h-[12rem]">
-              <Loader className="h-8 w-8 animate-spin text-green-600 dark:text-green-400" />
-            </div>
-          ) : (
+      {isLoading ? (
+        <Card className="border-2 border-gray-200 bg-white shadow-lg dark:bg-gray-900 dark:border-gray-700">
+          <CardContent className="p-8">
+            <Spinner />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="overflow-x-auto flex-1 min-h-0 flex flex-col dark:bg-gray-900">
+          <CardContent className="p-4 flex-1 flex flex-col min-h-0">
             <table className="table-fixed border-separate border-spacing-x-1 border-spacing-y-1 text-xs min-w-max flex-1 w-full">
               <colgroup>
                 <col style={{ width: "4rem" }} />
@@ -208,9 +210,9 @@ export default function FixtureMatrix() {
                 ))}
               </tbody>
             </table>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }
