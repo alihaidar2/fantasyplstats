@@ -61,7 +61,8 @@ export function buildFixtureMatrix(
   }
 
   return teams
-    .toSorted((a, b) => a.short_name.localeCompare(b.short_name))
+    .slice()
+    .sort((a, b) => a.short_name.localeCompare(b.short_name))
     .map((team) => {
       const row: MatrixRow = { team: team.short_name } as MatrixRow;
       grid[team.id].forEach((cell, idx) => {
