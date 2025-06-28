@@ -1,3 +1,5 @@
+import type { Player } from "./players";
+
 export type Cell = { text: string; blank: boolean; difficulty?: number };
 
 export interface MatrixRow {
@@ -16,8 +18,17 @@ export interface Fixture {
 export interface Team {
   id: number;
   short_name: string;
+  name: string;
+}
+
+export interface ElementType {
+  id: number;
+  singular_name: string;
+  plural_name: string;
 }
 
 export interface BootstrapData {
   teams: Team[];
+  element_types: ElementType[];
+  elements: Player[]; // Player data from the bootstrap API
 }
