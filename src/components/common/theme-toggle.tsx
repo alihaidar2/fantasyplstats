@@ -2,54 +2,59 @@
 
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
-  const toggleTheme = () => {
-    if (theme === "light") {
-      setTheme("dark");
-    } else if (theme === "dark") {
-      setTheme("system");
-    } else {
-      setTheme("light");
-    }
-  };
-
-  const getIcon = () => {
-    switch (theme) {
+  const getThemeIcon = (themeValue: string, className = "h-4 w-4") => {
+    switch (themeValue) {
       case "light":
-        return <Sun className="h-4 w-4" />;
+        return <Sun className={className} />;
       case "dark":
-        return <Moon className="h-4 w-4" />;
+        return <Moon className={className} />;
       case "system":
-        return <Monitor className="h-4 w-4" />;
+        return <Monitor className={className} />;
       default:
-        return <Sun className="h-4 w-4" />;
-    }
-  };
-
-  const getLabel = () => {
-    switch (theme) {
-      case "light":
-        return "Light";
-      case "dark":
-        return "Dark";
-      case "system":
-        return "System";
-      default:
-        return "Light";
+        return <Sun className={className} />;
     }
   };
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-green-700 transition-colors rounded-md hover:bg-gray-100 dark:text-gray-300 dark:hover:text-green-400 dark:hover:bg-gray-800"
-      title={`Current theme: ${getLabel()}. Click to cycle themes.`}
-    >
-      {getIcon()}
-      <span className="hidden sm:inline">{getLabel()}</span>
-    </button>
+    <Select value={theme} onValueChange={setTheme}>
+      <SelectTrigger className="w-16 h-9 p-0 flex items-center justify-between">
+        <SelectValue asChild>
+          <span className="flex items-center justify-center w-8">
+            {getThemeIcon(theme, "w-8 h-8")}
+          </span>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent className="w-[90px]">
+        <SelectItem value="light">
+          <div className="flex items-center gap-2">
+            <Sun className="h-4 w-4" />
+            <span>Light</span>
+          </div>
+        </SelectItem>
+        <SelectItem value="dark">
+          <div className="flex items-center gap-2">
+            <Moon className="h-4 w-4" />
+            <span className="dark:text-gray-200">Dark</span>
+          </div>
+        </SelectItem>
+        <SelectItem value="system">
+          <div className="flex items-center gap-2">
+            <Monitor className="h-4 w-4" />
+            <span className="dark:text-gray-200">System</span>
+          </div>
+        </SelectItem>
+      </SelectContent>
+    </Select>
   );
 }

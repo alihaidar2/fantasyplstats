@@ -11,8 +11,6 @@ class FPLApiService {
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
-      console.log(`Fetching from: ${url}`);
-
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
@@ -24,8 +22,6 @@ class FPLApiService {
       });
 
       clearTimeout(timeoutId);
-
-      console.log(`Response status: ${response.status} for ${url}`);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -41,11 +37,6 @@ class FPLApiService {
       }
 
       const data = await response.json();
-      console.log(
-        `Successfully fetched data from ${url}, size: ${
-          JSON.stringify(data).length
-        } chars`
-      );
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
@@ -89,16 +80,11 @@ class FPLApiService {
     fixtures: Fixture[];
   }> {
     try {
-      console.log("Starting parallel fetch of bootstrap and fixtures data...");
-
       const [bootstrap, fixtures] = await Promise.all([
         this.getBootstrapData(),
         this.getFixtures(),
       ]);
 
-      console.log(
-        `Successfully fetched all data: ${bootstrap.teams.length} teams, ${fixtures.length} fixtures`
-      );
       return { bootstrap, fixtures };
     } catch (error) {
       console.error("Failed to fetch all FPL data:", error);

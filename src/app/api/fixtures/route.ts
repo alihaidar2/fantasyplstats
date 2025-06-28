@@ -7,13 +7,7 @@ export const revalidate = 3600; // 1 hour
 
 export async function GET() {
   try {
-    console.log("Starting API request to fetch FPL data...");
-
     const { bootstrap, fixtures } = await fplApiService.getAllData();
-
-    console.log(
-      `Successfully fetched data: ${bootstrap.teams.length} teams, ${fixtures.length} fixtures`
-    );
 
     const matrix = buildFixtureMatrix(bootstrap.teams, fixtures);
 

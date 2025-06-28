@@ -44,7 +44,6 @@ export function buildFixtureMatrix(
       : { text: `${p.text}, ${txt}`, blank: false, difficulty };
 
   for (const fx of fixtures) {
-    console.log("fx", fx);
     const col = fx.event - 1;
     if (col < 0 || col >= GW_MAX) continue;
 
