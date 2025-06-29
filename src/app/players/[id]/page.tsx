@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import { usePlayers } from "@/hooks/use-players";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -13,85 +12,71 @@ import {
   Flag,
   Award,
   Clock,
-  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { Spinner } from "@/components/common/Spinner";
+import PlayerPointsChart from "@/components/features/players/player-points-chart";
+import { getFormColor } from "@/hooks/use-player-utils";
+import usePlayerSummary from "@/hooks/use-player-summary";
+import PlayerHeader from "@/components/features/players/player-header";
+
+function PlayerLoading() {
+  return (
+    <div className="flex flex-col flex-1 min-h-0 p-4 max-w-7xl mx-auto w-full">
+      <div className="flex items-center justify-center p-8">
+        <Spinner />
+      </div>
+    </div>
+  );
+}
+
+function PlayerError({ error }: { error: string }) {
+  return (
+    <div className="flex flex-col flex-1 min-h-0 p-4 max-w-7xl mx-auto w-full">
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="text-red-600 dark:text-red-400 text-lg font-medium mb-2">
+            Error loading player
+          </div>
+          <div className="text-gray-600 dark:text-gray-400">{error}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlayerNotFound() {
+  return (
+    <div className="flex flex-col flex-1 min-h-0 p-4 max-w-7xl mx-auto w-full">
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="text-gray-600 dark:text-gray-400 text-lg font-medium mb-2">
+            Player not found
+          </div>
+          <Link href="/players">
+            <Button variant="outline" className="mt-4">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Players
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function PlayerPage() {
   const params = useParams();
   const playerId = parseInt(params.id as string);
 
   const { players, isLoading, error, getPositionName } = usePlayers();
-
   const player = players.find((p) => p.id === playerId);
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col flex-1 min-h-0 p-4 max-w-7xl mx-auto w-full">
-        <div className="flex items-center justify-center p-8">
-          <Spinner />
-        </div>
-      </div>
-    );
-  }
+  const { summary, summaryLoading, summaryError } = usePlayerSummary(playerId);
 
-  if (error) {
-    return (
-      <div className="flex flex-col flex-1 min-h-0 p-4 max-w-7xl mx-auto w-full">
-        <div className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <div className="text-red-600 dark:text-red-400 text-lg font-medium mb-2">
-              Error loading player
-            </div>
-            <div className="text-gray-600 dark:text-gray-400">{error}</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!player) {
-    return (
-      <div className="flex flex-col flex-1 min-h-0 p-4 max-w-7xl mx-auto w-full">
-        <div className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <div className="text-gray-600 dark:text-gray-400 text-lg font-medium mb-2">
-              Player not found
-            </div>
-            <Link href="/players">
-              <Button variant="outline" className="mt-4">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Players
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const getPositionColor = (elementTypeId: number) => {
-    switch (elementTypeId) {
-      case 1:
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case 2:
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case 3:
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-      case 4:
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
-    }
-  };
-
-  const getFormColor = (form: string) => {
-    const formValue = parseFloat(form);
-    if (formValue >= 7) return "text-green-600 dark:text-green-400";
-    if (formValue >= 5) return "text-yellow-600 dark:text-yellow-400";
-    return "text-red-600 dark:text-red-400";
-  };
+  if (isLoading) return <PlayerLoading />;
+  if (error) return <PlayerError error={error} />;
+  if (!player) return <PlayerNotFound />;
 
   return (
     <div className="flex flex-col flex-1 min-h-0 p-4 max-w-7xl mx-auto w-full">
@@ -104,29 +89,9 @@ export default function PlayerPage() {
           Back to Players
         </Button>
       </Link>
+
       <div className="mb-10">
-        <div className="flex items-center gap-4 pl-2">
-          <img
-            src={`https://resources.premierleague.com/premierleague/badges/t${player.team_code}.png`}
-            alt="Team badge"
-            className="w-10 h-10 "
-          />
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              {player.first_name} {player.second_name}
-            </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <Badge
-                className={`text-sm ${getPositionColor(player.element_type)}`}
-              >
-                {getPositionName(player.element_type)}
-              </Badge>
-              <span className="text-gray-600 dark:text-gray-400 align-middle">
-                £{(player.now_cost / 10).toFixed(1)}m
-              </span>
-            </div>
-          </div>
-        </div>
+        <PlayerHeader player={player} getPositionName={getPositionName} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -435,35 +400,18 @@ export default function PlayerPage() {
         </Card>
       </div>
 
-      {/* Player Status */}
-      {player.status !== "a" && (
-        <Card className="mt-10 rounded-xl border border-gray-200 bg-white/90 shadow-2xl dark:bg-gray-800/80 dark:border-gray-700 pt-5 pb-5 px-3">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-gray-900 dark:text-white tracking-wide mb-0 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
-              Player Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-3">
-              <Badge variant="destructive">
-                {player.status === "i"
-                  ? "Injured"
-                  : player.status === "s"
-                  ? "Suspended"
-                  : player.status === "u"
-                  ? "Unavailable"
-                  : "Unknown"}
-              </Badge>
-              {player.news && (
-                <span className="text-gray-400 dark:text-gray-300">
-                  {player.news}
-                </span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Move the chart below the cards */}
+      <div className="my-6">
+        {summaryLoading ? (
+          <Spinner />
+        ) : summaryError ? (
+          <div className="text-red-600 dark:text-red-400 text-center">
+            {summaryError}
+          </div>
+        ) : summary && summary.history.length > 0 ? (
+          <PlayerPointsChart history={summary.history} />
+        ) : null}
+      </div>
     </div>
   );
 }

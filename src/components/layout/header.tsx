@@ -39,7 +39,7 @@ export default function Header() {
             </Link>
             <Link
               href="/players"
-              className="text-sm font-medium text-gray-400 hover:text-emerald-500 transition-colors dark:text-gray-500 dark:hover:text-emerald-400"
+              className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors dark:text-gray-300 dark:hover:text-emerald-400"
             >
               Players
             </Link>
