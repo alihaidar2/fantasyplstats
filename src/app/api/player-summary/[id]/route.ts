@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } }
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function GET(req: NextRequest, context: any) {
   const { id } = context.params;
   const res = await fetch(
     `https://fantasy.premierleague.com/api/element-summary/${id}/`
