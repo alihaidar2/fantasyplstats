@@ -2,6 +2,7 @@
 
 import { PlayersDataTable } from "@/components/features/players/players-data-table";
 import { usePlayers } from "@/hooks/use-players";
+import { Card } from "@/components/ui/card";
 
 export default function PlayersPage() {
   return (
@@ -32,11 +33,13 @@ function PlayersContent() {
   }
 
   return (
-    <PlayersDataTable
-      players={players}
-      isLoading={isLoading}
-      getTeamName={getTeamName}
-      getPositionName={getPositionName}
-    />
+    <Card className="rounded-xl border border-green-200 dark:border-green-900">
+      <PlayersDataTable
+        players={players}
+        isLoading={isLoading}
+        getTeamName={getTeamName}
+        getPositionName={getPositionName}
+      />
+    </Card>
   );
 }

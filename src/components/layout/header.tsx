@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/common/theme-toggle";
 
 export default function Header() {
   return (
-    <header className="border-b border-gray-200 bg-white shadow-sm dark:bg-gray-900 dark:border-gray-700">
+    <header className="border-b border-gray-200 bg-white shadow-sm dark:bg-gray-900 dark:border-gray-700 border-b-2 border-green-200 dark:border-green-900">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo/Brand */}
@@ -39,7 +39,7 @@ export default function Header() {
             </Link>
             <Link
               href="/players"
-              className="text-sm font-medium text-gray-400 hover:text-emerald-500 transition-colors dark:text-gray-500 dark:hover:text-emerald-400"
+              className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors dark:text-gray-300 dark:hover:text-emerald-400"
             >
               Players
             </Link>

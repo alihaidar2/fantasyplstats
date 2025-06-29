@@ -1,7 +1,16 @@
 import { FPL_API } from "@/constants/app";
 import { BootstrapData, Fixture } from "@/types/fixtures";
+import { PlayerElementSummary } from "@/types/players";
 
 class FPLApiService {
+  // Helper to handle and log errors consistently
+  private handleError(context: string, error: unknown): never {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error(`${context}:`, error);
+    throw new Error(`${context}: ${message}`);
+  }
+
+  // Fetch with timeout and consistent headers
   private async fetchWithTimeout<T>(
     url: string,
     options: RequestInit = {},
@@ -36,45 +45,32 @@ class FPLApiService {
         );
       }
 
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
       clearTimeout(timeoutId);
-      console.error(`Fetch error for ${url}:`, {
-        message: error instanceof Error ? error.message : "Unknown error",
-        name: error instanceof Error ? error.name : "Unknown",
-        timestamp: new Date().toISOString(),
-      });
-      throw error;
+      this.handleError(`Fetch error for ${url}`, error);
     }
   }
 
+  // Fetch bootstrap data
   async getBootstrapData(): Promise<BootstrapData> {
     try {
       return await this.fetchWithTimeout<BootstrapData>(FPL_API.bootstrap);
     } catch (error) {
-      console.error("Failed to fetch bootstrap data:", error);
-      throw new Error(
-        `Failed to fetch FPL bootstrap data: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      this.handleError("Failed to fetch bootstrap data", error);
     }
   }
 
+  // Fetch all fixtures
   async getFixtures(): Promise<Fixture[]> {
     try {
       return await this.fetchWithTimeout<Fixture[]>(FPL_API.fixtures);
     } catch (error) {
-      console.error("Failed to fetch fixtures:", error);
-      throw new Error(
-        `Failed to fetch FPL fixtures: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      this.handleError("Failed to fetch fixtures", error);
     }
   }
 
+  // Fetch both bootstrap and fixtures in parallel
   async getAllData(): Promise<{
     bootstrap: BootstrapData;
     fixtures: Fixture[];
@@ -84,14 +80,23 @@ class FPLApiService {
         this.getBootstrapData(),
         this.getFixtures(),
       ]);
-
       return { bootstrap, fixtures };
     } catch (error) {
-      console.error("Failed to fetch all FPL data:", error);
-      throw new Error(
-        `Failed to fetch FPL data: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
+      this.handleError("Failed to fetch all FPL data", error);
+    }
+  }
+
+  // Fetch player element summary
+  async getElementSummary(playerId: number): Promise<PlayerElementSummary> {
+    try {
+      console.log("playerId", playerId);
+      return await this.fetchWithTimeout<PlayerElementSummary>(
+        `https://fantasy.premierleague.com/api/element-summary/${playerId}/`
+      );
+    } catch (error) {
+      this.handleError(
+        `Failed to fetch element-summary for player ${playerId}`,
+        error
       );
     }
   }

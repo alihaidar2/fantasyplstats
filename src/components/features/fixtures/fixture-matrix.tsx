@@ -61,7 +61,7 @@ export default function FixtureMatrix() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="overflow-x-auto flex-1 min-h-0 flex flex-col dark:bg-gray-900">
+        <Card className="overflow-x-auto flex-1 min-h-0 flex flex-col dark:bg-gray-900 border-green-200 dark:border-green-900">
           <CardContent className="p-4 flex-1 flex flex-col min-h-0">
             <table className="table-fixed border-separate border-spacing-x-1 border-spacing-y-1 text-xs min-w-max flex-1 w-full">
               <colgroup>
