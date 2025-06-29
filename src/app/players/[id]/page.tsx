@@ -96,7 +96,7 @@ export default function PlayerPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {/* Season Stats */}
-        <Card className="rounded-xl border border-gray-200 bg-white/90 shadow-2xl dark:bg-gray-800/80 dark:border-gray-700 pt-5 pb-5 px-3">
+        <Card className="rounded-xl border border-green-200 dark:border-green-900 bg-white/90 shadow-2xl dark:bg-gray-800/80 pt-5 pb-5 px-3">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-gray-900 dark:text-white tracking-wide mb-0 flex items-center gap-2">
               <BarChart2 className="w-5 h-5" />
@@ -150,7 +150,7 @@ export default function PlayerPage() {
         </Card>
 
         {/* Attacking Stats */}
-        <Card className="rounded-xl border border-gray-200 bg-white/90 shadow-2xl dark:bg-gray-800/80 dark:border-gray-700 pt-5 pb-5 px-3">
+        <Card className="rounded-xl border border-green-200 dark:border-green-900 bg-white/90 shadow-2xl dark:bg-gray-800/80 pt-5 pb-5 px-3">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-gray-900 dark:text-white tracking-wide mb-0 flex items-center gap-2">
               <Goal className="w-5 h-5" />
@@ -200,7 +200,7 @@ export default function PlayerPage() {
         </Card>
 
         {/* Defensive Stats */}
-        <Card className="rounded-xl border border-gray-200 bg-white/90 shadow-2xl dark:bg-gray-800/80 dark:border-gray-700 pt-5 pb-5 px-3">
+        <Card className="rounded-xl border border-green-200 dark:border-green-900 bg-white/90 shadow-2xl dark:bg-gray-800/80 pt-5 pb-5 px-3">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-gray-900 dark:text-white tracking-wide mb-0 flex items-center gap-2">
               <Shield className="w-5 h-5" />
@@ -250,7 +250,7 @@ export default function PlayerPage() {
         </Card>
 
         {/* Discipline */}
-        <Card className="rounded-xl border border-gray-200 bg-white/90 shadow-2xl dark:bg-gray-800/80 dark:border-gray-700 pt-5 pb-5 px-3">
+        <Card className="rounded-xl border border-green-200 dark:border-green-900 bg-white/90 shadow-2xl dark:bg-gray-800/80 pt-5 pb-5 px-3">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-gray-900 dark:text-white tracking-wide mb-0 flex items-center gap-2">
               <Flag className="w-5 h-5" />
@@ -300,7 +300,7 @@ export default function PlayerPage() {
         </Card>
 
         {/* Performance Metrics */}
-        <Card className="rounded-xl border border-gray-200 bg-white/90 shadow-2xl dark:bg-gray-800/80 dark:border-gray-700 pt-5 pb-5 px-3">
+        <Card className="rounded-xl border border-green-200 dark:border-green-900 bg-white/90 shadow-2xl dark:bg-gray-800/80 pt-5 pb-5 px-3">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-gray-900 dark:text-white tracking-wide mb-0 flex items-center gap-2">
               <Award className="w-5 h-5" />
@@ -350,7 +350,7 @@ export default function PlayerPage() {
         </Card>
 
         {/* Game Time */}
-        <Card className="rounded-xl border border-gray-200 bg-white/90 shadow-2xl dark:bg-gray-800/80 dark:border-gray-700 pt-5 pb-5 px-3">
+        <Card className="rounded-xl border border-green-200 dark:border-green-900 bg-white/90 shadow-2xl dark:bg-gray-800/80 pt-5 pb-5 px-3">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-gray-900 dark:text-white tracking-wide mb-0 flex items-center gap-2">
               <Clock className="w-5 h-5" />
@@ -402,15 +402,17 @@ export default function PlayerPage() {
 
       {/* Move the chart below the cards */}
       <div className="my-6">
-        {summaryLoading ? (
-          <Spinner />
-        ) : summaryError ? (
-          <div className="text-red-600 dark:text-red-400 text-center">
-            {summaryError}
-          </div>
-        ) : summary && summary.history.length > 0 ? (
-          <PlayerPointsChart history={summary.history} />
-        ) : null}
+        <Card className="rounded-xl border border-green-200 dark:border-green-900">
+          {summaryLoading ? (
+            <Spinner />
+          ) : summaryError ? (
+            <div className="text-red-600 dark:text-red-400 text-center">
+              {summaryError}
+            </div>
+          ) : summary && summary.history.length > 0 ? (
+            <PlayerPointsChart history={summary.history} />
+          ) : null}
+        </Card>
       </div>
     </div>
   );
