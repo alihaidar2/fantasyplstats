@@ -70,7 +70,7 @@ export default function FixtureMatrix() {
                 {(() => {
                   const [from, to] = range;
                   return Array.from({ length: to - from + 1 }, (_, idx) => (
-                    <col key={from + idx} style={{ minWidth: "10rem" }} />
+                    <col key={from + idx} style={{ width: "10rem" }} />
                   ));
                 })()}
               </colgroup>
