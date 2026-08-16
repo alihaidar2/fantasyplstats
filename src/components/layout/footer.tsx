@@ -10,6 +10,16 @@ export default function Footer() {
             Data powered by the FPL API
           </p>
         </div>
+        <div className="mt-2 text-center">
+          <a
+            href="https://www.haidartechsolutions.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-gray-400 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-500"
+          >
+            Built by Haidar Tech Solutions
+          </a>
+        </div>
       </div>
     </footer>
   );
