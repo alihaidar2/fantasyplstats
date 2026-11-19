@@ -1,23 +1,40 @@
 import { useEffect, useState } from "react";
 import { PlayerElementSummary } from "@/types/players";
 
+type SummaryResult = {
+  playerId: number;
+  summary: PlayerElementSummary | null;
+  error: string | null;
+};
+
 export default function usePlayerSummary(playerId: number) {
-  const [summary, setSummary] = useState<PlayerElementSummary | null>(null);
-  const [summaryLoading, setSummaryLoading] = useState(true);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
+  // The last finished request. Loading is derived from it rather than set
+  // inside the effect: a result for another player means we're still loading.
+  const [result, setResult] = useState<SummaryResult | null>(null);
 
   useEffect(() => {
-    setSummaryLoading(true);
-    setSummaryError(null);
+    let ignore = false;
     fetch(`/api/player-summary/${playerId}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch player summary");
         return res.json();
       })
-      .then((data) => setSummary(data))
-      .catch((err) => setSummaryError(err.message))
-      .finally(() => setSummaryLoading(false));
+      .then((summary: PlayerElementSummary) => {
+        if (!ignore) setResult({ playerId, summary, error: null });
+      })
+      .catch((err: Error) => {
+        if (!ignore) setResult({ playerId, summary: null, error: err.message });
+      });
+    return () => {
+      ignore = true;
+    };
   }, [playerId]);
 
-  return { summary, summaryLoading, summaryError };
+  const current = result?.playerId === playerId ? result : null;
+
+  return {
+    summary: current?.summary ?? null,
+    summaryLoading: current === null,
+    summaryError: current?.error ?? null,
+  };
 }

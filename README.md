@@ -1,131 +1,75 @@
-# FPL Stats v3
+# FPL Stats
 
-Advanced Fantasy Premier League analytics and fixture tracking tool built with Next.js 15, React 19, and TypeScript.
+Fantasy Premier League stats site at [fantasyplstats.com](https://fantasyplstats.com): a fixture difficulty matrix, a players table and player pages.
 
-## 🚀 Features
+## Features
 
-- **Fixture Matrix**: Interactive table showing team fixtures with difficulty ratings
-- **Dark/Light Mode**: Toggle between themes with persistent preferences
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Real-time Data**: Fetches live data from the official FPL API
-- **Incremental Static Regeneration**: Fast loading with CDN caching
-- **TypeScript**: Full type safety throughout the application
+- **Fixture difficulty matrix**: every team's opponents over a gameweek range you pick with a slider, coloured by FPL's difficulty rating, with a sortable average difficulty column.
+- **Players table**: every player, with sorting, a name filter, a position filter and pagination.
+- **Player pages**: season, attacking, defensive and discipline stats, plus a points-per-gameweek chart.
+- **Themes**: light, dark or follow the system setting.
 
-## 🛠️ Tech Stack
+## Tech stack
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS v4
-- **UI Components**: Radix UI + Custom components
-- **Data Fetching**: Custom hooks with React Query patterns
-- **Tables**: TanStack Table (React Table v8)
-- **Icons**: Lucide React
-- **Deployment**: Vercel (recommended)
+- Next.js 16 (App Router), React 19, TypeScript
+- Tailwind CSS 4, shadcn/ui on Radix UI, Lucide icons
+- TanStack Table for the tables, Recharts for the charts
+- Data from the unofficial FPL API, fetched on the server by the route handlers in `src/app/api/`. The browser never calls FPL directly.
 
-## 🏃‍♂️ Quick Start
+## Getting started
 
-### Prerequisites
+You need Node.js 20 (20.9 or later) or 22. CI uses Node 22 LTS, which `.nvmrc` pins, so `nvm use` picks it up. Azure's build reads `engines` in `package.json` and only accepts Node 20 and 22, so newer versions aren't allowed there yet.
 
-- Node.js 18+ 
-- npm, yarn, pnpm, or bun
-
-### Installation
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/ahaidar/fantasyplstats.git
+git clone https://github.com/alihaidar2/fantasyplstats.git
 cd fantasyplstats
-```
-
-2. Install dependencies:
-```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
-```
-
-3. Run the development server:
-```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+Then open [http://localhost:3000](http://localhost:3000). No environment variables are needed.
 
-## 📁 Project Structure
+## Scripts
+
+| Command             | What it does                                                           |
+| ------------------- | ---------------------------------------------------------------------- |
+| `npm run dev`       | Start the dev server                                                   |
+| `npm run build`     | Production build. It calls the FPL API to prerender the cached routes. |
+| `npm start`         | Serve the production build                                             |
+| `npm run lint`      | Run ESLint                                                             |
+| `npm run typecheck` | Generate Next.js route types, then run `tsc --noEmit`                  |
+
+Run lint, typecheck and build before opening a pull request. CI runs all three.
+
+## Project structure
 
 ```
 src/
-├── app/                    # Next.js App Router pages
-│   ├── api/               # API routes
-│   ├── fixtures/          # Fixtures page
-│   └── layout.tsx         # Root layout
-├── components/            # React components
-│   ├── common/           # Shared components
-│   ├── features/         # Feature-specific components
-│   ├── layout/           # Layout components
-│   └── ui/               # Base UI components
-├── hooks/                # Custom React hooks
-├── lib/                  # Utilities and helpers
-├── services/             # API service layer
-├── types/                # TypeScript type definitions
-└── constants/            # App constants
+├── app/            # App Router pages and API route handlers
+│   ├── api/        # Server-side proxies to the FPL API
+│   ├── fixtures/   # Fixture difficulty matrix
+│   └── players/    # Players table and player pages
+├── components/     # common/, features/, layout/ and ui/ (shadcn)
+├── constants/      # App constants
+├── hooks/          # Data and UI hooks
+├── lib/            # Utilities, including the fixture matrix builder
+├── services/       # FPL API client
+└── types/          # TypeScript types
 ```
 
-## 🚀 Deployment
+## Deployment
 
-### Vercel (Recommended)
+The site is hosted on Azure Static Web Apps and deployed by `.github/workflows/azure-static-web-apps-green-plant-0bd68360f.yml`:
 
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Deploy automatically on every push
+- A push to `master` runs lint, typecheck and build, then deploys to production.
+- A pull request to `master` runs the same checks and deploys a preview environment. The preview is deleted when the pull request closes.
 
-### Manual Deployment
+Every push to `master` goes live, so work on a branch and open a pull request. The production-readiness plan is in [PLAN.md](PLAN.md).
 
-```bash
-npm run build
-npm start
-```
+## Data source
 
-## 🔧 Environment Variables
+All data comes from the [Fantasy Premier League](https://fantasy.premierleague.com/) API. It is unofficial and undocumented, so it can change or go down without notice. This site is not affiliated with the Premier League or FPL.
 
-No environment variables required for basic functionality. The app uses public FPL API endpoints.
+## License
 
-## 📊 Data Sources
-
-- **FPL API**: Official Fantasy Premier League API
-- **Bootstrap Data**: Teams, players, and fixtures
-- **Fixtures**: Real-time fixture information
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Fantasy Premier League](https://fantasy.premierleague.com/) for the API
-- [Next.js](https://nextjs.org/) team for the amazing framework
-- [Vercel](https://vercel.com/) for hosting and deployment
-
-## 📈 Version History
-
-- **v3.0.0**: Complete rewrite with Next.js 15, React 19, TypeScript, and modern architecture
-- **v2.x**: Previous versions (legacy)
-- **v1.x**: Initial releases
-
----
-
-Built with ❤️ for the FPL community
+MIT. See [LICENSE](LICENSE).

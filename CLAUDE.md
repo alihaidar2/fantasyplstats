@@ -10,7 +10,8 @@ The site is being made production-ready. The findings, decisions and step order 
 
 - `npm run dev`: local dev server
 - `npm run build`: production build
-- `npm run lint`: lint
+- `npm run lint`: lint (`eslint .`)
+- `npm run typecheck`: generate Next.js route types, then `tsc --noEmit`
 
 Update this list as steps in `PLAN.md` add scripts (typecheck, test, fetch).
 
