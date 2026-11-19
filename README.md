@@ -18,7 +18,7 @@ Fantasy Premier League stats site at [fantasyplstats.com](https://fantasyplstats
 
 ## Getting started
 
-You need Node.js 20.9 or later. CI uses Node 22 LTS, which `.nvmrc` pins, so `nvm use` picks it up.
+You need Node.js 20 (20.9 or later) or 22. CI uses Node 22 LTS, which `.nvmrc` pins, so `nvm use` picks it up. Azure's build reads `engines` in `package.json` and only accepts Node 20 and 22, so newer versions aren't allowed there yet.
 
 ```bash
 git clone https://github.com/alihaidar2/fantasyplstats.git
