@@ -1,3 +1,5 @@
+"use client";
+
 import {
   LineChart,
   Line,
@@ -6,7 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import type { PlayerElementHistory } from "@/types/players";
+import type { PointsByGameweek } from "@/lib/fpl/transforms";
 import React from "react";
 
 // Define a local TooltipPayload type for Recharts payload entries
@@ -46,14 +48,9 @@ function ThemedTooltip({
 export default function PlayerPointsChart({
   history,
 }: Readonly<{
-  history: PlayerElementHistory[];
+  history: PointsByGameweek[];
 }>) {
-  const data = history.map((gw) => ({
-    gameweek: gw.round,
-    points: gw.total_points,
-    xg: parseFloat(gw.expected_goals),
-    xa: parseFloat(gw.expected_assists),
-  }));
+  const data = history;
 
   return (
     <div className="rounded-xl bg-white/90 dark:bg-gray-800/80 text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 pt-5 pb-5 px-3 h-96 flex flex-col">
@@ -70,9 +67,6 @@ export default function PlayerPointsChart({
             <YAxis />
             <Tooltip content={<ThemedTooltip />} />
             <Line type="monotone" dataKey="points" stroke="#4ade80" dot />
-            {/* Optionally add xG/xA lines: */}
-            {/* <Line type="monotone" dataKey="xg" stroke="#818cf8" dot={false} /> */}
-            {/* <Line type="monotone" dataKey="xa" stroke="#fbbf24" dot={false} /> */}
           </LineChart>
         </ResponsiveContainer>
       </div>

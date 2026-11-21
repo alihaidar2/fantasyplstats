@@ -8,7 +8,8 @@ Work through the steps in order, one step per branch and pull request. Every pus
 
 - **Keep the stack:** Next.js (upgrade to 16), React 19, TypeScript, Tailwind 4, shadcn/Radix, TanStack Table, Recharts.
 - **Change the architecture:** stop calling the FPL API on every visit. Fetch FPL data at build time and publish the whole site as static files (`output: "export"`).
-- **Rebuild on a schedule:** GitHub Actions rebuilds and redeploys every 1–2 hours. If FPL is down or its data fails validation, the build fails and the last good version stays live.
+- **Rebuild on a schedule:** GitHub Actions rebuilds and redeploys every 30 minutes on days with Premier League matches, every 2 hours on other days, and once shortly after the nightly price change (01:40 UK time). Match-day runs refetch `element-summary` only for players whose teams have played and reuse the rest from the previous snapshot. If FPL is down or its data fails validation, the build fails and the last good version stays live.
+- **Reusable data layer:** `src/lib/fpl/` (client, zod schemas, transforms) has no Next.js or React imports, so a future Azure Function can reuse it for a live match-day mode.
 - **Hosting:** keep the existing Azure Static Web App, but deploy plain static files instead of using SWA's hybrid Next.js mode, which is still in preview.
 
 ## Findings (November 2026)
@@ -56,10 +57,13 @@ Done when lint, typecheck and build pass locally, the site behaves the same in `
 
 ## Step 2: Static architecture
 
+Static export changes what Azure deploys, so this step also moves the deploy to `out/` and adds the scheduled rebuilds. Without them, merging would either break production or freeze the data.
+
 ### Data layer
 
 - `scripts/fetch-fpl.ts` runs before `next build`. It fetches `bootstrap-static`, `fixtures`, and `element-summary` for each player, with at most about 5 requests at once, timeouts, and retries with backoff. It validates everything with zod and writes a snapshot with a `generatedAt` timestamp to `.data/` (gitignored). Any failure exits non-zero.
-- `src/lib/fpl/` holds the zod schemas, types inferred from them, and transforms into slim view models (player row, player detail, fixture matrix). Pages read only these view models.
+- `src/lib/fpl/` holds the throttled client, the zod schemas, types inferred from them, and transforms into slim view models (player row, player detail, fixture matrix). Pages read only these view models. It has no Next.js, React or `@/` imports (an ESLint rule enforces this), so a future Azure Function can reuse it for a live match-day mode.
+- On match days, the fetch refetches `element-summary` only for players whose teams have kicked off since the previous snapshot (plus new players and players who changed team) and reuses the rest. Otherwise, or without a usable previous snapshot (missing, invalid, over 24 hours old or from another season), it refetches every player.
 
 ### Pages
 
@@ -71,22 +75,38 @@ Done when lint, typecheck and build pass locally, the site behaves the same in `
 - The footer shows "Data updated …" from `generatedAt`. Also publish `/health.json` with `generatedAt` and the current gameweek.
 - Delete `src/app/api/*` and the `useEffect` fetching hooks.
 
+### Deploy and schedule (moved from step 3)
+
+- The workflow fetches, builds `out/` and deploys it to SWA with `skip_app_build: true`.
+- Triggers: push to `master`, pull requests, `workflow_dispatch` (with an option to refetch every player), and four UTC crons. `scripts/plan-run.ts` gates each scheduled run using the previous snapshot's fixtures, in UK time:
+  - `5,35 * * * *`: every 30 minutes, deploys only on days with Premier League matches.
+  - `20 */2 * * *`: every 2 hours, deploys only on days without matches.
+  - `40 0 * * *` and `40 1 * * *`: 01:40 UK time after the nightly price change. Only the one matching the current GMT or BST offset deploys.
+- The previous snapshot persists between runs in the Actions cache. It is saved only after a successful fetch and build.
+- A `concurrency` group queues production deploys so they never overlap.
+- The deploy job has `pull-requests: write` so the deploy action can comment the preview URL. The rest of the workflow is read-only.
+
 ### Tests
 
-- Vitest unit tests for the transforms (matrix building, current gameweek, double and blank gameweeks). Use small recorded FPL responses in `test/fixtures/` so tests never call FPL.
+- Vitest unit tests for the transforms (matrix building, current gameweek, double and blank gameweeks), the schedule rules, incremental refresh, and the client's retries and throttling. Use small recorded FPL responses in `test/fixtures/` so tests never call FPL.
 
-Done when `npm run build` produces `out/` with every page prerendered, pages show data with JavaScript disabled, and tests pass.
+### Housekeeping
+
+- Commit `AGENTS.md` (written by Next.js) and import it from `CLAUDE.md` with `@AGENTS.md`.
+- Drop Node 20 from `engines`: Azure no longer builds the app, and CI uses Node 22.
+
+Done when `npm run build` produces `out/` with every page prerendered, pages show data with JavaScript disabled, tests pass, and the PR preview serves the static site.
 
 ## Step 3: Automation
 
-- Deploy workflow triggers: push to `master`, a schedule every 1–2 hours, and manual `workflow_dispatch`. Steps: fetch, build, then deploy `out/` to SWA with `skip_app_build: true`. Use a `concurrency` group so deploys never overlap.
+- Deploying `out/`, the schedule, `workflow_dispatch` and the `concurrency` group moved to step 2.
 - PR workflow: lint, typecheck, tests, and a build against a small recorded snapshot so PRs don't depend on FPL.
 - Keep-alive: GitHub disables scheduled workflows in public repos after 60 days without repository activity. Add a keep-alive step so the schedule survives the off-season.
 - Freshness check: a scheduled job reads `https://fantasyplstats.com/health.json` and fails if `generatedAt` is more than 6 hours old, so GitHub emails a failure.
 - Dependabot: npm weekly with minor and patch updates grouped, GitHub Actions monthly.
 - `staticwebapp.config.json`: 404 page, cache headers for static assets, basic security headers.
 
-Done when a scheduled run deploys on its own, and pointing the fetch at a bad FPL URL makes the run fail while the live site keeps the last good data.
+Done when a scheduled run deploys on its own, and pointing the fetch at a bad FPL URL (`FPL_BASE_URL`) makes the run fail while the live site keeps the last good data.
 
 ## Step 4: Search readiness
 
@@ -98,5 +118,6 @@ Done when a scheduled run deploys on its own, and pointing the fetch at a bad FP
 ## Risks to check early
 
 - Whether FPL's API accepts requests from GitHub-hosted runners. Test this first in step 2. If it's blocked, move the fetch into an Azure Function that hands the snapshot to the build.
-- Request volume: about 700 `element-summary` calls per build. Keep them throttled. If builds get slow, refresh `element-summary` only for players with new minutes.
+- Request volume: about 700 `element-summary` calls per full build (about 15 seconds at 5 at once). Match-day runs refetch only players whose teams have played.
 - Players FPL adds mid-season appear after the next scheduled rebuild.
+- Output size: `out/` is about 95 MB, mostly the RSC payload files Next.js writes next to each of the ~670 player pages. The SWA Free plan allows 250 MB per app.

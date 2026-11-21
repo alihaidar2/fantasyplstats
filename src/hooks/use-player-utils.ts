@@ -13,8 +13,8 @@ export function getPositionColor(elementTypeId: number): string {
   }
 }
 
-export function getFormColor(form: string): string {
-  const formValue = parseFloat(form);
+export function getFormColor(form: number | string): string {
+  const formValue = Number(form);
   if (formValue >= 7) return "text-green-600 dark:text-green-400";
   if (formValue >= 5) return "text-yellow-600 dark:text-yellow-400";
   return "text-red-600 dark:text-red-400";
