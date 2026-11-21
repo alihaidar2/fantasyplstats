@@ -1,6 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useSyncExternalStore,
+} from "react";
 
 type Theme = "dark" | "light" | "system";
 
@@ -16,6 +21,29 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
+// Fired when this tab changes the theme. The `storage` event covers other tabs.
+const THEME_CHANGE_EVENT = "theme-change";
+
+function subscribe(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(THEME_CHANGE_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(THEME_CHANGE_EVENT, onChange);
+  };
+}
+
+function readStoredTheme(storageKey: string): Theme | null {
+  try {
+    const stored = localStorage.getItem(storageKey);
+    return stored === "dark" || stored === "light" || stored === "system"
+      ? stored
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export function ThemeProvider({
   children,
   defaultTheme = "system",
@@ -25,17 +53,14 @@ export function ThemeProvider({
   defaultTheme?: Theme;
   storageKey?: string;
 }) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-
-  // On mount, sync theme from localStorage if available
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = localStorage.getItem(storageKey) as Theme | null;
-    if (stored && stored !== theme) {
-      setTheme(stored);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // The server snapshot (null) is used while hydrating, so the first client
+  // render matches the server; the stored theme takes over right after.
+  const storedTheme = useSyncExternalStore(
+    subscribe,
+    () => readStoredTheme(storageKey),
+    () => null
+  );
+  const theme = storedTheme ?? defaultTheme;
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -58,10 +83,8 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      if (typeof window !== "undefined") {
-        localStorage.setItem(storageKey, theme);
-      }
-      setTheme(theme);
+      localStorage.setItem(storageKey, theme);
+      window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
     },
   };
 
