@@ -3,10 +3,11 @@ name: Site freshness
 # Checks that the live site's data is recent, and keeps this repo's scheduled
 # workflows from being disabled.
 #
-# A failed scheduled run makes GitHub email a notification: it goes to the
-# user who last changed the cron schedule in this file (normally the repo
-# owner), so a failing freshness check is the alert that the deploy workflow
-# has stopped publishing new data.
+# The alert is a GitHub issue titled "Site data is stale": a failing check
+# opens it (or comments on the open one), and a passing check comments and
+# closes it. Watchers of the repo get notified. GitHub's failed-run email isn't
+# relied on, because it goes to whoever last re-enabled the workflow, and the
+# keep-alive below re-enables it every day.
 
 on:
   # GitHub cron is UTC. Schedules only run on the default branch, and runs can
@@ -24,6 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Check site freshness
     timeout-minutes: 10
+    permissions:
+      contents: read
+      # Open, comment on and close the "Site data is stale" alert issue.
+      issues: write
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v7
@@ -38,12 +43,14 @@ jobs:
         run: npm ci
 
       # Fails if /health.json can't be fetched, is invalid, or its generatedAt
-      # is more than MAX_AGE_HOURS old.
+      # is more than MAX_AGE_HOURS old, and opens, updates or closes the alert
+      # issue to match.
       - name: 🩺 Check health.json is fresh
         run: npx tsx scripts/check-freshness.ts
         env:
           HEALTH_URL: https://fantasyplstats.com/health.json
           MAX_AGE_HOURS: "6"
+          GITHUB_TOKEN: ${{ github.token }}
 
   # GitHub disables scheduled workflows in public repos after 60 days without
   # repository activity, which would stop deploys over the off-season.
