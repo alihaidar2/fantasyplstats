@@ -10,6 +10,7 @@ import PlayerHeader from "@/components/features/players/player-header";
 import { getFormColor } from "@/hooks/use-player-utils";
 import { getSnapshot } from "@/lib/data";
 import { buildPlayerDetail, type PlayerDetail } from "@/lib/fpl";
+import { playerMetadata, playerNotFoundMetadata } from "@/lib/metadata";
 
 // Every player page is generated at build time; unknown ids are a 404.
 export const dynamicParams = false;
@@ -27,7 +28,7 @@ function findPlayer(id: string): PlayerDetail | null {
 
 export async function generateMetadata({ params }: PageProps<"/players/[id]">): Promise<Metadata> {
   const player = findPlayer((await params).id);
-  return { title: player ? `${player.name} | Fantasy PL Stats` : "Player not found | Fantasy PL Stats" };
+  return player ? playerMetadata(player) : playerNotFoundMetadata;
 }
 
 type Stat = { label: string; value: React.ReactNode; className?: string };

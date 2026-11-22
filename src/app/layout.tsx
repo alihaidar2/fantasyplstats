@@ -4,13 +4,11 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import Analytics from "@/components/layout/analytics";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { rootMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "FPL Stats - Fantasy Premier League Analytics",
-  description:
-    "Comprehensive Fantasy Premier League analytics and insights to help you make better decisions.",
-};
+export const metadata: Metadata = rootMetadata;
 
 export default function RootLayout({
   children,
@@ -27,6 +25,7 @@ export default function RootLayout({
           <main className="flex-1 flex flex-col">{children}</main>
           <Footer />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
