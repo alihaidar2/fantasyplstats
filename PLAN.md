@@ -55,6 +55,8 @@ Work through the steps in order, one step per branch and pull request. Every pus
 
 Done when lint, typecheck and build pass locally, the site behaves the same in `npm run dev`, and the PR preview deploy works.
 
+**Done** (#4): Next.js 16, Node 22, async params, local Geist fonts, no CORS headers, a clean `npm audit`, updated actions, and the job that closes PR previews.
+
 ## Step 2: Static architecture
 
 Static export changes what Azure deploys, so this step also moves the deploy to `out/` and adds the scheduled rebuilds. Without them, merging would either break production or freeze the data.
@@ -97,6 +99,8 @@ Static export changes what Azure deploys, so this step also moves the deploy to 
 
 Done when `npm run build` produces `out/` with every page prerendered, pages show data with JavaScript disabled, tests pass, and the PR preview serves the static site.
 
+**Done** (#5): the site is a static export built from a validated snapshot, deployed to Azure as plain files on push, on PRs and on the UK-time schedule.
+
 ## Step 3: Automation
 
 - Deploying `out/`, the schedule, `workflow_dispatch` and the `concurrency` group moved to step 2.
@@ -107,6 +111,8 @@ Done when `npm run build` produces `out/` with every page prerendered, pages sho
 - `staticwebapp.config.json`: 404 page, cache headers for static assets, basic security headers.
 
 Done when a scheduled run deploys on its own, and pointing the fetch at a bad FPL URL (`FPL_BASE_URL`) makes the run fail while the live site keeps the last good data.
+
+**Done** (#6, #12, #13): CI on PRs from a recorded snapshot, the hourly freshness check (alerting through a "Site data is stale" issue), keep-alive through the GitHub API, Dependabot with auto-merge for minor and patch updates, and `staticwebapp.config.json`. A bad `FPL_BASE_URL` makes the fetch exit 1 and leaves the previous snapshot untouched. Not yet seen: neither scheduled workflow had fired by 22 November 2026, 22:00 UTC, about 1.5 hours after the schedules reached master. Confirm the first scheduled deploy and freshness run in the Actions tab.
 
 ## Step 4: Search readiness
 
@@ -120,6 +126,15 @@ Done when a scheduled run deploys on its own, and pointing the fetch at a bad FP
 - `sitemap.xml` (home, fixtures, players and every player page) and `robots.txt` are prerendered into `out/`.
 - Open Graph: one site-wide image, written to `out/opengraph-image/og.png` so Azure serves it as a PNG. Per-player images were measured and dropped: they added about 53 MB to `out/` (94 → 150 MB) for about 2.5 seconds of build time.
 - Analytics: Cloudflare Web Analytics (cookieless). The beacon is only in production builds, and only when the `CF_ANALYTICS_TOKEN` Actions secret is set.
+
+## Later
+
+Deferred from steps 1–4:
+
+- Make the freshness check off-season-aware, so it doesn't alert hourly through the summer while FPL's API is down.
+- Per-player sitemap `lastmod`: change a player's date only when that player's data changes, instead of every entry using the snapshot's `generatedAt`.
+- Migrate to TanStack Table v9 (Dependabot's v9 PR broke the build; major updates are ignored for now).
+- Per-player Open Graph images: dropped for size (about 53 MB more in `out/`). They would also need a route handler, since Next gives a dynamic `opengraph-image` no file extension.
 
 ## Risks to check early
 

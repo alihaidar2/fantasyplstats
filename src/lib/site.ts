@@ -5,7 +5,11 @@
 export const SITE_URL = "https://fantasyplstats.com";
 export const SITE_NAME = "FPL Stats";
 export const SITE_DESCRIPTION =
-  "Fantasy Premier League fixture difficulty, player stats and form, rebuilt from the official FPL data through the day.";
+  "Fantasy Premier League fixture difficulty, player stats and form, rebuilt from Fantasy Premier League's public data through the day.";
+
+/** Shown in every page's footer. The FPL API is unofficial and the names are trademarks. */
+export const FOOTER_DISCLAIMER =
+  "Unofficial fan site, not affiliated with the Premier League or Fantasy Premier League.";
 
 export const PATHS = {
   home: "/",
