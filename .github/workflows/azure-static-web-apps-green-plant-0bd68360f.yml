@@ -104,6 +104,11 @@ jobs:
       - name: 🛠️ Build static site
         if: steps.plan.outputs.run == 'true'
         run: npm run build
+        env:
+          # Cloudflare Web Analytics beacon (src/components/layout/analytics.tsx).
+          # Production only: PR previews build without it so their traffic
+          # stays out of the numbers. Unset secret = no beacon.
+          NEXT_PUBLIC_CF_ANALYTICS_TOKEN: ${{ github.event_name != 'pull_request' && secrets.CF_ANALYTICS_TOKEN || '' }}
 
       - name: 💾 Save FPL snapshot
         if: steps.plan.outputs.run == 'true'

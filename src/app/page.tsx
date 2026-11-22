@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
+import { homeMetadata } from "@/lib/metadata";
+
+export const metadata: Metadata = homeMetadata;
 
 export default function Home() {
   return (

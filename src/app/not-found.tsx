@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { notFoundMetadata } from "@/lib/metadata";
 
 // The root not-found page handles every unmatched URL. In the static export
 // Next writes it to out/404.html, which staticwebapp.config.json serves with a
 // 404 status. Next sends this component with every route, so it stays a
 // Server Component with plain links.
-export const metadata: Metadata = {
-  title: "Page not found - FPL Stats",
-};
+export const metadata: Metadata = notFoundMetadata;
 
 export default function NotFound() {
   return (

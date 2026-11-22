@@ -3,8 +3,9 @@ import { PlayersDataTable } from "@/components/features/players/players-data-tab
 import { Card } from "@/components/ui/card";
 import { getSnapshot } from "@/lib/data";
 import { buildPlayerRows } from "@/lib/fpl";
+import { playersMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = { title: "Players | Fantasy PL Stats" };
+export const metadata: Metadata = playersMetadata;
 
 export default function PlayersPage() {
   const players = buildPlayerRows(getSnapshot().bootstrap);

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import FixtureMatrix from "@/components/features/fixtures/fixture-matrix";
 import { getSnapshot } from "@/lib/data";
 import { buildFixtureMatrix } from "@/lib/fpl";
+import { fixturesMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = { title: "Fixtures | Fantasy PL Stats" };
+export const metadata: Metadata = fixturesMetadata;
 
 export default function FixturesPage() {
   const { bootstrap, fixtures } = getSnapshot();

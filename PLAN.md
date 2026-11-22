@@ -115,9 +115,16 @@ Done when a scheduled run deploys on its own, and pointing the fetch at a bad FP
 - Open Graph images for player pages. Check that they work with static export.
 - Lightweight analytics, so traffic can be measured before any decision about ads.
 
+**Done.**
+- Every page has its own title, description and canonical URL (with the trailing slash the site serves), from `src/lib/metadata.ts`. Player pages use the player's name, team and position.
+- `sitemap.xml` (home, fixtures, players and every player page) and `robots.txt` are prerendered into `out/`.
+- Open Graph: one site-wide image, written to `out/opengraph-image/og.png` so Azure serves it as a PNG. Per-player images were measured and dropped: they added about 53 MB to `out/` (94 → 150 MB) for about 2.5 seconds of build time.
+- Analytics: Cloudflare Web Analytics (cookieless). The beacon is only in production builds, and only when the `CF_ANALYTICS_TOKEN` Actions secret is set.
+
 ## Risks to check early
 
 - Whether FPL's API accepts requests from GitHub-hosted runners. Test this first in step 2. If it's blocked, move the fetch into an Azure Function that hands the snapshot to the build.
 - Request volume: about 700 `element-summary` calls per full build (about 15 seconds at 5 at once). Match-day runs refetch only players whose teams have played.
 - Players FPL adds mid-season appear after the next scheduled rebuild.
 - Output size: `out/` is about 95 MB, mostly the RSC payload files Next.js writes next to each of the ~670 player pages. The SWA Free plan allows 250 MB per app.
+- Off-season: the freshness check will alert hourly during the summer off-season when FPL's API is down. Pause it or make it off-season-aware before then.
