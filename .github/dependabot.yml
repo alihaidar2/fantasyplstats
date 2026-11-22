@@ -2,7 +2,8 @@ version: 2
 updates:
   # npm: one weekly PR for all minor and patch updates; majors get their own
   # PRs so breaking changes are reviewed one at a time. Every Dependabot PR
-  # runs the CI workflow (lint, typecheck, tests, build).
+  # runs the CI workflow (lint, typecheck, tests, build), and minor and patch
+  # PRs merge themselves once it passes (dependabot-auto-merge.yml).
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -12,6 +13,11 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Stay on Node 22's types (.nvmrc); move up with the Node version.
+      - dependency-name: "@types/node"
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: github-actions
     directory: /
