@@ -22,6 +22,7 @@
   "scripts": {
     "dev": "next dev",
     "fetch": "tsx scripts/fetch-fpl.ts",
+    "fetch:fixtures": "tsx scripts/fixture-snapshot.ts",
     "build": "next build",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",

@@ -34,7 +34,15 @@ permissions:
 
 jobs:
   build_and_deploy:
-    if: github.event_name != 'pull_request' || github.event.action != 'closed'
+    # - A closed PR only needs its preview environment closed (below).
+    # - Dependabot PRs can't read Actions secrets, so they can't deploy a
+    #   preview; ci.yml still checks them.
+    # - A non-PR run deploys to production, so a manual run only deploys from
+    #   master, never from another branch.
+    if: >-
+      (github.event_name != 'pull_request' || github.event.action != 'closed')
+      && github.event.pull_request.user.login != 'dependabot[bot]'
+      && (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     name: Build and Deploy
     timeout-minutes: 20
@@ -118,7 +126,10 @@ jobs:
           skip_app_build: true
 
   close_pull_request:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    # Dependabot PRs never get a preview, and can't read the deploy token.
+    if: >-
+      github.event_name == 'pull_request' && github.event.action == 'closed'
+      && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     name: Close Pull Request
     steps:
@@ -127,3 +138,27 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GREEN_PLANT_0BD68360F }}
           action: "close"
+
+  # GitHub disables scheduled workflows in public repos after 60 days without
+  # repository activity, which would stop deploys over the off-season.
+  # Enabling a workflow through the API resets that timer without a commit
+  # (a commit to master would deploy). This runs once a day from the 01:40 UK
+  # (GMT) slot whether or not that slot deploys; freshness.yml does the same,
+  # so each scheduled workflow keeps both alive. Schedules only run on master.
+  keepalive:
+    if: github.event_name == 'schedule' && github.event.schedule == '40 1 * * *'
+    runs-on: ubuntu-latest
+    name: Keep scheduled workflows enabled
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: 💓 Keep scheduled workflows enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          for workflow in azure-static-web-apps-green-plant-0bd68360f.yml freshness.yml; do
+            gh api -X PUT "repos/$REPO/actions/workflows/$workflow/enable"
+            echo "Enabled $workflow"
+          done
