@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # npm: one weekly PR for all minor and patch updates; majors get their own
+  # PRs so breaking changes are reviewed one at a time. Every Dependabot PR
+  # runs the CI workflow (lint, typecheck, tests, build).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

@@ -11,6 +11,7 @@ The site is being made production-ready. The findings, decisions and step order 
 ## Commands
 
 - `npm run fetch`: fetch FPL data into `.data/snapshot.json` (`-- --full` refetches every player). Run it before `dev` or `build`.
+- `npm run fetch:fixtures`: write `.data/snapshot.json` from `test/fixtures/` with no network (what the CI workflow builds PRs from; Azure PR previews still fetch live data).
 - `npm run dev`: local dev server
 - `npm run build`: static export to `out/`
 - `npm run lint`: lint (`eslint .`)

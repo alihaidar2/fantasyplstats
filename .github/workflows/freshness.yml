@@ -1,0 +1,73 @@
+name: Site freshness
+
+# Checks that the live site's data is recent, and keeps this repo's scheduled
+# workflows from being disabled.
+#
+# A failed scheduled run makes GitHub email a notification: it goes to the
+# user who last changed the cron schedule in this file (normally the repo
+# owner), so a failing freshness check is the alert that the deploy workflow
+# has stopped publishing new data.
+
+on:
+  # GitHub cron is UTC. Schedules only run on the default branch, and runs can
+  # start late when GitHub is busy.
+  schedule:
+    - cron: "15 * * * *" # hourly freshness check
+    - cron: "50 3 * * *" # daily keep-alive (the freshness check runs too)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    name: Check site freshness
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v7
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      # Fails if /health.json can't be fetched, is invalid, or its generatedAt
+      # is more than MAX_AGE_HOURS old.
+      - name: 🩺 Check health.json is fresh
+        run: npx tsx scripts/check-freshness.ts
+        env:
+          HEALTH_URL: https://fantasyplstats.com/health.json
+          MAX_AGE_HOURS: "6"
+
+  # GitHub disables scheduled workflows in public repos after 60 days without
+  # repository activity, which would stop deploys over the off-season.
+  # Enabling a workflow through the API resets that timer without a commit,
+  # so this job does it once a day for both scheduled workflows. The deploy
+  # workflow does the same from its own schedule, so each keeps the other
+  # alive. It runs independently of the freshness job, so a stale site
+  # doesn't stop it.
+  keepalive:
+    if: >-
+      (github.event_name == 'workflow_dispatch' || github.event.schedule == '50 3 * * *')
+      && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    name: Keep scheduled workflows enabled
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: 💓 Keep scheduled workflows enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          for workflow in azure-static-web-apps-green-plant-0bd68360f.yml freshness.yml; do
+            gh api -X PUT "repos/$REPO/actions/workflows/$workflow/enable"
+            echo "Enabled $workflow"
+          done
