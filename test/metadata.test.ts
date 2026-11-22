@@ -9,7 +9,7 @@ import {
   playersMetadata,
   rootMetadata,
 } from "../src/lib/metadata";
-import { PATHS, playerPath, SITE_OG_IMAGE, SITE_URL } from "../src/lib/site";
+import { FOOTER_DISCLAIMER, PATHS, playerPath, SITE_DESCRIPTION, SITE_OG_IMAGE, SITE_URL } from "../src/lib/site";
 import { loadBootstrap, loadSummary } from "./helpers";
 
 const bootstrap = loadBootstrap();
@@ -124,5 +124,21 @@ describe("layout and not-found metadata", () => {
   it("gives the 404 page no canonical", () => {
     expect(notFoundMetadata.alternates).toBeUndefined();
     expect(notFoundMetadata.openGraph).toBeUndefined();
+  });
+});
+
+describe("site wording", () => {
+  // The FPL API is unofficial and "FPL" is a trademark: never claim official data.
+  it("describes the data as Fantasy Premier League's public data, not official", () => {
+    expect(SITE_DESCRIPTION).toContain("rebuilt from Fantasy Premier League's public data");
+    expect(SITE_DESCRIPTION).not.toMatch(/official/i);
+    expect(rootMetadata.description).toBe(SITE_DESCRIPTION);
+    expect(rootMetadata.openGraph?.description).toBe(SITE_DESCRIPTION);
+  });
+
+  it("has the unofficial fan site disclaimer for the footer", () => {
+    expect(FOOTER_DISCLAIMER).toBe(
+      "Unofficial fan site, not affiliated with the Premier League or Fantasy Premier League.",
+    );
   });
 });

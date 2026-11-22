@@ -6,7 +6,7 @@ Fantasy Premier League stats site at fantasyplstats.com: a fixture difficulty ma
 
 ## Current work
 
-The site is being made production-ready. The findings, decisions and step order are in `PLAN.md`. Read it before starting, and do one step per branch and pull request.
+Steps 1–4 of `PLAN.md` (production readiness) are done. Step 5 (features) comes next, once it's written into `PLAN.md`. Read `PLAN.md` before starting, and do one step per branch and pull request. Deferred work is under "Later" in `PLAN.md`.
 
 ## Commands
 

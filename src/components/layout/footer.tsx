@@ -1,5 +1,6 @@
 import { getSnapshot } from "@/lib/data";
 import { formatUpdatedAt } from "@/lib/fpl";
+import { FOOTER_DISCLAIMER } from "@/lib/site";
 
 export default function Footer() {
   const { generatedAt } = getSnapshot();
@@ -8,14 +9,17 @@ export default function Footer() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-1">
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            © 2024 FPL Stats. Not affiliated with the Premier League or FPL.
+            © 2024 FPL Stats
           </p>
           <p className="text-xs text-gray-600 dark:text-gray-400">
             Data from the FPL API · Data updated{" "}
             <time dateTime={generatedAt}>{formatUpdatedAt(generatedAt)}</time>
           </p>
         </div>
-        <div className="mt-2 text-center">
+        <p className="mt-2 text-center text-xs text-gray-600 dark:text-gray-400">
+          {FOOTER_DISCLAIMER}
+        </p>
+        <div className="mt-1 text-center">
           <a
             href="https://www.haidartechsolutions.com"
             target="_blank"
