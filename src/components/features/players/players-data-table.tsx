@@ -35,25 +35,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
-import type { Player } from "@/types/players";
+import type { PlayerRow } from "@/lib/fpl/transforms";
+import { getFormColor, getPositionColor } from "@/hooks/use-player-utils";
 import Link from "next/link";
-import { Spinner } from "@/components/common/Spinner";
 
 interface PlayersDataTableProps {
-  players: Player[];
-  isLoading: boolean;
-  getTeamName: (teamId: number) => string;
-  getPositionName: (elementTypeId: number) => string;
+  players: PlayerRow[];
 }
 
-export function PlayersDataTable({
-  players,
-  isLoading,
-  getTeamName,
-  getPositionName,
-}: PlayersDataTableProps) {
+export function PlayersDataTable({ players }: PlayersDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "total_points", desc: true },
+    { id: "totalPoints", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -64,35 +56,13 @@ export function PlayersDataTable({
   const [positionFilter, setPositionFilter] = React.useState<string>("all");
   const [pageSize, setPageSize] = React.useState<number>(10);
 
-  const getPositionColor = (elementTypeId: number) => {
-    switch (elementTypeId) {
-      case 1:
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"; // GKP
-      case 2:
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"; // DEF
-      case 3:
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"; // MID
-      case 4:
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"; // FWD
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
-    }
-  };
-
-  const getFormColor = (form: string) => {
-    const formValue = parseFloat(form);
-    if (formValue >= 7) return "text-green-600 dark:text-green-400";
-    if (formValue >= 5) return "text-yellow-600 dark:text-yellow-400";
-    return "text-red-600 dark:text-red-400";
-  };
-
   const SortableHeader = ({
     column,
     children,
     className = "",
     style,
   }: {
-    column: Column<Player, unknown>;
+    column: Column<PlayerRow, unknown>;
     children: React.ReactNode;
     className?: string;
     style?: React.CSSProperties;
@@ -114,9 +84,9 @@ export function PlayersDataTable({
     </Button>
   );
 
-  const columns: ColumnDef<Player>[] = [
+  const columns: ColumnDef<PlayerRow>[] = [
     {
-      accessorKey: "web_name",
+      accessorKey: "name",
       header: ({ column }) => (
         <SortableHeader
           column={column}
@@ -125,34 +95,28 @@ export function PlayersDataTable({
           Player
         </SortableHeader>
       ),
-      accessorFn: (row) => `${row.first_name} ${row.second_name}`,
       size: 20,
       cell: ({ row }) => {
         const player = row.original;
-        const fullName = `${player.first_name} ${player.second_name}`;
         return (
           <Link href={`/players/${player.id}`} className="block">
             <div className="font-medium text-gray-900 dark:text-white truncate pl-2 pr-18 min-w-[250px] hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
-              {fullName}
+              {player.name}
             </div>
           </Link>
         );
       },
     },
     {
-      accessorKey: "element_type",
+      accessorKey: "position",
       header: ({ column }) => (
         <SortableHeader column={column}>Position</SortableHeader>
       ),
       size: 8,
       cell: ({ row }) => (
         <div className="text-center">
-          <Badge
-            className={`text-xs ${getPositionColor(
-              row.getValue("element_type") as number
-            )}`}
-          >
-            {getPositionName(row.getValue("element_type") as number)}
+          <Badge className={`text-xs ${getPositionColor(row.original.positionId)}`}>
+            {row.original.position}
           </Badge>
         </div>
       ),
@@ -165,43 +129,43 @@ export function PlayersDataTable({
       size: 8,
       cell: ({ row }) => (
         <div className="text-center text-gray-600 dark:text-gray-400">
-          {getTeamName(row.getValue("team") as number)}
+          {row.original.team}
         </div>
       ),
     },
     {
-      accessorKey: "now_cost",
+      accessorKey: "price",
       header: ({ column }) => (
         <SortableHeader column={column}>Price</SortableHeader>
       ),
       size: 8,
       cell: ({ row }) => (
         <div className="text-center text-gray-900 dark:text-white">
-          £{((row.getValue("now_cost") as number) / 10).toFixed(1)}m
+          £{row.original.price.toFixed(1)}m
         </div>
       ),
     },
     {
-      accessorKey: "total_points",
+      accessorKey: "totalPoints",
       header: ({ column }) => (
         <SortableHeader column={column}>Points</SortableHeader>
       ),
       size: 8,
       cell: ({ row }) => (
         <div className="text-center font-medium text-gray-900 dark:text-white">
-          {row.getValue("total_points") as number}
+          {row.original.totalPoints}
         </div>
       ),
     },
     {
-      accessorKey: "points_per_game",
+      accessorKey: "pointsPerGame",
       header: ({ column }) => (
         <SortableHeader column={column}>PPG</SortableHeader>
       ),
       size: 8,
       cell: ({ row }) => (
         <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.getValue("points_per_game") as string}
+          {row.original.pointsPerGame.toFixed(1)}
         </div>
       ),
     },
@@ -213,36 +177,33 @@ export function PlayersDataTable({
       size: 8,
       cell: ({ row }) => (
         <div
-          className={`text-center font-medium ${getFormColor(
-            row.getValue("form") as string
-          )}`}
+          className={`text-center font-medium ${getFormColor(row.original.form)}`}
         >
-          {row.getValue("form") as string}
+          {row.original.form.toFixed(1)}
         </div>
       ),
     },
     {
-      accessorKey: "selected_by_percent",
+      accessorKey: "selectedByPercent",
       header: ({ column }) => (
         <SortableHeader column={column}>Ownership</SortableHeader>
       ),
       size: 8,
       cell: ({ row }) => (
         <div className="text-center text-gray-600 dark:text-gray-400">
-          {parseFloat(row.getValue("selected_by_percent") as string).toFixed(1)}
-          %
+          {row.original.selectedByPercent.toFixed(1)}%
         </div>
       ),
     },
     {
-      accessorKey: "goals_scored",
+      accessorKey: "goals",
       header: ({ column }) => (
         <SortableHeader column={column}>Goals</SortableHeader>
       ),
       size: 8,
       cell: ({ row }) => (
         <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.getValue("goals_scored") as number}
+          {row.original.goals}
         </div>
       ),
     },
@@ -254,31 +215,31 @@ export function PlayersDataTable({
       size: 8,
       cell: ({ row }) => (
         <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.getValue("assists") as number}
+          {row.original.assists}
         </div>
       ),
     },
     {
-      accessorKey: "clean_sheets",
+      accessorKey: "cleanSheets",
       header: ({ column }) => (
         <SortableHeader column={column}>CS</SortableHeader>
       ),
       size: 8,
       cell: ({ row }) => (
         <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.getValue("clean_sheets") as number}
+          {row.original.cleanSheets}
         </div>
       ),
     },
   ];
 
-  const filteredPlayers = React.useMemo(() => {
-    if (!positionFilter || positionFilter === "all") return players;
-    return players.filter((player) => {
-      const position = getPositionName(player.element_type);
-      return position.toLowerCase().includes(positionFilter.toLowerCase());
-    });
-  }, [players, positionFilter, getPositionName]);
+  const filteredPlayers = React.useMemo(
+    () =>
+      positionFilter === "all"
+        ? players
+        : players.filter((p) => String(p.positionId) === positionFilter),
+    [players, positionFilter]
+  );
 
   const table = useReactTable({
     data: filteredPlayers,
@@ -299,16 +260,6 @@ export function PlayersDataTable({
     },
   });
 
-  if (isLoading) {
-    return (
-      <Card className="border-2 border-gray-200 bg-white shadow-lg dark:bg-gray-900 dark:border-gray-700">
-        <CardContent className="p-8">
-          <Spinner />
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="border-2 border-gray-200 bg-white shadow-lg dark:bg-gray-900 dark:border-gray-700">
       <CardHeader>
@@ -316,10 +267,10 @@ export function PlayersDataTable({
           <Input
             placeholder="Filter players..."
             value={
-              (table.getColumn("web_name")?.getFilterValue() as string) ?? ""
+              (table.getColumn("name")?.getFilterValue() as string) ?? ""
             }
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-              table.getColumn("web_name")?.setFilterValue(event.target.value)
+              table.getColumn("name")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
@@ -329,10 +280,10 @@ export function PlayersDataTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              <SelectItem value="Goalkeeper">GKP</SelectItem>
-              <SelectItem value="Defender">DEF</SelectItem>
-              <SelectItem value="Midfielder">MID</SelectItem>
-              <SelectItem value="Forward">FWD</SelectItem>
+              <SelectItem value="1">GKP</SelectItem>
+              <SelectItem value="2">DEF</SelectItem>
+              <SelectItem value="3">MID</SelectItem>
+              <SelectItem value="4">FWD</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -1,22 +1,52 @@
 name: Azure Static Web Apps CI/CD
 
+# Fetches FPL data, builds the site as static files (out/) and deploys them.
+# If FPL is down or its data fails validation, the run fails before deploying
+# and the last good version stays live.
+
 on:
   push:
     branches:
       - master
     paths-ignore:
-      - README.md
       - "*.md"
   pull_request:
     branches:
       - master
     types: [opened, synchronize, reopened, closed]
+  # GitHub cron is UTC. scripts/plan-run.ts decides whether each run deploys
+  # (UK match days, GMT/BST); test/schedule.test.ts keeps these in sync with
+  # SCHEDULES in src/lib/fpl/schedule.ts. Schedules only run on master.
+  schedule:
+    - cron: "5,35 * * * *" # every 30 minutes, on days with Premier League matches
+    - cron: "20 */2 * * *" # every 2 hours, on days without matches
+    - cron: "40 0 * * *" # 01:40 UK during BST, after the nightly price change
+    - cron: "40 1 * * *" # 01:40 UK during GMT
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Refetch every player's element-summary instead of reusing the previous snapshot
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 jobs:
   build_and_deploy:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name != 'pull_request' || github.event.action != 'closed'
     runs-on: ubuntu-latest
     name: Build and Deploy
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      # The deploy action comments the preview URL on pull requests.
+      pull-requests: write
+    # Production deploys queue rather than overlap; a newer push to a PR
+    # cancels that PR's previous run.
+    concurrency:
+      group: deploy-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || 'production' }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v7
@@ -30,23 +60,62 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
 
+      # The previous snapshot lets match-day runs refetch only the players
+      # whose teams have played, and tells the scheduler whether today is a
+      # match day.
+      - name: ♻️ Restore previous FPL snapshot
+        uses: actions/cache/restore@v6
+        with:
+          path: .data/snapshot.json
+          key: fpl-snapshot-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: fpl-snapshot-
+
+      - name: 🗓️ Decide whether to deploy
+        id: plan
+        run: npx tsx scripts/plan-run.ts
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+
       - name: 🔍 Lint
+        if: steps.plan.outputs.run == 'true'
         run: npm run lint
 
       - name: 🧾 Typecheck
+        if: steps.plan.outputs.run == 'true'
         run: npm run typecheck
 
-      - name: 🛠️ Build project
+      - name: 🧪 Test
+        if: steps.plan.outputs.run == 'true'
+        run: npm test
+
+      - name: ⚽ Fetch FPL data
+        if: steps.plan.outputs.run == 'true'
+        run: npm run fetch -- ${{ inputs.full && '--full' || '' }}
+
+      - name: 🛠️ Build static site
+        if: steps.plan.outputs.run == 'true'
         run: npm run build
 
+      - name: 💾 Save FPL snapshot
+        if: steps.plan.outputs.run == 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: .data/snapshot.json
+          key: fpl-snapshot-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: 🚀 Deploy to Azure Static Web Apps
+        if: steps.plan.outputs.run == 'true'
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GREEN_PLANT_0BD68360F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "./"
-          output_location: ".next"
+          # Deploy the prebuilt static export as-is.
+          app_location: "out"
+          api_location: ""
+          output_location: ""
+          skip_app_build: true
 
   close_pull_request:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

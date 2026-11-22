@@ -5,19 +5,6 @@ export const APP_CONFIG = {
   version: "1.0.0",
 } as const;
 
-// API endpoints
-export const API_ENDPOINTS = {
-  fixtures: "/api/fixtures",
-  players: "/api/players",
-  teams: "/api/teams",
-} as const;
-
-// FPL API endpoints
-export const FPL_API = {
-  bootstrap: "https://fantasy.premierleague.com/api/bootstrap-static/",
-  fixtures: "https://fantasy.premierleague.com/api/fixtures/",
-} as const;
-
 // Game configuration
 export const GAME_CONFIG = {
   maxGameweeks: 38,
