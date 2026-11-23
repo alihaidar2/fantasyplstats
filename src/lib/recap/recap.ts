@@ -18,6 +18,8 @@ export const RECAP_LIMITS = {
   maxEvidencePerClaim: 5,
 } as const;
 
+export type RecapLimits = { [Limit in keyof typeof RECAP_LIMITS]: number };
+
 /** One checkable statement from the recap, with the tool results that back it up. */
 export const claimSchema = z.object({
   text: z.string().min(1).describe("One factual statement made in the recap, in a single sentence."),

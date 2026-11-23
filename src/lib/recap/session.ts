@@ -20,7 +20,8 @@ export interface ToolDefinition {
 /** The tools as name, description and JSON Schema, ready to hand to a model. */
 export function toolDefinitions(tools: readonly RecapTool[] = RECAP_TOOLS): ToolDefinition[] {
   return tools.map((tool) => {
-    const { $schema: _schema, ...schema } = z.toJSONSchema(tool.input, { io: "input" });
+    const schema: Record<string, unknown> = { ...z.toJSONSchema(tool.input, { io: "input" }) };
+    delete schema.$schema;
     return { name: tool.name, description: tool.description, input_schema: schema };
   });
 }

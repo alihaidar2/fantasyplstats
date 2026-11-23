@@ -181,6 +181,8 @@ export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
   const teamShort = new Map<string, number>();
   /** Phrase -> players usually called exactly that. */
   const exact = new Map<string, number[]>();
+  /** FPL's display name, written out in full ("b.fernandes") -> the players shown under it. */
+  const displayed = new Map<string, number[]>();
   /** Word -> players with that word anywhere in their names. */
   const postings = new Map<string, Set<number>>();
 
@@ -201,6 +203,7 @@ export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
       continue;
     }
     const full = `${entry.firstName} ${entry.secondName}`;
+    add(displayed, literalKey(entry.webName), entry.id);
     for (const name of [entry.webName, entry.knownName, full, entry.secondName]) {
       add(exact, nameTokens(name).join(" "), entry.id);
     }
@@ -224,6 +227,10 @@ export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
   }
 
   function lookupPlayer(query: string): number[] {
+    // A display name with its initial ("B.Fernandes") means that player, not
+    // every Fernandes. A bare "Fernandes" stays ambiguous.
+    const shown = query.includes(".") ? displayed.get(literalKey(query)) : undefined;
+    if (shown?.length) return unique(shown);
     const tokens = nameTokens(query);
     if (tokens.length === 0) return [];
     const exactIds = exact.get(tokens.join(" "));
@@ -273,6 +280,11 @@ export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
       i = j;
 
       // Split the run into the longest known names.
+      type Segment =
+        | { type: "mention"; mention: NameMention; words: number }
+        | { type: "unknown"; start: number; end: number }
+        | { type: "ordinary" };
+      const segments: Segment[] = [];
       let at = 0;
       while (at < run.length) {
         let matched = 0;
@@ -285,21 +297,30 @@ export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
 
           const teams = teamPhrases.get(keys.join(" "));
           if (teams) {
-            mentions.push({ kind: "team", ids: unique(teams), exactIds: unique(teams), ...base, weak: false });
+            segments.push({ type: "mention", words: length, mention: { kind: "team", ids: unique(teams), exactIds: unique(teams), ...base, weak: false } });
             matched = length;
             break;
           }
+          if (length === 1 && ALLOWED_CAPITALISED.has(first.key)) break;
           // Particles don't count towards a player's name ("De Bruyne" is "bruyne").
           const tokens = keys.filter((k) => !PARTICLES.has(k));
           if (tokens.length === 0) continue;
-          const exactIds = unique(exact.get(tokens.join(" ")) ?? []);
-          const ids = unique([...exactIds, ...loose(tokens)]);
+          let exactIds = unique(exact.get(tokens.join(" ")) ?? []);
+          let ids = unique([...exactIds, ...loose(tokens)]);
+          // "B.Fernandes", initial and all, is one player's display name: it
+          // doesn't also mean every other Fernandes.
+          if (/^\p{Lu}\.$/u.test(text.slice(Math.max(0, first.start - 2), first.start))) {
+            const shown = displayed.get(literalKey(text.slice(first.start - 2, last.end)));
+            if (shown?.length) {
+              ids = exactIds = unique(shown);
+              base.text = text.slice(first.start - 2, last.end);
+              base.start = first.start - 2;
+            }
+          }
           if (ids.length > 0) {
             const weak =
               length === 1 && first.sentenceInitial && (exactIds.length === 0 || ORDINARY_WORDS.has(first.key));
-            if (!(length === 1 && ALLOWED_CAPITALISED.has(first.key))) {
-              mentions.push({ kind: "player", ids, exactIds, ...base, weak });
-            }
+            segments.push({ type: "mention", words: length, mention: { kind: "player", ids, exactIds, ...base, weak } });
             matched = length;
           }
         }
@@ -312,22 +333,45 @@ export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
         // A sentence's first word is capitalised whatever it is, so on its own
         // it proves nothing. A possessive ("Guardiola's side") is still a name.
         const excused = lone.sentenceInitial && !lone.possessive;
-        if (!ordinary && !excused) {
-          const previous = unknown.at(-1);
-          if (previous && at > 0 && previous.end === run[at - 1].end) {
-            previous.text = text.slice(previous.start, lone.end);
-            previous.end = lone.end;
-          } else {
-            unknown.push({ text: text.slice(lone.start, lone.end), start: lone.start, end: lone.end });
-          }
-        }
+        segments.push(ordinary || excused ? { type: "ordinary" } : { type: "unknown", start: lone.start, end: lone.end });
         at++;
+      }
+
+      // "Pep Guardiola" and "John Smith" are each one person, and not one in
+      // the dictionary, even if "Pep", "John" or "Smith" is some player's
+      // name. So neighbouring single words that don't add up to one known
+      // name are reported together as an unknown name.
+      const single = (g: Segment) => g.type === "mention" && g.mention.kind === "player" && g.words === 1;
+      for (let a = 0; a < segments.length; ) {
+        let b = a;
+        while (b < segments.length && (segments[b].type === "unknown" || single(segments[b]))) b++;
+        const group = segments.slice(a, b);
+        const stranger = group.length >= 2 || group.some((g) => g.type === "unknown");
+        if (group.length > 0 && stranger) {
+          const edge = (g: Segment) => (g.type === "mention" ? g.mention : (g as { start: number; end: number }));
+          const from = edge(group[0]).start;
+          const to = edge(group.at(-1)!).end;
+          unknown.push({ text: text.slice(from, to), start: from, end: to });
+        } else {
+          for (const g of group) if (g.type === "mention") mentions.push(g.mention);
+        }
+        if (b === a) {
+          const g = segments[a];
+          if (g.type === "mention") mentions.push(g.mention);
+          b = a + 1;
+        }
+        a = b;
       }
     }
     return { mentions, unknown };
   }
 
   return { scan, lookupPlayer, lookupTeam };
+}
+
+/** A display name as written, as a lookup key: "B.Fernandes" -> "b.fernandes". */
+function literalKey(name: string): string {
+  return fold(name).toLowerCase().trim().replace(/\s+/g, " ");
 }
 
 /** A club name as a lookup key: folded, lower-case, single spaces. */

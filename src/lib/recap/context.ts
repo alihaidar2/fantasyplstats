@@ -448,7 +448,19 @@ export function buildGameweekContext(gameweek: number, sources: GameweekSources)
         started: f.started ?? false,
         finished: f.finished,
       })),
-    ...matches.map(({ stats: _stats, ...match }) => match),
+    ...matches.map(
+      (m): ContextMatch => ({
+        fixtureId: m.fixtureId,
+        gameweek: m.gameweek,
+        kickoff: m.kickoff,
+        homeId: m.homeId,
+        awayId: m.awayId,
+        homeScore: m.homeScore,
+        awayScore: m.awayScore,
+        started: m.started,
+        finished: m.finished,
+      }),
+    ),
   ]
     .filter((m) => m.finished && m.homeScore !== null && m.awayScore !== null)
     .sort((a, b) => a.gameweek - b.gameweek || byKickoff(a, b));
