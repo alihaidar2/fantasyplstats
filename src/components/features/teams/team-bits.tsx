@@ -9,39 +9,44 @@ import {
   formatMatchDate,
   type FixtureWeek,
   type Outcome,
-  type UpcomingFixture,
 } from "@/lib/stats/teams";
 
-const OUTCOME_CLASS: { [K in Outcome]: string } = {
-  W: "bg-green-600 text-white dark:bg-green-600",
-  D: "bg-gray-400 text-white dark:bg-gray-500",
-  L: "bg-red-600 text-white dark:bg-red-600",
+const OUTCOME_COLOR: { [K in Outcome]: string } = {
+  W: "bg-green-600",
+  D: "bg-gray-400 dark:bg-gray-500",
+  L: "bg-red-600",
 };
 
+const outcomeShape =
+  "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-[11px] font-bold text-white";
+
 /** One W/D/L square. The letter carries the meaning, so it doesn't rely on colour. */
-export function OutcomeBadge({ outcome, title, className }: { outcome: Outcome; title?: string; className?: string }) {
+export function OutcomeBadge({ outcome, title }: { outcome: Outcome; title?: string }) {
   return (
-    <span
-      title={title}
-      className={cn(
-        "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-[11px] font-bold",
-        OUTCOME_CLASS[outcome],
-        className,
-      )}
-    >
+    <span title={title} className={cn(outcomeShape, OUTCOME_COLOR[outcome])}>
       {outcome}
     </span>
   );
 }
 
-/** The last five results, oldest first, with the whole sequence read out to screen readers. */
+// The squares' shared styles sit on the wrapper, so each of the table's 100
+// squares carries only its colour.
+const formWrap =
+  "inline-flex gap-0.5 [&>span]:inline-flex [&>span]:h-5 [&>span]:w-5 [&>span]:items-center [&>span]:justify-center " +
+  "[&>span]:rounded [&>span]:text-[11px] [&>span]:font-bold [&>span]:text-white " +
+  "[&>span:last-child]:ring-2 [&>span:last-child]:ring-gray-300 [&>span:last-child]:ring-offset-1 " +
+  "dark:[&>span:last-child]:ring-gray-600 dark:[&>span:last-child]:ring-offset-gray-900";
+
+/** The last five results, oldest first (the newest is ringed), read out whole to screen readers. */
 export function FormGuide({ form }: { form: readonly Outcome[] }) {
   if (form.length === 0) return <span className="text-gray-400 dark:text-gray-500">—</span>;
   const label = describeForm(form);
   return (
-    <span role="img" aria-label={label} title={label} className="inline-flex gap-0.5">
+    <span role="img" aria-label={label} title={label} className={formWrap}>
       {form.map((o, i) => (
-        <OutcomeBadge key={i} outcome={o} className={i === form.length - 1 ? "ring-2 ring-offset-1 ring-gray-300 dark:ring-gray-600 dark:ring-offset-gray-900" : undefined} />
+        <span key={i} className={OUTCOME_COLOR[o]}>
+          {o}
+        </span>
       ))}
     </span>
   );
@@ -60,25 +65,6 @@ export function ClubBadge({ code, size = 20, className }: { code: number; size?:
       className={cn("shrink-0", className)}
       style={{ width: size, height: size }}
     />
-  );
-}
-
-/** "LIV (H)" coloured by FPL difficulty, as on the fixtures matrix. */
-export function DifficultyBadge({ fixture, compact }: { fixture: UpcomingFixture; compact?: boolean }) {
-  const where = fixture.home ? "H" : "A";
-  const label = `${fixture.opponent.name} (${fixture.home ? "home" : "away"}), difficulty ${fixture.difficulty}`;
-  return (
-    <span
-      title={label}
-      aria-label={label}
-      className={cn(
-        "inline-flex items-center justify-center rounded font-medium whitespace-nowrap",
-        compact ? "px-1 py-0.5 text-[11px]" : "px-1.5 py-0.5 text-xs",
-        getDifficultyColor(fixture.difficulty),
-      )}
-    >
-      {fixture.opponent.shortName} ({where})
-    </span>
   );
 }
 
@@ -155,7 +141,7 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section aria-labelledby={id} className={sectionCardClass}>
+    <section aria-labelledby={id} className={cn(sectionCardClass, "min-w-0")}>
       <h2 id={id} className="text-lg font-bold text-gray-900 dark:text-white">
         {title}
       </h2>

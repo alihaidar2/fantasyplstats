@@ -7,7 +7,6 @@ import { formatNumber, formatPrice, formatSigned } from "@/components/features/p
 import {
   ClubBadge,
   ClubLink,
-  DifficultyBadge,
   EmptyNote,
   FixtureStrip,
   FormGuide,
@@ -24,6 +23,7 @@ import {
   buildClubs,
   buildLeagueTable,
   clubDescription,
+  concededVsExpected,
   describeResult,
   FIXTURE_STRIP_LENGTH,
   formatMatchDate,
@@ -33,7 +33,7 @@ import {
   type ClubPage,
   type ClubRecord,
 } from "@/lib/stats/teams";
-import { cn } from "@/lib/utils";
+import { cn, getDifficultyColor } from "@/lib/utils";
 
 // Every club page is generated at build time; any other slug is a 404.
 export const dynamicParams = false;
@@ -65,7 +65,7 @@ const td = "px-2 py-2 text-right tabular-nums whitespace-nowrap";
 const thead = "border-b border-gray-200 text-xs uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:text-gray-400";
 const tr = "border-b border-gray-100 last:border-0 dark:border-gray-800";
 
-function Stat({ label, value, detail }: { label: string; value: React.ReactNode; detail?: React.ReactNode }) {
+function Stat({ label, value, detail }: { label: React.ReactNode; value: React.ReactNode; detail?: React.ReactNode }) {
   return (
     <div className={cn(sectionCardClass, "flex flex-col gap-0.5 p-3")}>
       <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</dt>
@@ -81,7 +81,7 @@ function SplitTable({ home, away }: { home: ClubRecord; away: ClubRecord }) {
     ["Away", away],
   ];
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto">
       <table className="w-full min-w-max text-sm text-gray-800 dark:text-gray-200">
         <caption className="sr-only">Home and away record</caption>
         <thead className={thead}>
@@ -126,7 +126,7 @@ function Results({ page }: { page: ClubPage }) {
   const provisional = page.results.some((r) => r.provisional);
   return (
     <>
-      <div className="max-h-[32rem] overflow-auto">
+      <div className="relative max-h-[32rem] overflow-auto">
         <table className="w-full min-w-max text-sm text-gray-800 dark:text-gray-200">
           <caption className="sr-only">Results, newest first</caption>
           <thead className={cn(thead, "sticky top-0 bg-white dark:bg-gray-800")}>
@@ -176,7 +176,7 @@ function Results({ page }: { page: ClubPage }) {
 function TopPlayers({ page }: { page: ClubPage }) {
   if (page.topPlayers.length === 0) return <EmptyNote>No players listed for this club yet.</EmptyNote>;
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto">
       <table className="w-full min-w-max text-sm text-gray-800 dark:text-gray-200">
         <caption className="sr-only">{page.club.fullName}&apos;s top FPL players by total points</caption>
         <thead className={thead}>
@@ -224,7 +224,7 @@ function TopPlayers({ page }: { page: ClubPage }) {
 
 function RemainingFixtures({ page }: { page: ClubPage }) {
   return (
-    <div className="max-h-[32rem] overflow-auto">
+    <div className="relative max-h-[32rem] overflow-auto">
       <table className="w-full min-w-max text-sm text-gray-800 dark:text-gray-200">
         <caption className="sr-only">Every fixture still to play, with FPL difficulty</caption>
         <thead className={cn(thead, "sticky top-0 bg-white dark:bg-gray-800")}>
@@ -232,7 +232,7 @@ function RemainingFixtures({ page }: { page: ClubPage }) {
             <th scope="col" className={cn(th, "text-left")}><abbr title="Gameweek" className="no-underline">GW</abbr></th>
             <th scope="col" className={cn(th, "text-left")}>Date</th>
             <th scope="col" className={cn(th, "text-left")}>Opponent</th>
-            <th scope="col" className={cn(th, "text-center")}>Difficulty</th>
+            <th scope="col" className={cn(th, "text-center")}><abbr title="FPL fixture difficulty: 1 easiest, 5 hardest" className="no-underline">Difficulty</abbr></th>
           </tr>
         </thead>
         <tbody>
@@ -247,7 +247,11 @@ function RemainingFixtures({ page }: { page: ClubPage }) {
                 <span className="text-xs text-gray-500 dark:text-gray-400">({f.home ? "H" : "A"})</span>
               </td>
               <td className="px-2 py-2 text-center">
-                <DifficultyBadge fixture={f} />
+                <span
+                  className={cn("inline-flex h-6 w-6 items-center justify-center rounded text-xs font-bold", getDifficultyColor(f.difficulty))}
+                >
+                  {f.difficulty}
+                </span>
               </td>
             </tr>
           ))}
@@ -319,11 +323,15 @@ export default async function ClubPageView({ params }: PageProps<"/teams/[slug]"
           />
           <Stat label="Clean sheets" value={row.cleanSheets} detail={`in ${row.played} ${row.played === 1 ? "game" : "games"}`} />
           <Stat
-            label="xGC"
+            label={
+              <abbr title="Expected goals conceded" className="normal-case no-underline">
+                xGC
+              </abbr>
+            }
             value={row.xgc.available ? formatNumber(row.xgc.value, 1) : "—"}
             detail={
               row.xgc.available
-                ? `Conceded ${formatSigned(Math.round((row.goalsAgainst - row.xgc.value) * 10) / 10, 1)} vs expected`
+                ? `Conceded ${concededVsExpected(row.goalsAgainst, row.xgc.value)}`
                 : XGC_UNAVAILABLE_LABELS[row.xgc.reason]
             }
           />
@@ -336,7 +344,7 @@ export default async function ClubPageView({ params }: PageProps<"/teams/[slug]"
           title="Next fixtures"
           subtitle={
             page.nextWeeksDifficulty !== null
-              ? `Next ${page.nextWeeks.length} gameweeks, coloured by FPL difficulty (1 easiest, 5 hardest). Average ${formatNumber(page.nextWeeksDifficulty, 1)}.`
+              ? `${page.nextWeeks.length === 1 ? "Next gameweek" : `Next ${page.nextWeeks.length} gameweeks`}, coloured by FPL difficulty (1 easiest, 5 hardest). Average ${formatNumber(page.nextWeeksDifficulty, 1)}.`
               : undefined
           }
         >
@@ -349,15 +357,19 @@ export default async function ClubPageView({ params }: PageProps<"/teams/[slug]"
           )}
         </Section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
           <Section id="results" title="Results" subtitle={played ? "Newest first" : undefined}>
             <Results page={page} />
           </Section>
-          <div className="grid content-start gap-6">
+          <div className="grid min-w-0 content-start gap-6">
             <Section id="home-away" title="Home and away">
               {played ? <SplitTable home={page.home} away={page.away} /> : <EmptyNote>No results yet this season.</EmptyNote>}
             </Section>
-            <Section id="top-players" title="Top FPL players" subtitle="By total FPL points this season">
+            <Section
+              id="top-players"
+              title="Top FPL players"
+              subtitle={played ? "By total FPL points this season" : "By price, until the season's first points"}
+            >
               <TopPlayers page={page} />
             </Section>
           </div>

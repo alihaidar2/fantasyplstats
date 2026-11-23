@@ -256,7 +256,7 @@ export function teamXgc(
 
 export const XGC_UNAVAILABLE_LABELS: { [K in XgcUnavailableReason]: string } = {
   "match-in-progress": "Not shown while the club has a match in progress",
-  "keepers-mismatch": "Not shown: the goalkeepers' goals conceded don't match the results, so their xGC can't stand in for the club's",
+  "keepers-mismatch": "Not shown: the club's goalkeepers' goals conceded don't match its results",
 };
 
 // ─── League table ───────────────────────────────────────────────────────────
@@ -468,7 +468,8 @@ export const FIXTURE_STRIP_LENGTH = 6;
 export const TOP_PLAYERS_LENGTH = 10;
 
 /**
- * The club's players by FPL points (then form), top `TOP_PLAYERS_LENGTH`.
+ * The club's players by FPL points, then form, then price (which orders them
+ * before a ball is kicked, when everyone has 0), top `TOP_PLAYERS_LENGTH`.
  * Players FPL marks unavailable (`u`: left the club or out on loan) are left out,
  * since FPL managers can't usefully pick them.
  */
@@ -479,7 +480,7 @@ export function topPlayers(
 ): ClubPlayer[] {
   const elements = bootstrap.elements.filter((e) => e.team === teamId && e.status !== "u");
   return buildPlayerRows({ ...bootstrap, elements })
-    .sort((a, b) => b.totalPoints - a.totalPoints || b.form - a.form || a.id - b.id)
+    .sort((a, b) => b.totalPoints - a.totalPoints || b.form - a.form || b.price - a.price || a.id - b.id)
     .slice(0, limit)
     .map((p) => ({
       id: p.id,
@@ -605,6 +606,13 @@ const OUTCOME_WORDS: { [K in Outcome]: string } = { W: "won", D: "drew", L: "los
 export function describeForm(form: readonly Outcome[]): string {
   if (form.length === 0) return "No results yet";
   return `Last ${form.length}, oldest first: ${form.map((o) => OUTCOME_WORDS[o]).join(", ")}`;
+}
+
+/** "2.6 fewer than expected", "1.1 more than expected", "as many as expected" (goals conceded vs xGC). */
+export function concededVsExpected(goalsAgainst: number, xgc: number): string {
+  const diff = Math.round((goalsAgainst - xgc) * 10) / 10;
+  if (diff === 0) return "as many as expected";
+  return `${Math.abs(diff).toFixed(1)} ${diff < 0 ? "fewer" : "more"} than expected`;
 }
 
 /** The meta description for a club page. */

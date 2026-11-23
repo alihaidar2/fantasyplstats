@@ -9,6 +9,7 @@ import {
   buildLeagueTable,
   clubDescription,
   clubResults,
+  concededVsExpected,
   describeForm,
   describeResult,
   formatMatchDate,
@@ -353,6 +354,12 @@ describe("buildClubPage", () => {
     expect(points).toEqual([...points].sort((a, b) => b - a));
     expect(page.topPlayers[0]).toMatchObject({ id: 4, name: "Gabriel", position: "DEF", totalPoints: 66, price: 8.1 });
 
+    // Before any points, the most expensive players come first.
+    const preseason = clone(snapshot);
+    for (const e of preseason.bootstrap.elements) Object.assign(e, { total_points: 0, form: "0.0" });
+    const prices = buildClubPage(preseason, "arsenal")!.topPlayers.map((p) => p.price);
+    expect(prices).toEqual([...prices].sort((a, b) => b - a));
+
     const gone = clone(snapshot);
     gone.bootstrap.elements.find((e) => e.id === 4)!.status = "u";
     expect(buildClubPage(gone, "arsenal")!.topPlayers.map((p) => p.id)).not.toContain(4);
@@ -417,6 +424,12 @@ describe("text helpers", () => {
     ]);
     expect(describeForm(["W", "D", "L"])).toBe("Last 3, oldest first: won, drew, lost");
     expect(describeForm([])).toBe("No results yet");
+  });
+
+  it("compares goals conceded with xGC in words", () => {
+    expect(concededVsExpected(5, 7.59)).toBe("2.6 fewer than expected");
+    expect(concededVsExpected(9, 7.94)).toBe("1.1 more than expected");
+    expect(concededVsExpected(8, 8.04)).toBe("as many as expected");
   });
 
   it("describes a club with no results yet", () => {

@@ -28,7 +28,11 @@ export default function TeamsPage() {
     );
   }
   if (table.inProgress > 0) {
-    notes.push(`${plural(table.inProgress, "match was", "matches were")} in progress at the last update and aren't counted yet.`);
+    notes.push(
+      table.inProgress === 1
+        ? "1 match was in progress at the last update and isn't counted yet."
+        : `${table.inProgress} matches were in progress at the last update and aren't counted yet.`,
+    );
   }
 
   return (
@@ -41,7 +45,7 @@ export default function TeamsPage() {
 
       {started ? (
         <>
-          <div className={`${sectionCardClass} p-0 sm:p-2`}>
+          <div className="rounded-xl border border-green-200 bg-white py-1 shadow-sm dark:border-green-900 dark:bg-gray-900">
             <LeagueTable rows={table.rows} />
           </div>
 
