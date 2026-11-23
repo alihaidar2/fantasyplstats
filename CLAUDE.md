@@ -19,6 +19,7 @@ Steps 1–4 of `PLAN.md` (production readiness) are done. Step 5 (more stats, th
 - `npm run typecheck`: generate Next.js route types, then `tsc --noEmit`
 - `npm test`: Vitest unit tests (no network; they use `test/fixtures/`)
 - `npm run recap:eval`: run the recap agent over the recorded gameweeks and score it (`-- --fake` uses scripted models and no network; `--model`, `--judge-model`, `--gameweeks 3,5`). A real run calls the Claude API with whatever credentials the Anthropic SDK finds. Reports go to `evals/results/` (gitignored).
+- Recap eval on GitHub: Actions → Recap eval → Run workflow, from master (`.github/workflows/recap-eval.yml`; tick `fake` for a free plumbing check, put a branch in `ref` to evaluate its code). It signs in with Workload Identity Federation, so no API key is stored; it reads the repository variables `ANTHROPIC_FEDERATION_RULE_ID`, `ANTHROPIC_ORGANIZATION_ID` and `ANTHROPIC_SERVICE_ACCOUNT_ID`, plus optional `ANTHROPIC_WORKSPACE_ID` (rule covers several workspaces) and `ANTHROPIC_OIDC_AUDIENCE` (default `https://api.anthropic.com`). Results are a run artifact, kept 30 days.
 
 Use Node 22 (`.nvmrc`).
 
