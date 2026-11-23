@@ -151,7 +151,7 @@ Goal: give people a reason to come back every gameweek. The home page becomes th
 
 Done when the new views and charts render from a recorded snapshot and from live data on the PR preview, tests cover the new transforms, and the `out/` size change is in the PR description.
 
-**Done** (#PR):
+**Done** (#18):
 - The schemas keep the listed fields, and the snapshot is now version 2, so a cached version 1 snapshot fails validation and the next fetch refetches every player. The `_per_90` fields arrive as numbers, not strings.
 - Transforms in `src/lib/fpl/transforms.ts` add availability (from `status` and `chance_of_playing_next_round`), set-piece duties, goals minus xG, net transfers, price changes in £m, and per-gameweek rows for the player page (a double gameweek's matches added together).
 - Players table: Overview, Attack, Defence, Transfers and price, and Minutes and bonus tabs over one TanStack column list. The view is linkable (`/players/#attack`), and the availability badge shows on every view.
