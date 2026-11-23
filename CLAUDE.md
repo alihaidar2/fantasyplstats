@@ -13,7 +13,8 @@ Steps 1–4 of `PLAN.md` (production readiness) are done. Step 5 (features: more
 - `npm run fetch`: fetch FPL data into `.data/snapshot.json` (`-- --full` refetches every player). Run it before `dev` or `build`.
 - `npm run fetch:fixtures`: write `.data/snapshot.json` from `test/fixtures/` with no network (what the CI workflow builds PRs from; Azure PR previews still fetch live data).
 - `npm run dev`: local dev server
-- `npm run build`: static export to `out/`
+- `npm run build`: static export to `out/`. It also reads the published recaps in `content/recaps/<season>/gw<NN>.json`; an invalid recap fails the build, and with none the home page falls back to the deadline and fixtures.
+- `RECAP_CONTENT_DIR=test/fixtures/recaps npm run build`: build with the hand-written sample recap instead (what CI's second build does). Never copy it into `content/recaps/`: everything there is published.
 - `npm run lint`: lint (`eslint .`)
 - `npm run typecheck`: generate Next.js route types, then `tsc --noEmit`
 - `npm test`: Vitest unit tests (no network; they use `test/fixtures/`)
