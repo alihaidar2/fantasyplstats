@@ -188,6 +188,22 @@ Done when a real gameweek has gone through generate, check, PR and merge end to 
 - Mini-league page and league recaps: needs an Azure Function that reuses `src/lib/fpl/` and `src/lib/recap/`, with caching per league per gameweek and a league size cap, and App Insights monitoring.
 - Paid tier: only after checking FPL's terms, the trademark and tax.
 
+## Step 6: Free toolkit (every FPL dataset gets a home)
+
+Goal: a complete free FPL stats site built only from the FPL data the site already fetches and validates. Rule: if a feature can be calculated from FPL's API data, build it; if it needs another data source or constant model tuning (points predictions, solvers, team news), skip it.
+
+- 6a. Data layer: the snapshot keeps per-match stats, team of the week for settled gameweeks, and live points for the current gameweek (snapshot v4).
+
+  **Done** (#24): snapshot version 4 keeps every fixture's per-player `stats` (the 11 identifiers FPL sends; a new one is kept with a warning), `finished_provisional` and `minutes`; `dreamTeams` for settled gameweeks (fetched once, then reused from the previous snapshot, however old, unless `--full` or a new season); and `live`, the current gameweek's `event/{gw}/live/` (16 stats plus the points breakdown, players with all-zero stats dropped) with `event-status/`, refetched on every build. A cached version 3 snapshot is ignored, so the first v4 run refetches everything. `checkConsistency` checks that every player in match stats, teams of the week and live data exists. Typed accessors for the feature steps are in `src/lib/fpl/accessors.ts`. The live snapshot grew from about 3.0 MB to 3.4 MB at GW11 (match stats 245 KB, live 110 KB, teams of the week 5 KB); the new parts reach roughly 1 MB by GW38, when all 380 fixtures have match stats; `out/` is unchanged, since no page reads the new data yet. The CI snapshot now has the recorded match stats, GW1–2 teams of the week and GW3 live data, and the 436 players they name.
+- 6b. Players hub: injuries and availability, price changes (this gameweek and season), value rankings (points and xGI per £m), set-piece takers, template team (most-owned XI).
+- 6c. Teams: league table built from results; a page per club (results, form, goals for and against, clean sheets, xGC, fixtures, top players).
+- 6d. Matches and gameweeks: results per gameweek, a page per match (scorers, assists, bonus, BPS, cards), team of the week, season dashboard (average and highest scores, captaincy, chips, transfers), double and blank gameweek planner.
+- 6e. Interactive tools (in the browser, from static data): squad and transfer planner (budget, 3 per club, fixtures ahead), player comparison.
+- 6f. Live: live gameweek points with provisional bonus from BPS; a "how FPL points work" page built from the points FPL actually awarded.
+- 6g. Integration: navigation for the new pages, sitemap, home page tool cards.
+
+Not in step 6: price-change predictions (FPL's projection fields are undocumented), and anything needing a manager's team ID or league (step 8, which needs a backend).
+
 ## Later
 
 Deferred from steps 1–4:

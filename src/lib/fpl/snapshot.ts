@@ -4,6 +4,7 @@
 // are fetched once a gameweek is settled and reused from then on; the current
 // gameweek's live data is refetched on every build.
 
+import { z } from "zod";
 import type { FplClient, FplGameweekClient } from "./client";
 import {
   SNAPSHOT_LIVE_STATS,
@@ -141,10 +142,23 @@ export function parseSnapshot(json: unknown): Snapshot {
  * everything.
  */
 export function parsePreviousSnapshot(json: unknown, warn: (message: string) => void = () => {}): Snapshot | null {
+  const version = (json as { version?: unknown } | null)?.version;
+  if (version !== SNAPSHOT_VERSION) {
+    warn(`Ignoring the previous snapshot: it is version ${String(version)}, and this build writes version ${SNAPSHOT_VERSION}`);
+    return null;
+  }
   try {
     return parseSnapshot(json);
   } catch (error) {
-    warn(`Ignoring the previous snapshot: ${(error as Error).message}`);
+    // Keep the log short: a schema change can fail every fixture or player.
+    const reason =
+      error instanceof z.ZodError
+        ? error.issues
+            .slice(0, 5)
+            .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`)
+            .join("; ") + (error.issues.length > 5 ? ` (${error.issues.length} problems in all)` : "")
+        : (error as Error).message;
+    warn(`Ignoring the previous snapshot: ${reason}`);
     return null;
   }
 }

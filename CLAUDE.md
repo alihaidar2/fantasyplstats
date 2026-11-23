@@ -10,7 +10,7 @@ Steps 1–4 of `PLAN.md` (production readiness) are done. Step 5 (features: more
 
 ## Commands
 
-- `npm run fetch`: fetch FPL data into `.data/snapshot.json` (`-- --full` refetches every player). Run it before `dev` or `build`.
+- `npm run fetch`: fetch FPL data into `.data/snapshot.json` (`-- --full` refetches every player and every team of the week). Run it before `dev` or `build`. It logs the snapshot's size by part.
 - `npm run fetch:fixtures`: write `.data/snapshot.json` from `test/fixtures/` with no network (what the CI workflow builds PRs from; Azure PR previews still fetch live data).
 - `npm run dev`: local dev server
 - `npm run build`: static export to `out/`. It also reads the published recaps in `content/recaps/<season>/gw<NN>.json`; an invalid recap fails the build, and with none the home page falls back to the deadline and fixtures.
