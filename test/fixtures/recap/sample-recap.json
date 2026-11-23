@@ -1118,6 +1118,13 @@
       "ok": true,
       "result": {
         "gameweek": 4,
+        "totals": {
+          "redCards": 4,
+          "yellowCards": 38,
+          "penaltiesMissed": 1,
+          "penaltiesSaved": 1,
+          "ownGoals": 1
+        },
         "redCards": [
           {
             "player": "Foden",

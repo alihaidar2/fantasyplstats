@@ -17,8 +17,9 @@ const STATUS_LABELS: Record<string, string> = {
 export const disciplineAndAvailability = defineTool({
   name: "discipline_and_availability",
   description:
-    "What went wrong this gameweek: red cards, penalties missed and saved, own goals, and yellow cards (the total " +
-    "and the most-owned players booked), each with the player's points and ownership. For the current gameweek " +
+    "What went wrong this gameweek: gameweek-wide totals of red and yellow cards, penalties missed and saved and " +
+    "own goals, then the players involved (for yellow cards, the most-owned players booked), each with the " +
+    "player's points and ownership. For the current gameweek " +
     "only, it also lists widely owned players FPL has flagged as injured, suspended or doubtful, with FPL's own " +
     "news text, and whether the gameweek's points are final. Injury and suspension news and the points status " +
     "describe today, so neither is available when looking back at a past gameweek: the result says so. It can't " +
@@ -67,8 +68,19 @@ export const disciplineAndAvailability = defineTool({
           })
       : undefined;
 
+    const total = (stat: "redCards" | "yellowCards" | "penaltiesMissed" | "penaltiesSaved" | "ownGoals") =>
+      context.players.reduce((sum, p) => sum + p.gw[stat], 0);
+
     return {
       gameweek: context.gameweek,
+      // Gameweek-wide counts, so "four red cards" has a figure to stand on.
+      totals: {
+        redCards: total("redCards"),
+        yellowCards: total("yellowCards"),
+        penaltiesMissed: total("penaltiesMissed"),
+        penaltiesSaved: total("penaltiesSaved"),
+        ownGoals: total("ownGoals"),
+      },
       ...(redCards.length ? { redCards } : {}),
       ...(penaltiesMissed.length ? { penaltiesMissed } : {}),
       ...(penaltiesSaved.length ? { penaltiesSaved } : {}),

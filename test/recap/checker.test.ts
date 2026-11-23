@@ -112,8 +112,8 @@ describe("deliberately broken recaps", () => {
       d.paragraphs[0] = d.paragraphs[0].replace("17 points", "12 points").replace("with 12 points.", "with 17 points.");
     });
     expect(messages(report, "wrong-player")).toEqual([
-      expect.stringMatching(/^paragraph 1: "12" .* not Groß/),
-      expect.stringMatching(/^paragraph 1: "17" .* belongs to Groß.* not Dunk/),
+      expect.stringMatching(/^paragraph 1: "12 points" .* belongs to Dunk.* not Groß\. The evidence has 17 for Groß's points/),
+      expect.stringMatching(/^paragraph 1: "17 points" .* belongs to Groß.* not Dunk\. The evidence has 12 for Dunk's points/),
     ]);
   });
 
@@ -228,13 +228,177 @@ describe("deliberately broken recaps", () => {
   });
 });
 
+describe("a number has to be the right stat", () => {
+  it("rejects a wrong count of the right stat: two assists written as three (his season total)", () => {
+    // Groß made 2 assists this gameweek. He has a 3 elsewhere: 3 bonus points, and 3 assists for the season.
+    const report = broken((d) => replaceAll(d, "two assists", "three assists"));
+    expect(report.passed).toBe(false);
+    expect(codes(report)).toEqual(["wrong-period"]);
+    expect(messages(report, "wrong-period")).toEqual([
+      expect.stringMatching(
+        /^paragraph 1: "three assists" in ".*": in any tool result 3 is Groß's assists for the season so far, not this gameweek's\. The evidence has 2 for Groß's assists this gameweek\./,
+      ),
+      expect.stringMatching(/^claim 2: "three assists" .* in the results this claim cites \(r1, r3\) 3 is Groß's assists for the season so far/),
+    ]);
+  });
+
+  it("rejects the right player's number under the wrong stat", () => {
+    // 6 is Groß's defensive contributions (and season bonus), never his assists.
+    const six = broken((d) => replaceAll(d, "two assists", "six assists"));
+    expect(codes(six)).toEqual(["stat-mismatch"]);
+    expect(messages(six, "stat-mismatch")[0]).toMatch(/^paragraph 1: "six assists" .* 6 is Groß's .*, not Groß's assists\. The evidence has 2 for Groß's assists this gameweek\./);
+    expect(messages(six, "stat-mismatch")[0]).toContain("Groß's defensive contributions");
+
+    // 56 is his BPS, not his points.
+    const bps = broken((d) => replaceAll(d, "17 points", "56 points"));
+    expect(codes(bps)).toEqual(["stat-mismatch"]);
+    expect(messages(bps, "stat-mismatch")[0]).toMatch(/"56 points" .* 56 is Groß's BPS, not Groß's points\. The evidence has 17 for Groß's points this gameweek\./);
+
+    // Belloumi scored 2 goals and made no assists.
+    const assists = broken((d) => replaceAll(d, "two goals", "two assists"));
+    expect(codes(assists)).toEqual(["stat-mismatch"]);
+    expect(messages(assists, "stat-mismatch")[0]).toMatch(/"two assists" .* 2 is Belloumi's .*goals.*, not Belloumi's assists\. The evidence has 0 for Belloumi's assists/);
+  });
+
+  it("reads spelled-out numbers and football shorthand as stats", () => {
+    // Schade scored 2 goals and got 3 bonus points.
+    expect(broken((d) => replaceAll(d, "Schade scored twice", "Schade scored a brace")).issues).toEqual([]);
+    expect(broken((d) => replaceAll(d, "Schade scored twice", "Schade got 2 goals")).issues).toEqual([]);
+    for (const wrong of ["Schade scored a hat-trick", "Schade scored thrice", "Schade scored three goals", "Schade got 3 goals"]) {
+      const report = broken((d) => replaceAll(d, "Schade scored twice", wrong));
+      expect(codes(report), wrong).toEqual(["stat-mismatch"]);
+      expect(messages(report, "stat-mismatch").at(-1), wrong).toMatch(/3 is Schade's bonus points, not Schade's goals\. The evidence has 2 for Schade's goals/);
+    }
+    // "pts", bonus and BPS.
+    const more = (sentence: string) =>
+      broken((d) => {
+        d.paragraphs[0] += ` ${sentence}`;
+        d.claims[1].text += ` ${sentence}`;
+      });
+    expect(more("Groß got 17 pts, 3 bonus points and 56 BPS.").issues).toEqual([]);
+    expect(codes(more("Groß got 56 pts."))).toEqual(["stat-mismatch"]);
+    expect(codes(more("Groß got 17 bonus points."))).toEqual(["stat-mismatch"]);
+    expect(codes(more("Groß had a BPS of 17."))).toEqual(["stat-mismatch"]);
+  });
+
+  it("checks the stat of a gameweek figure too", () => {
+    // 29 goals were scored; the average was 69 and the highest score 151.
+    expect(codes(broken((d) => replaceAll(d, "29 goals", "29 assists")))).toEqual(["stat-mismatch"]);
+    const average = broken((d) => replaceAll(d, "scored 69 points", "scored 151 points"));
+    expect(codes(average)).toEqual(["stat-mismatch"]);
+    expect(messages(average, "stat-mismatch")[0]).toMatch(/151 is the highest manager score \(a gameweek figure\), not the average manager score\. The evidence has 69/);
+    // There were 4 red cards, not 4 yellows.
+    expect(codes(broken((d) => replaceAll(d, "four red cards", "four yellow cards")))).toEqual(["stat-mismatch"]);
+  });
+
+  it("keeps season totals and earlier gameweeks apart from this gameweek", () => {
+    // season_records (r7): Bogle has 37 points for the season; B.Fernandes scored 23 in gameweek 2.
+    const add = (sentence: string) =>
+      broken((d) => {
+        d.paragraphs[1] += ` ${sentence}`;
+        d.claims.push({ text: sentence, evidence: ["r7"] });
+      });
+    expect(add("Bogle has 37 points this season.").issues).toEqual([]);
+    expect(add("Bogle now has 37 points.").issues).toEqual([]);
+    expect(codes(add("Bogle scored 37 points."))).toEqual(["wrong-period"]);
+    expect(add("B.Fernandes scored 23 points in Gameweek 2.").issues).toEqual([]);
+    const bare = add("B.Fernandes scored 23 points.");
+    expect(codes(bare)).toEqual(["wrong-period"]);
+    expect(bare.issues[0].message).toMatch(/23 is B\.Fernandes's points in gameweek 2, not this gameweek's\. The evidence has 2 for B\.Fernandes's points this gameweek/);
+  });
+});
+
+describe("a number in a sentence about a player has to be that player's", () => {
+  it("rejects a gameweek figure given to a player: the average score as Dunk's points", () => {
+    // Dunk scored 12. 69 is the gameweek's average manager score.
+    const report = broken((d) => replaceAll(d, "with 12 points", "with 69 points"));
+    expect(report.passed).toBe(false);
+    expect(codes(report)).toEqual(["wrong-subject"]);
+    expect(messages(report, "wrong-subject")).toEqual([
+      expect.stringMatching(
+        /^paragraph 1: "69 points" in "Dunk also scored .*": in any tool result 69 is the average manager score \(a gameweek figure\), not a figure for Dunk\. The evidence has 12 for Dunk's points this gameweek\./,
+      ),
+      expect.stringMatching(/^claim 3: "69 points" .* not a figure for Dunk/),
+    ]);
+  });
+
+  it("rejects a club figure given to a player", () => {
+    // team_story (r4): Brighton's players scored 103 points between them and the club has 13 league goals.
+    const total = broken((d) => {
+      replaceAll(d, "with 12 points", "with 103 points");
+      d.claims[2].evidence = ["r1", "r4"];
+    });
+    expect(codes(total)).toEqual(["wrong-subject"]);
+    expect(messages(total, "wrong-subject")[0]).toMatch(/103 is Brighton's points \(a club figure\), not a figure for Dunk/);
+
+    const goals = broken((d) => {
+      d.paragraphs[0] += " Dunk has 13 goals this season.";
+      d.claims.push({ text: "Dunk has 13 goals this season.", evidence: ["r4"] });
+    });
+    expect(codes(goals)).toEqual(["wrong-subject"]);
+    expect(messages(goals, "wrong-subject")[0]).toMatch(/13 is Brighton's goals \(a club figure\)/);
+
+    // The same figures are fine in a sentence about the club.
+    const club = broken((d) => {
+      d.paragraphs[0] += " Brighton's players scored 103 points between them, and the club has 13 goals this season.";
+      d.claims.push({ text: "Brighton's players scored 103 points and the club has 13 goals this season.", evidence: ["r4"] });
+    });
+    expect(club.issues).toEqual([]);
+  });
+
+  it("rejects a number with no stat word that is not the player's own", () => {
+    // 151 is the highest manager score; nothing of Haaland's.
+    const report = broken((d) => {
+      d.paragraphs[2] += " Haaland finished on 151.";
+      d.claims.push({ text: "Haaland finished on 151.", evidence: ["r1"] });
+    });
+    expect(codes(report)).toEqual(["wrong-subject"]);
+  });
+
+  it("allows a gameweek-wide figure beside a player when the words say that is what it is", () => {
+    const add = (sentence: string, cite = ["r1"]) =>
+      broken((d) => {
+        d.paragraphs[2] += ` ${sentence}`;
+        d.claims.push({ text: sentence, evidence: cite });
+      });
+    // The average, next to Haaland's own 9 points.
+    expect(add("Haaland returned 9 points as the average manager scored 69 points.").issues).toEqual([]);
+    expect(codes(add("Haaland returned 69 points as the average manager scored 9 points."))).toEqual(["stat-mismatch", "wrong-subject"]);
+    // The best manager's score, and a chip count.
+    expect(add("Haaland owners were among them as the highest-scoring manager reached 151 points.").issues).toEqual([]);
+    expect(add("Many of the 323,226 managers who played the Triple Captain chip backed Haaland.").issues).toEqual([]);
+    // A count of players.
+    expect(add("Haaland was not among the 14 players in double figures.", ["r1", "r2"]).issues).toEqual([]);
+    // "10 or more" has no stat word, and no 10 in the evidence is a figure of Haaland's.
+    expect(codes(add("Haaland was not among the 14 players to score 10 or more.", ["r1", "r2"]))).toEqual([
+      "number-not-cited",
+      "wrong-subject",
+    ]);
+    // But the same numbers can't be passed off as his.
+    expect(codes(add("Haaland was owned by 323,226 managers."))).toEqual(["wrong-subject"]);
+  });
+
+  it("checks ownership and price against the player's own", () => {
+    // João Pedro: 74.3% (7,935,710 managers). Haaland: 71.3%.
+    expect(codes(broken((d) => replaceAll(d, "74.3%", "71.3%")))).toEqual(["wrong-player"]);
+    const owners = (n: string) =>
+      broken((d) => {
+        d.paragraphs[2] += ` João Pedro was owned by ${n} managers.`;
+        d.claims.push({ text: `João Pedro was owned by ${n} managers.`, evidence: ["r5"] });
+      });
+    expect(owners("7.9 million").issues).toEqual([]);
+    expect(codes(owners("7.6 million"))).toEqual(["wrong-player"]); // Haaland's 7,610,939
+  });
+});
+
 describe("claims", () => {
   it("must cite results that hold their numbers", () => {
     // 69 is in gameweek_summary (r1) and season_records (r7), not in top_performers (r2).
     const report = broken((d) => {
       d.claims[11].evidence = ["r2"];
     });
-    expect(codes(report)).toEqual(["number-not-cited"]);
+    // (29 is in r2 too, but as a player's season points, not as goals.)
+    expect(codes(report)).toEqual(["number-not-cited", "stat-mismatch"]);
     expect(messages(report, "number-not-cited")[0]).toMatch(/^claim 12: "69" .* is not in the results this claim cites \(r2\)\. It is in r1, r7/);
   });
 

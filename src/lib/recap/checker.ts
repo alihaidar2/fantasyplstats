@@ -7,25 +7,59 @@
 //   counts, "twice", "hat-trick") must be in a tool result. A claim's numbers
 //   must be in the results that claim cites. Numbers in the headline and
 //   paragraphs must also be stated by a claim.
+// - What it is a number of. A number next to a stat word ("two assists",
+//   "17 pts", "a brace", "an xG of 0.82") must match a figure of that stat:
+//   tool results are tagged by field name (stats.ts). "Three assists" is not
+//   satisfied by a 3 that is the player's bonus.
 // - Whose number it is. Tool results keep each player's numbers inside that
-//   player's object, so a sentence about one player can't borrow another
-//   player's figure, and a score next to a club must be one of that club's
-//   results. This is what catches two players' stats being swapped.
+//   player's object. A number in a sentence that names a player must be one
+//   of that player's own figures: not another player's, not their club's and
+//   not the gameweek's (the average score, say). A gameweek-wide figure may
+//   sit beside a player's name only when the words make it one ("the average
+//   manager scored", "there were four red cards", "14 players", a chip). A
+//   score next to a club must be one of that club's results.
+// - When it is from. A season total, or a figure from an earlier gameweek,
+//   only counts when the sentence says so ("this season", "in Gameweek 2").
 // - Names. Every player or club named must be in a tool result. Any other
 //   capitalised name (a manager, a pundit, a stadium, an FPL manager's real
 //   name) is rejected, since nothing in the data could have supplied it.
 // - Content. Length limits; nothing about betting or odds; no links; no
 //   quotes.
 //
-// What it can't see: a claim that is false but uses only true numbers about
-// the right player ("his first goal" when it was his third), and a lone
-// unknown surname as the first word of a sentence, which can't be told from an
-// ordinary capitalised word. Those are for the quality review and the person
-// approving the recap.
+// Known gaps. These are for the quality review and the person approving the
+// recap:
+// - A false statement built from true numbers of the right stat about the
+//   right player ("his first goal" when it was his third).
+// - Two players in one sentence: a number may belong to either, so stats
+//   swapped inside a single sentence pass unless written in brackets after
+//   each name ("Saka (12 points) and Rice (9 points)").
+// - A number with no stat word the lexicon knows ("finished on 9") is only
+//   checked for being one of the player's figures, whatever the stat. In a
+//   sentence that names no player it can be any figure in the evidence.
+// - Season words anywhere in a sentence ("this season", "so far", "since")
+//   open season totals to every number in it.
+// - Club figures are not tied to the club named: a sentence about one club
+//   can use another club's league points. (Scores are tied to clubs.)
+// - "One", and "a goal" or "an assist", are not read as numbers.
+// - A lone unknown surname as the first word of a sentence ("Guardiola
+//   rotated again.") can't be told from an ordinary capitalised word.
+//
+// It errs towards rejecting: a club or gameweek figure in a sentence that
+// names a player is refused even when the sentence means the club. The
+// message says to give such figures a sentence of their own.
 
 import type { NameEntry } from "./context";
 import type { NameIndex, NameMention } from "./names";
 import { extractNumbers, numberToken, numbersAgree, type NumberToken } from "./numbers";
+import {
+  PART_POINTS,
+  SEASON_WORDS,
+  isGameweekField,
+  isSeasonField,
+  statLabel,
+  statsOfField,
+  writtenStat,
+} from "./stats";
 import {
   RECAP_LIMITS,
   type CheckIssue,
@@ -51,10 +85,21 @@ export interface CheckOptions {
   requireClaimCoverage?: boolean;
 }
 
-/** A number in a tool result, and the players it describes (null: no player in particular). */
+/** A number in a tool result: what it counts and who it is about. */
 interface Fact {
   token: NumberToken;
+  /** The players it describes, or null when it is no player's figure. */
   owners: readonly number[] | null;
+  /** The club it describes, when it is a club's figure (inside team_story) rather than a player's or the gameweek's. */
+  team: number | null;
+  /** The field it sits in, e.g. "assists". */
+  field: string;
+  /** The stats that field counts as (see stats.ts); empty when untyped. */
+  stats: readonly string[];
+  /** A season-to-date figure (inside `season`, `seasonLeaders`, ...) rather than this gameweek's. */
+  season: boolean;
+  /** The gameweek its row says it is about (rows of a season list do), or null: this gameweek. */
+  gameweek: number | null;
 }
 
 interface MatchResult {
@@ -84,24 +129,41 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 function readResult(entry: EvidenceEntry, names: NameIndex): ResultFacts {
   const facts: ResultFacts = { id: entry.id, numbers: [], matches: [], players: new Set(), teams: new Set() };
 
-  const walk = (value: unknown, owners: readonly number[] | null): void => {
+  interface Place {
+    owners: readonly number[] | null;
+    team: number | null;
+    field: string;
+    stats: readonly string[];
+    season: boolean;
+    gameweek: number | null;
+  }
+
+  const walk = (value: unknown, place: Place): void => {
     if (typeof value === "number") {
-      facts.numbers.push({ token: numberToken(value), owners });
+      const token = numberToken(value);
+      // "gameweek": 3 says which gameweek a row is about. It is not a count of anything.
+      facts.numbers.push({ ...place, token: isGameweekField(place.field) ? { ...token, kind: "gameweek" } : token });
     } else if (typeof value === "string") {
-      for (const token of extractNumbers(value)) facts.numbers.push({ token, owners });
+      for (const token of extractNumbers(value)) facts.numbers.push({ ...place, token });
       for (const mention of names.scan(value).mentions) {
         const seen = mention.kind === "team" ? facts.teams : facts.players;
         for (const id of mention.ids) seen.add(id);
       }
     } else if (Array.isArray(value)) {
-      for (const item of value) walk(item, owners);
+      for (const item of value) walk(item, place);
     } else if (isRecord(value)) {
-      let own = owners;
+      let { owners, team, season, gameweek } = place;
+      if (typeof value.gameweek === "number") gameweek = value.gameweek;
+      // expected_vs_actual says in `scope` whether its rows are season totals.
+      if (typeof value.scope === "string" && /season/i.test(value.scope)) season = true;
       if (typeof value.player === "string") {
         // A player's object: every number inside it is about that player.
         const ref = typeof value.ref === "string" ? /^p(\d+)$/.exec(value.ref) : null;
-        own = ref ? [Number(ref[1])] : names.lookupPlayer(value.player);
-        for (const id of own) facts.players.add(id);
+        owners = ref ? [Number(ref[1])] : names.lookupPlayer(value.player);
+        for (const id of owners) facts.players.add(id);
+      } else if (typeof value.team === "string") {
+        // A club's object (team_story): its numbers are the club's.
+        team = names.lookupTeam(value.team);
       }
       if (typeof value.home === "string" && typeof value.away === "string" && typeof value.score === "string") {
         const token = extractNumbers(value.score).find((t) => t.kind === "score");
@@ -112,17 +174,25 @@ function readResult(entry: EvidenceEntry, names: NameIndex): ResultFacts {
             text: `${value.home} ${value.score} ${value.away}`,
             gameweek: typeof value.gameweek === "number" ? value.gameweek : null,
             token,
-            owners: own,
+            owners,
           });
         }
       }
-      for (const [key, child] of Object.entries(value)) {
-        if (key === "ref" || key === "player") continue;
-        walk(child, own);
+      for (const [field, child] of Object.entries(value)) {
+        if (field === "ref" || field === "player") continue;
+        // A nested object or list keeps its own field names; a number or string takes this one.
+        walk(child, {
+          owners,
+          team,
+          field,
+          stats: statsOfField(field, value),
+          season: season || isSeasonField(field),
+          gameweek,
+        });
       }
     }
   };
-  walk(entry.result, null);
+  walk(entry.result, { owners: null, team: null, field: "", stats: [], season: false, gameweek: null });
   return facts;
 }
 
@@ -298,7 +368,8 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
 
     // Numbers.
     const sentences = sentencesOf(text);
-    for (const token of extractNumbers(text)) {
+    const numbers = extractNumbers(text);
+    for (const token of numbers) {
       numbersChecked++;
       const sentence = sentences.find((s) => token.start >= s.start && token.start < s.end) ?? { start: 0, end: text.length };
       const here = mentions.filter((m) => m.mention.start >= sentence.start && m.mention.start < sentence.end);
@@ -375,7 +446,12 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
           : [];
         const otherKind = scope
           .flatMap((f) => f.numbers)
-          .find((n) => n.token.kind !== token.kind && n.token.kind !== "score" && Math.abs(n.token.value - token.value) < 1e-9);
+          .find(
+            (n) =>
+              n.token.kind !== token.kind &&
+              (n.token.kind === "percent" || n.token.kind === "price" || n.token.kind === "plain") &&
+              Math.abs(n.token.value - token.value) < 1e-9,
+          );
         unsupported.add(`${where}|${token.text}`);
         report(
           cited ? "number-not-cited" : "number-not-in-evidence",
@@ -390,21 +466,129 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
         continue;
       }
 
-      // Whose number is it? In "Saka (12 points)", it has to be Saka's.
-      if (players.length === 0) continue;
+      // What is it a number of, and whose? The words on either side say,
+      // up to the neighbouring number or player name.
+      const neighbours = [
+        ...numbers.filter((n) => n !== token).flatMap((n) => [n.start, n.end]),
+        ...players.flatMap((m) => [m.mention.start, m.mention.end]),
+      ];
+      const from = Math.max(sentence.start, ...neighbours.filter((at) => at <= token.start));
+      const to = Math.min(sentence.end, ...neighbours.filter((at) => at >= token.end));
+      const written = writtenStat(token, text.slice(from, token.start), text.slice(token.end, to));
+      const isStat = (n: Fact) => written.stats === null || written.stats.some((stat) => n.stats.includes(stat));
+      const describe = (n: Fact) => statLabel(n.stats[0] ?? n.field);
+
+      // In "Saka (12 points)", the figure has to be Saka's.
       const tight = players.find(
         (m) => m.mention.end <= token.start && /^(?:['’]s)?\s*\([^()]*$/.test(text.slice(m.mention.end, token.start)),
       );
       const subjects = tight ? [tight] : players;
       const about = new Set(subjects.flatMap((m) => m.ids));
-      if (agreeing.some((n) => n.owners === null || n.owners.some((id) => about.has(id)))) continue;
+      const theirs = (n: Fact) => n.owners !== null && n.owners.some((id) => about.has(id));
+      /** Nobody's and no club's: a figure for the gameweek as a whole. */
+      const gameweekWide = (n: Fact) => n.owners === null && n.team === null;
 
-      const owners = [...new Set(agreeing.flatMap((n) => n.owners ?? []))].map((id) => playerNames.get(id) ?? "another player");
+      // A sentence that names no player can use any figure of the right stat.
+      // One that names a player ties its numbers to that player, unless the
+      // words make the number a gameweek-wide one ("the average manager
+      // scored", "there were", a chip).
+      const tied = subjects.length > 0;
+      const rightOwner = (n: Fact) => !tied || theirs(n) || (written.gameweekWide && gameweekWide(n));
+
+      // And when? A season total or another gameweek's figure only counts
+      // when the sentence says that is what it means.
+      const sentenceText = text.slice(sentence.start, sentence.end);
+      const seasonTalk = SEASON_WORDS.test(sentenceText);
+      const namedGameweeks = new Set(numbers.filter((n) => n.kind === "gameweek" && n.start >= sentence.start && n.start < sentence.end).map((n) => n.value));
+      const rightPeriod = (n: Fact) =>
+        n.season
+          ? seasonTalk
+          : n.gameweek === null || n.gameweek === options.gameweek || namedGameweeks.has(n.gameweek) || seasonTalk;
+
+      if (agreeing.some((n) => isStat(n) && rightOwner(n) && rightPeriod(n))) continue;
+
+      // Rejected. Say what the number is in the evidence, and what the
+      // evidence has for the stat the recap named.
+      const subject = list([...new Set(subjects.map((m) => m.mention.text))]).replace(/, ([^,]+)$/, " or $1");
+      const what = written.label ?? "figure";
+      const digits = /^\d/.test(token.text) ? token.text : String(token.value);
+      const phrase = quoted(
+        written.label && token.kind === "plain" && /^(?:\d|[a-z]+$)/i.test(token.text) && !/^(?:the|a) /.test(written.label) && !/^(?:brace|hat|twice|thrice)/i.test(token.text)
+          ? `${token.text} ${written.label}`
+          : token.text,
+      );
+      const when = (n: Fact) =>
+        n.season ? " for the season so far" : n.gameweek !== null && n.gameweek !== options.gameweek ? ` in gameweek ${n.gameweek}` : "";
+      const whose = (pool: readonly Fact[]) =>
+        list([
+          ...new Set(
+            pool.map((n) =>
+              n.owners !== null
+                ? `${playerNames.get(n.owners[0]) ?? "another player"}'s ${describe(n)}${when(n)}`
+                : n.team !== null
+                  ? `${teamNames.get(n.team) ?? "a club"}'s ${describe(n)}${when(n)} (a club figure)`
+                  : `${describe(n)}${when(n)} (a gameweek figure)`,
+            ),
+          ),
+        ]);
+      /** What the evidence does have for that stat, for the same subject and period. */
+      const have = [
+        ...new Set(
+          scope
+            .flatMap((f) => f.numbers.filter((n) => isStat(n) && rightOwner(n) && rightPeriod(n) && !n.stats.includes(PART_POINTS)))
+            .map((n) => n.token.text),
+        ),
+      ];
+      const instead =
+        written.stats !== null && have.length > 0 && (tied || written.gameweekWide)
+          ? ` The evidence has ${list(have, 5)} for ${tied && !written.gameweekWide ? `${subject}'s ` : ""}${what}${seasonTalk ? "" : " this gameweek"}.`
+          : "";
+
+      const otherPeriod = agreeing.filter((n) => isStat(n) && rightOwner(n));
+      if (otherPeriod.length > 0) {
+        // The right stat for the right player, but a season total or another gameweek's.
+        report(
+          "wrong-period",
+          where,
+          `${phrase} ${context}: in ${source} ${digits} is ${whose(otherPeriod)}, not this gameweek's.${instead} ` +
+            'If you mean the season or an earlier gameweek, say so in the sentence ("this season", "in Gameweek 2").',
+        );
+        continue;
+      }
+
+      const otherStat = agreeing.filter(rightOwner);
+      if (written.stats !== null && otherStat.length > 0) {
+        // The right player's (or the gameweek's) number, but of something else:
+        // "three assists" when 3 is their bonus.
+        report(
+          "stat-mismatch",
+          where,
+          `${phrase} ${context}: in ${source} ${digits} is ${whose(otherStat)}, not ${tied && !written.gameweekWide ? `${subject}'s ` : ""}${what}.${instead} ` +
+            "Say what the tool returned for that stat.",
+        );
+        continue;
+      }
+
+      // The right stat, but nobody the sentence names: another player's, a
+      // club's or the gameweek's.
+      const rightStat = agreeing.filter(isStat);
+      if (rightStat.length > 0 && rightStat.every((n) => n.owners !== null) && !written.gameweekWide) {
+        const owners = [...new Set(rightStat.flatMap((n) => n.owners ?? []))].map((id) => playerNames.get(id) ?? "another player");
+        report(
+          "wrong-player",
+          where,
+          `${phrase} ${context}: in ${source} that figure belongs to ${list(owners)}, not ${subject}.${instead} ` +
+            "Check which player it describes and correct the sentence.",
+        );
+        continue;
+      }
       report(
-        "wrong-player",
+        "wrong-subject",
         where,
-        `${quoted(token.text)} ${context}: in ${source} that figure belongs to ${list(owners)}, not ` +
-          `${list([...new Set(subjects.map((m) => m.mention.text))])}. Check which player it describes and correct the sentence.`,
+        `${phrase} ${context}: in ${source} ${digits} is ${whose(rightStat.length > 0 ? rightStat : agreeing)}, not ` +
+          (written.gameweekWide ? `a gameweek-wide ${what} or a figure for ${subject}.` : `a figure for ${subject}.`) +
+          `${instead} A number in a sentence that names a player must be that player's own. ` +
+          "Give gameweek and club figures a sentence of their own.",
       );
     }
   };
