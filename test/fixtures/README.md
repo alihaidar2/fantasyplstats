@@ -7,3 +7,5 @@ Trimmed copies of real FPL API responses (2026/27 season, recorded 21 November 2
 - `element-summary-<id>.json`: history for gameweeks 1–3 of players 1 and 430, plus a few upcoming fixtures and one past season.
 
 Unknown fields are kept on purpose: the schemas must strip them. Tests build double and blank gameweeks by editing copies of these files in memory.
+
+`gameweeks/` holds a separate, larger recording of whole gameweeks (2026/27 GW1–10) for the recap evals; see its README.

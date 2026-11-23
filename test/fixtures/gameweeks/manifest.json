@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-11-23T02:28:15.052Z",
+  "source": "https://fantasy.premierleague.com/api",
+  "gameweeks": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "skipped": [
+    {
+      "gameweek": 11,
+      "reason": "not settled yet (finished: false, data_checked: false)"
+    },
+    {
+      "gameweek": 12,
+      "reason": "not settled yet (finished: false, data_checked: false)"
+    }
+  ],
+  "players": 674,
+  "historyPlayers": 459,
+  "requests": 490
+}
