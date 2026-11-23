@@ -6,7 +6,7 @@ import type { PlayerDetail } from "@/lib/fpl/transforms";
 
 export default function PlayerHeader({ player }: Readonly<{ player: PlayerDetail }>) {
   return (
-    <div className="flex items-start justify-between gap-4 pl-2">
+    <div className="flex flex-wrap items-start justify-between gap-4 pl-2">
       <div className="flex items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element -- static export: no image optimizer */}
         <img

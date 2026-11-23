@@ -6,7 +6,7 @@ export default function PlayerStatus({
 }: Readonly<{ availability: Availability | null }>) {
   if (!availability) return null;
   return (
-    <div className="flex flex-col items-end gap-2 min-w-[140px]">
+    <div className="flex flex-col items-end gap-2 sm:min-w-[140px]">
       <AvailabilityBadge availability={availability} className="text-sm mb-1" />
       {availability.news && (
         <span className="text-gray-400 dark:text-gray-300 text-sm text-right max-w-xs">

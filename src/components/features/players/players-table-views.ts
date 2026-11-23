@@ -6,7 +6,10 @@ import type { PlayerRow } from "@/lib/fpl/transforms";
 // module loadable by Vitest without the `@/` alias.
 
 /** Table column ids: every PlayerRow field except ones shown inside other cells. */
-export type PlayerColumnId = Exclude<keyof PlayerRow, "id" | "positionId" | "availability">;
+export type PlayerColumnId = Exclude<
+  keyof PlayerRow,
+  "id" | "fullName" | "positionId" | "availability"
+>;
 
 export type PlayersTableViewId = "overview" | "attack" | "defence" | "transfers" | "minutes";
 

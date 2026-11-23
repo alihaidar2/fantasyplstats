@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { PlayerRow } from "@/lib/fpl/transforms";
-import { PLAYER_COLUMNS, PLAYER_COLUMN_IDS, columnWidthStyle } from "./players-table-columns";
+import { PLAYER_COLUMNS, PLAYER_COLUMN_IDS } from "./players-table-columns";
 import { PlayersTableTabs, tabIdFor } from "./players-table-tabs";
 import {
   DEFAULT_VIEW,
@@ -135,6 +135,9 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
     },
   });
 
+  const visibleColumns = table.getVisibleLeafColumns();
+  const columnsWidth = visibleColumns.reduce((sum, column) => sum + column.getSize(), 0);
+
   return (
     <Card className="border-2 border-gray-200 bg-white shadow-lg dark:bg-gray-900 dark:border-gray-700">
       <CardHeader>
@@ -147,8 +150,8 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
           />
           <div className="flex flex-wrap items-center gap-4">
             <Input
-              placeholder="Filter players..."
-              aria-label="Filter players by name"
+              placeholder="Search by name..."
+              aria-label="Search players by name"
               value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                 table.getColumn("name")?.setFilterValue(event.target.value)
@@ -177,8 +180,19 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
           aria-labelledby={tabIdFor(viewId)}
           className="rounded-md border"
         >
-          {/* The Table component scrolls horizontally inside this panel on narrow screens. */}
-          <Table>
+          {/*
+            Fixed layout: every column is exactly its `size` wide, whatever the
+            rows on the page, and a trailing spacer column takes any leftover
+            width. The table is never narrower than its columns, so on narrow
+            screens it scrolls sideways inside the Table component's container.
+          */}
+          <Table style={{ tableLayout: "fixed", minWidth: columnsWidth }}>
+            <colgroup>
+              {visibleColumns.map((column) => (
+                <col key={column.id} style={{ width: column.getSize() }} />
+              ))}
+              <col />
+            </colgroup>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -187,7 +201,7 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
                     return (
                       <TableHead
                         key={header.id}
-                        style={columnWidthStyle(header.column.getSize())}
+                        className="overflow-hidden"
                         aria-sort={
                           sorted === "asc"
                             ? "ascending"
@@ -202,6 +216,7 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
                       </TableHead>
                     );
                   })}
+                  <TableHead aria-hidden="true" className="p-0" />
                 </TableRow>
               ))}
             </TableHeader>
@@ -210,16 +225,17 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} style={columnWidthStyle(cell.column.getSize())}>
+                      <TableCell key={cell.id} className="overflow-hidden">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
+                    <TableCell aria-hidden="true" className="p-0" />
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={table.getVisibleLeafColumns().length}
+                    colSpan={visibleColumns.length + 1}
                     className="h-24 text-center"
                   >
                     No results.

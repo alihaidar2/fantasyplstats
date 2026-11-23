@@ -9,6 +9,8 @@ import {
   buildPlayerGameweeks,
   buildPlayerRows,
   elementSummarySchema,
+  foldForSearch,
+  matchesPlayerSearch,
   setPieceDuties,
   type Element,
 } from "../src/lib/fpl";
@@ -257,5 +259,59 @@ describe("buildPlayerDetail", () => {
     expect(detail.history).toHaveLength(3);
     expect(detail).not.toHaveProperty("status");
     expect(detail).not.toHaveProperty("news");
+  });
+});
+
+describe("player names", () => {
+  it("show FPL's short name in the table, with the full name kept for its tooltip", () => {
+    expect(row(1)).toMatchObject({ name: "Raya", fullName: "David Raya Martín" });
+    expect(row(5)).toMatchObject({ name: "J.Timber", fullName: "Jurriën Timber" });
+    expect(row(4)).toMatchObject({ name: "Gabriel", fullName: "Gabriel dos Santos Magalhães" });
+  });
+
+  it("fall back to the full name when FPL sends no short name", () => {
+    const bootstrap = loadBootstrap();
+    bootstrap.elements[0].web_name = " ";
+    expect(buildPlayerRows(bootstrap)[0]).toMatchObject({
+      name: "David Raya Martín",
+      fullName: "David Raya Martín",
+    });
+  });
+
+  it("keep the full name on the player page", () => {
+    expect(buildPlayerDetail(loadBootstrap(), element(1), loadSummary(1)).name).toBe("David Raya Martín");
+  });
+});
+
+describe("matchesPlayerSearch", () => {
+  const raya = { name: "Raya", fullName: "David Raya Martín" };
+  const timber = { name: "J.Timber", fullName: "Jurriën Timber" };
+  const bruno = { name: "B.Fernandes", fullName: "Bruno Borges Fernandes" };
+
+  it("matches the short name, first name, second name and full name", () => {
+    expect(matchesPlayerSearch(timber, "J.Timber")).toBe(true);
+    expect(matchesPlayerSearch(timber, "Jurriën")).toBe(true);
+    expect(matchesPlayerSearch(raya, "Raya Martín")).toBe(true);
+    expect(matchesPlayerSearch(raya, "David Raya Martín")).toBe(true);
+    expect(matchesPlayerSearch(bruno, "b.fern")).toBe(true);
+  });
+
+  it("ignores case, accents, extra spaces and word order", () => {
+    expect(matchesPlayerSearch(raya, "  david   MARTIN ")).toBe(true);
+    expect(matchesPlayerSearch(timber, "jurrien")).toBe(true);
+    expect(matchesPlayerSearch(bruno, "bruno fernandes")).toBe(true);
+    expect(matchesPlayerSearch(bruno, "fernandes bruno")).toBe(true);
+  });
+
+  it("folds letters that normalization keeps, like ø and ß", () => {
+    expect(matchesPlayerSearch({ name: "Ødegaard", fullName: "Martin Ødegaard" }, "odegaard")).toBe(true);
+    expect(matchesPlayerSearch({ name: "Groß", fullName: "Pascal Groß" }, "gross")).toBe(true);
+    expect(foldForSearch("Łukasz Fabiański")).toBe("lukasz fabianski");
+  });
+
+  it("needs every word to match, and matches everyone on an empty query", () => {
+    expect(matchesPlayerSearch(bruno, "bruno silva")).toBe(false);
+    expect(matchesPlayerSearch(raya, "saka")).toBe(false);
+    expect(matchesPlayerSearch(raya, "   ")).toBe(true);
   });
 });

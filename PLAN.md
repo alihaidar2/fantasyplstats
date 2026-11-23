@@ -157,6 +157,7 @@ Done when the new views and charts render from a recorded snapshot and from live
 - Players table: Overview, Attack, Defence, Transfers and price, and Minutes and bonus tabs over one TanStack column list. The view is linkable (`/players/#attack`), and the availability badge shows on every view.
 - Player pages: set-piece duties, new season stats, and three charts (points with xG and xA, price and ownership, BPS, bonus and defensive contribution). Each chart stacks panels on a shared gameweek axis instead of using two y-axes, and a gameweek-by-gameweek table is built in the browser on demand. The history reaches the browser once, through one client component.
 - `out/` grew from 90.8 MB to 105.8 MB (97 → 118 MB on disk) with live data at GW11, mostly in player pages (about 20 KB each). The per-gameweek history grows through the season, adding roughly another 10–15 MB by GW38.
+- Follow-up (#19): the table shows FPL's short names with the full name as a tooltip, search matches short, first, second and full names (ignoring case and accents), column widths are fixed, and pages no longer scroll sideways on phones.
 
 ### 5b: AI gameweek recap (several PRs, in this order)
 
@@ -188,7 +189,6 @@ Deferred from steps 1–4:
 - Per-player sitemap `lastmod`: change a player's date only when that player's data changes, instead of every entry using the snapshot's `generatedAt`.
 - Migrate to TanStack Table v9 (Dependabot's v9 PR broke the build; major updates are ignored for now).
 - TypeScript 7: wait until typescript-eslint and Next.js support it (its Dependabot PR failed lint; majors are ignored for now).
-- The header's nav is about 10px wider than a 390px phone screen, so every page scrolls sideways slightly (seen in step 5a, already in production).
 - Per-player Open Graph images: dropped for size (about 53 MB more in `out/`). They would also need a route handler, since Next gives a dynamic `opengraph-image` no file extension.
 
 ## Risks to check early
