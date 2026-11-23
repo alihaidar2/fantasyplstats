@@ -28,7 +28,10 @@ export function ThemeToggle() {
 
   return (
     <Select value={theme} onValueChange={setTheme}>
-      <SelectTrigger className="w-16 h-9 p-0 flex items-center justify-between">
+      <SelectTrigger
+        className="w-14 sm:w-16 h-9 p-0 flex items-center justify-between"
+        aria-label="Colour theme"
+      >
         <SelectValue asChild>
           <span className="flex items-center justify-center w-8">
             {getThemeIcon(theme, "w-8 h-8")}

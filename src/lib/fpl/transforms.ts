@@ -180,7 +180,10 @@ export function setPieceDuties(
 /** One row of the players table. Each group of fields feeds one table view. */
 export interface PlayerRow {
   id: number;
+  /** FPL's short display name ("Raya", "B.Fernandes"), as the table shows it. */
   name: string;
+  /** First and second name, for the name's tooltip and for search. */
+  fullName: string;
   team: string;
   position: string;
   positionId: number;
@@ -241,6 +244,45 @@ function lookups(bootstrap: Pick<Bootstrap, "teams" | "element_types">) {
 }
 
 const fullName = (e: Element) => `${e.first_name} ${e.second_name}`.trim() || e.web_name;
+const shortName = (e: Element) => e.web_name.trim() || fullName(e);
+
+/** Letters that Unicode normalization doesn't reduce to plain ASCII. */
+const FOLDED_LETTERS: Record<string, string> = {
+  ø: "o",
+  æ: "ae",
+  œ: "oe",
+  ß: "ss",
+  ł: "l",
+  đ: "d",
+  ð: "d",
+  þ: "th",
+  ı: "i",
+};
+
+/** Lower case without accents, so "Ødegaard" and "Magalhães" match "odegaard" and "magalhaes". */
+export function foldForSearch(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[øæœßłđðþı]/g, (c) => FOLDED_LETTERS[c]);
+}
+
+/**
+ * Whether a player matches the table's name search. Every word of the query
+ * must appear in the short name or the full name (which holds the first and
+ * second names), ignoring case and accents, so "bruno fernandes" finds
+ * "Bruno Borges Fernandes" and "b.fern" finds "B.Fernandes".
+ */
+export function matchesPlayerSearch(
+  player: Pick<PlayerRow, "name" | "fullName">,
+  query: string,
+): boolean {
+  const words = foldForSearch(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0) return true;
+  const haystack = foldForSearch(`${player.name} ${player.fullName}`);
+  return words.every((word) => haystack.includes(word));
+}
 
 export function buildPlayerRows(
   bootstrap: Pick<Bootstrap, "teams" | "element_types" | "elements">,
@@ -250,7 +292,8 @@ export function buildPlayerRows(
     const xg = Number(e.expected_goals);
     return {
       id: e.id,
-      name: fullName(e),
+      name: shortName(e),
+      fullName: fullName(e),
       team: teams.get(e.team)?.short_name ?? "—",
       position: positions.get(e.element_type)?.singular_name_short ?? "—",
       positionId: e.element_type,

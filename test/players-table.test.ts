@@ -22,9 +22,10 @@ import { loadBootstrap } from "./helpers";
 describe("players table views", () => {
   it("shows every PlayerRow field in some view", () => {
     const row = buildPlayerRows(loadBootstrap())[0];
-    // Shown inside other cells: the id in the link, positionId as the badge
+    // Shown inside other cells: the id in the link, the full name as the
+    // name's tooltip (and in search), positionId as the badge
     // colour and sort key, availability as the badge next to the name.
-    const inOtherCells = ["id", "positionId", "availability"];
+    const inOtherCells = ["id", "fullName", "positionId", "availability"];
     const shown = new Set([...ALWAYS_VISIBLE, ...PLAYERS_TABLE_VIEWS.flatMap((v) => v.columns)]);
     const missing = Object.keys(row).filter((k) => !inOtherCells.includes(k) && !shown.has(k as never));
     expect(missing).toEqual([]);

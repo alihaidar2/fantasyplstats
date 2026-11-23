@@ -141,7 +141,7 @@ describe("player view models", () => {
     expect(typeof raya.form).toBe("number");
     expect(Object.keys(raya).sort()).toEqual(
       [
-        "id", "name", "team", "position", "positionId", "availability",
+        "id", "name", "fullName", "team", "position", "positionId", "availability",
         // Overview
         "price", "totalPoints", "pointsPerGame", "form", "selectedByPercent", "goals", "assists", "cleanSheets",
         // Attack

@@ -87,6 +87,13 @@ describe("player metadata", () => {
     expect(titleText(m)).toBe(`${p.name} (${p.teamName}, ${p.position}): FPL stats, price and form`);
   });
 
+  it("uses the full name, not FPL's short table name", () => {
+    const m = playerMetadata(player(1));
+    expect(titleText(m)).toMatch(/^David Raya Martín /);
+    expect(m.description).toContain("David Raya Martín");
+    expect(JSON.stringify(m.openGraph)).toContain("David Raya Martín");
+  });
+
   it("includes price and total points in the description", () => {
     const p = player(430);
     const d = playerMetadata(p).description as string;
