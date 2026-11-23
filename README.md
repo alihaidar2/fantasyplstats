@@ -1,12 +1,18 @@
 # FPL Stats
 
-Fantasy Premier League stats site at [fantasyplstats.com](https://fantasyplstats.com): a fixture difficulty matrix, a players table and player pages.
+Fantasy Premier League stats site at [fantasyplstats.com](https://fantasyplstats.com): gameweek recaps, fixtures, players, clubs, gameweeks and matches, live points and in-browser planning tools.
 
 ## Features
 
 - **Fixture difficulty matrix**: every team's opponents over a gameweek range you pick with a slider, coloured by FPL's difficulty rating, with a sortable average difficulty column.
 - **Players table**: every player, with sorting, a name filter, a position filter and pagination.
 - **Player pages**: season, attacking, defensive and discipline stats, plus a points-per-gameweek chart.
+- **Players hub**: injuries and availability, price changes, value per £m, set-piece takers and the template team.
+- **Teams**: the Premier League table from results, and a page per club with results, form, xGC, fixtures and top FPL players.
+- **Gameweeks and matches**: a season dashboard, a page per gameweek with its results and team of the week, a page per match with scorers, BPS and bonus, and a double and blank gameweek planner.
+- **Live**: the current gameweek's points with provisional bonus from BPS, and how FPL points work, worked out from the points FPL awarded.
+- **Tools**: a squad and transfer planner and a player comparison, running in the browser from a small static data file.
+- **Recaps**: AI-written gameweek recaps, checked against the data before they're published.
 - **Themes**: light, dark or follow the system setting.
 
 ## Tech stack
@@ -51,9 +57,10 @@ Run lint, typecheck, tests and build before opening a pull request. CI runs all 
 ```
 src/
 ├── app/                 # App Router pages, prerendered at build time
-│   ├── fixtures/        # Fixture difficulty matrix
+│   ├── fixtures/        # Fixture difficulty matrix and the double and blank planner (schedule/)
+│   ├── gameweeks/, matches/, live/, points/, teams/, tools/, recap/
 │   ├── health.json/     # /health.json: data timestamp and current gameweek
-│   ├── players/         # Players table and player pages
+│   ├── players/         # Players table, player pages and the players hub
 │   ├── opengraph-image.tsx  # Site-wide share image (out/opengraph-image/og.png)
 │   ├── sitemap.ts       # /sitemap.xml
 │   └── robots.ts        # /robots.txt
@@ -65,12 +72,15 @@ src/
     ├── site.ts          # Site URL, name, description and paths
     ├── metadata.ts      # Titles, descriptions, canonicals and Open Graph tags
     ├── sitemap.ts       # Sitemap and robots.txt entries
+    ├── nav.ts           # The header's menus and active section
+    ├── stats/           # Framework-free calculations for the step 6 pages
     └── fpl/             # Framework-free: zod schemas, throttled client, transforms, snapshot building
 public/staticwebapp.config.json  # Azure: 404 page, cache and security headers
 scripts/
 ├── fetch-fpl.ts         # npm run fetch
 ├── fixture-snapshot.ts  # npm run fetch:fixtures
 ├── plan-run.ts          # Decides whether a scheduled deploy run deploys
+├── prune-export.ts      # After next build: drops unused payload copies, reports out/'s size
 └── check-freshness.ts   # The freshness workflow's check and alert issue
 test/                    # Vitest tests and recorded FPL responses
 ```
