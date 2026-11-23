@@ -1,0 +1,212 @@
+name: Recap eval
+
+# Runs the recap agent over the recorded gameweeks and scores it
+# (npm run recap:eval, PLAN.md step 5b item 3), on demand only.
+#
+# No API key is stored anywhere. A real run signs in to the Claude API with
+# Workload Identity Federation: the job asks GitHub for an OIDC token, writes
+# it to a file, and the Anthropic SDK exchanges it for a short-lived access
+# token (it reads ANTHROPIC_FEDERATION_RULE_ID, ANTHROPIC_ORGANIZATION_ID,
+# ANTHROPIC_SERVICE_ACCOUNT_ID, ANTHROPIC_WORKSPACE_ID and
+# ANTHROPIC_IDENTITY_TOKEN_FILE; see core/credentials.ts in the SDK). The IDs
+# come from repository variables (Settings → Secrets and variables → Actions
+# → Variables); none of them is secret.
+#
+# The federation rule in the Anthropic Console only trusts runs of this
+# workflow on master, so a real run must be started from master. To evaluate
+# a tuning branch, start it from master and put the branch in "ref": the code
+# under test comes from that ref, but the OIDC token still comes from master.
+#
+# Spend is capped by the organization's prepaid credits (no auto-reload).
+# Start with "fake" (no API calls), then a couple of gameweeks.
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Writer model
+        type: string
+        default: claude-haiku-5-5
+      judge_model:
+        description: Judge model (must differ from the writer)
+        type: string
+        default: claude-opus-5-5
+      gameweeks:
+        description: Recorded gameweeks to run, like 3,5 (empty = all recorded)
+        type: string
+        default: ""
+      ref:
+        description: Branch, tag or SHA whose code to evaluate (empty = master)
+        type: string
+        default: ""
+      fake:
+        description: Scripted models, no API calls (tests the plumbing for free)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# One eval at a time; a second run waits for the first instead of cancelling it.
+concurrency:
+  group: recap-eval
+  cancel-in-progress: false
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    name: Run recap eval
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      # Lets the job request a GitHub OIDC token for the Anthropic exchange.
+      id-token: write
+    env:
+      ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+      ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+      ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+      # Optional: only needed when the federation rule covers more than one
+      # workspace. Empty counts as unset in the SDK.
+      ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
+      # The `aud` the federation rule expects. Anthropic's default for GitHub
+      # is https://api.anthropic.com; set the variable only if the rule says
+      # otherwise.
+      OIDC_AUDIENCE: ${{ vars.ANTHROPIC_OIDC_AUDIENCE || 'https://api.anthropic.com' }}
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v7
+        with:
+          # Empty = the commit this run started from (master).
+          ref: ${{ inputs.ref }}
+          # The checked-out code may be a tuning branch: give it no git credentials.
+          persist-credentials: false
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      # Fails early, before any token is requested, if the run can't sign in:
+      # not started from master (the federation rule would refuse it) or a
+      # repository variable is missing. Then fetches the first token and saves
+      # the fetch function for the eval step, which refreshes the file while
+      # the eval runs (GitHub's tokens expire after about 5 minutes, and the
+      # SDK rereads the file whenever it renews its Anthropic token).
+      - name: 🔑 Get GitHub OIDC token
+        if: ${{ !inputs.fake }}
+        env:
+          RUN_REF: ${{ github.ref }}
+          ANTHROPIC_IDENTITY_TOKEN_FILE: ${{ runner.temp }}/anthropic-oidc/token
+        run: |
+          set -euo pipefail
+          if [ "$RUN_REF" != "refs/heads/master" ]; then
+            echo "::error::A real run must be started from master (this one is $RUN_REF): the federation rule only trusts master. Start it from master and put your branch in \"ref\", or tick \"fake\"."
+            exit 1
+          fi
+          missing=()
+          for name in ANTHROPIC_FEDERATION_RULE_ID ANTHROPIC_ORGANIZATION_ID ANTHROPIC_SERVICE_ACCOUNT_ID; do
+            [ -n "${!name:-}" ] || missing+=("$name")
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing repository variables: ${missing[*]}. Add them under Settings → Secrets and variables → Actions → Variables."
+            exit 1
+          fi
+
+          token_dir="$(dirname "$ANTHROPIC_IDENTITY_TOKEN_FILE")"
+          mkdir -p "$token_dir"
+          chmod 700 "$token_dir"
+          # Never echoes the token except as a mask command, so the log shows
+          # *** wherever it might appear. Writes to a temp file and renames, so
+          # the SDK never reads a half-written token.
+          cat > "$token_dir/fetch-token.sh" <<'EOF'
+          fetch_token() {
+            local token
+            token="$(curl -sSf --retry 3 -G \
+              -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+              --data-urlencode "audience=$OIDC_AUDIENCE" \
+              "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r '.value // empty')" || return 1
+            [ -n "$token" ] || return 1
+            echo "::add-mask::$token"
+            (umask 077 && printf '%s' "$token" > "$ANTHROPIC_IDENTITY_TOKEN_FILE.tmp")
+            mv -f "$ANTHROPIC_IDENTITY_TOKEN_FILE.tmp" "$ANTHROPIC_IDENTITY_TOKEN_FILE"
+          }
+          EOF
+          source "$token_dir/fetch-token.sh"
+          fetch_token || { echo "::error::Could not get a GitHub OIDC token."; exit 1; }
+          echo "Got a GitHub OIDC token for audience $OIDC_AUDIENCE."
+
+      # Inputs go through env and an argument array, never into the script text.
+      - name: 🤖 Run recap eval
+        id: eval
+        env:
+          MODEL: ${{ inputs.model }}
+          JUDGE_MODEL: ${{ inputs.judge_model }}
+          GAMEWEEKS: ${{ inputs.gameweeks }}
+          FAKE: ${{ inputs.fake }}
+          # Outside the checkout, so it can't end up in the results artifact.
+          ANTHROPIC_IDENTITY_TOKEN_FILE: ${{ runner.temp }}/anthropic-oidc/token
+        run: |
+          set -euo pipefail
+          args=(--model "$MODEL" --judge-model "$JUDGE_MODEL")
+          GAMEWEEKS="${GAMEWEEKS// /}"
+          if [ -n "$GAMEWEEKS" ]; then
+            if [[ ! "$GAMEWEEKS" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+              echo "::error::gameweeks must be numbers separated by commas, like 3,5 (got \"$GAMEWEEKS\")."
+              exit 1
+            fi
+            args+=(--gameweeks "$GAMEWEEKS")
+          fi
+          if [ "$FAKE" = "true" ]; then
+            args+=(--fake)
+          else
+            source "$(dirname "$ANTHROPIC_IDENTITY_TOKEN_FILE")/fetch-token.sh"
+            # Keep the token file fresh for the whole run.
+            ( while sleep 120; do fetch_token || echo "::warning::Could not refresh the GitHub OIDC token."; done ) &
+            refresher=$!
+            trap 'kill "$refresher" 2>/dev/null || true' EXIT
+          fi
+          npm run recap:eval -- "${args[@]}"
+
+      # Runs even when the eval failed (a gameweek erroring makes it exit 1).
+      - name: 🧹 Delete OIDC token
+        if: ${{ always() }}
+        run: rm -rf "$RUNNER_TEMP/anthropic-oidc"
+
+      - name: 📤 Upload eval results
+        if: ${{ always() && steps.eval.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: recap-eval-${{ github.run_number }}
+          path: evals/results/
+          retention-days: 30
+          if-no-files-found: warn
+
+      # summary.md is the eval's own short report: checker outcomes (first try,
+      # after retry, fallback), story coverage and quality scores, then a row
+      # per gameweek with tool calls, tokens, cost and time.
+      - name: 📝 Write job summary
+        if: ${{ always() && steps.eval.outcome != 'skipped' }}
+        env:
+          MODEL: ${{ inputs.model }}
+          JUDGE_MODEL: ${{ inputs.judge_model }}
+          GAMEWEEKS: ${{ inputs.gameweeks }}
+          FAKE: ${{ inputs.fake }}
+          CODE_REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+          {
+            echo "**Code:** \`${CODE_REF:-master}\` at \`$(git rev-parse --short HEAD)\` · **Writer:** \`$MODEL\` · **Judge:** \`$JUDGE_MODEL\` · **Gameweeks:** ${GAMEWEEKS:-all recorded} · **Fake:** $FAKE"
+            echo
+            dir="$(find evals/results -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | tail -n 1)"
+            if [ -n "$dir" ] && [ -f "$dir/summary.md" ]; then
+              cat "$dir/summary.md"
+              echo
+              echo "Full report (report.json and the recaps): the \`recap-eval-${{ github.run_number }}\` artifact."
+            else
+              echo "The eval wrote no report. See the **Run recap eval** step's log."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
