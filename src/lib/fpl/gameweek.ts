@@ -7,7 +7,11 @@ import { decimalString, fixtureSchema } from "./schemas";
 
 const playerId = z.number().int().positive();
 
-/** One player's totals for a gameweek (both matches added together in a double gameweek). */
+/**
+ * One player's totals for a gameweek (both matches added together in a double
+ * gameweek). The fields the snapshot doesn't keep are optional, so an FPL
+ * rename can't fail every deploy.
+ */
 export const liveStatsSchema = z.object({
   minutes: z.number().int(),
   starts: z.number().int(),
@@ -23,16 +27,16 @@ export const liveStatsSchema = z.object({
   saves: z.number().int(),
   bonus: z.number().int(),
   bps: z.number().int(),
-  clearances_blocks_interceptions: z.number().int(),
-  recoveries: z.number().int(),
-  tackles: z.number().int(),
+  clearances_blocks_interceptions: z.number().int().optional(),
+  recoveries: z.number().int().optional(),
+  tackles: z.number().int().optional(),
   defensive_contribution: z.number().int(),
-  expected_goals: decimalString,
-  expected_assists: decimalString,
-  expected_goal_involvements: decimalString,
-  expected_goals_conceded: decimalString,
+  expected_goals: decimalString.optional(),
+  expected_assists: decimalString.optional(),
+  expected_goal_involvements: decimalString.optional(),
+  expected_goals_conceded: decimalString.optional(),
   total_points: z.number().int(),
-  in_dreamteam: z.boolean(),
+  in_dreamteam: z.boolean().optional(),
 });
 
 /** Where a player's points came from in one fixture, e.g. `{identifier: "goals_scored", value: 2, points: 12}`. */
@@ -91,25 +95,63 @@ export const dreamTeamSchema = z.object({
   ),
 });
 
-const fixtureStatSchema = z.object({ value: z.number().int(), element: playerId });
-
-/** A fixture from fixtures/?event={gw}: the snapshot's fields plus who did what. */
-export const gameweekFixtureSchema = fixtureSchema.extend({
-  finished_provisional: z.boolean(),
-  minutes: z.number().int(),
-  /** Per-player stats (goals_scored, assists, bonus, ...) split by home and away. */
-  stats: z.array(
-    z.object({
-      identifier: z.string().min(1),
-      h: z.array(fixtureStatSchema),
-      a: z.array(fixtureStatSchema),
-    }),
-  ),
-});
+/**
+ * A fixture from fixtures/?event={gw}. Since snapshot version 4 the snapshot
+ * keeps the same fields (including `stats`) for every fixture, so this is the
+ * snapshot's fixture schema under the name the recap code uses.
+ */
+export const gameweekFixtureSchema = fixtureSchema;
 
 export const gameweekFixturesSchema = z.array(gameweekFixtureSchema);
 
+/**
+ * The per-player stats the snapshot keeps from event/{current}/live/: what a
+ * live points page needs, without the ICT, expected and defensive sub-stats.
+ */
+export const snapshotLiveStatsSchema = liveStatsSchema.pick({
+  minutes: true,
+  starts: true,
+  goals_scored: true,
+  assists: true,
+  clean_sheets: true,
+  goals_conceded: true,
+  own_goals: true,
+  penalties_saved: true,
+  penalties_missed: true,
+  yellow_cards: true,
+  red_cards: true,
+  saves: true,
+  bonus: true,
+  bps: true,
+  defensive_contribution: true,
+  total_points: true,
+});
+
+/** The keys of `snapshotLiveStatsSchema`, in order. */
+export const SNAPSHOT_LIVE_STATS = Object.keys(snapshotLiveStatsSchema.shape) as (keyof SnapshotLiveStats)[];
+
+/**
+ * The current gameweek's live data as the snapshot keeps it: event/{gw}/live/
+ * trimmed to `snapshotLiveStatsSchema` plus the points breakdown, and without
+ * players whose stats are all zero (an absent player has 0 of everything so
+ * far), alongside event-status/ as fetched.
+ */
+export const snapshotLiveSchema = z.object({
+  gameweek: z.number().int().positive(),
+  elements: z.array(
+    z.object({
+      id: playerId,
+      stats: snapshotLiveStatsSchema,
+      explain: z.array(liveExplainSchema),
+    }),
+  ),
+  /** event-status/ as fetched. Its rows name their own gameweek, which can differ from `gameweek` between gameweeks. */
+  status: eventStatusSchema,
+});
+
 export type LiveStats = z.infer<typeof liveStatsSchema>;
+export type SnapshotLiveStats = z.infer<typeof snapshotLiveStatsSchema>;
+export type SnapshotLive = z.infer<typeof snapshotLiveSchema>;
 export type LiveExplain = z.infer<typeof liveExplainSchema>;
 export type EventLive = z.infer<typeof eventLiveSchema>;
 export type EventStatus = z.infer<typeof eventStatusSchema>;

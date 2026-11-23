@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Area,
   Bar,
@@ -22,7 +22,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import type { PlayerGameweek } from "@/lib/fpl/transforms";
+import {
+  unpackPlayerGameweeks,
+  type PackedPlayerGameweek,
+  type PlayerGameweek,
+} from "@/lib/fpl/transforms";
 import {
   formatCompact,
   formatNumber,
@@ -416,7 +420,8 @@ function GameweekTable({ history }: Readonly<{ history: PlayerGameweek[] }>) {
  * All of the player page's per-gameweek charts. The history is passed to this
  * one client component so it is serialized into the page once.
  */
-export default function PlayerCharts({ history }: Readonly<{ history: PlayerGameweek[] }>) {
+export default function PlayerCharts({ packed }: Readonly<{ packed: PackedPlayerGameweek[] }>) {
+  const history = useMemo(() => unpackPlayerGameweeks(packed), [packed]);
   const [showTable, setShowTable] = useState(false);
 
   return (

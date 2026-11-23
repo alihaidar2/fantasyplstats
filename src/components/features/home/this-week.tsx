@@ -192,7 +192,7 @@ export default function ThisWeek({ data }: { data: ThisWeekData }) {
           title="Price risers and fallers"
           icon={TrendingUp}
           subtitle={since}
-          footer={<MoreLink href={`${PATHS.players}#transfers`}>All price changes</MoreLink>}
+          footer={<MoreLink href={PATHS.prices}>All price changes</MoreLink>}
         >
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-1">
             <PriceList moves={data.risers} label="Risers" />
@@ -204,7 +204,7 @@ export default function ThisWeek({ data }: { data: ThisWeekData }) {
           title="Most transferred in"
           icon={ArrowLeftRight}
           subtitle={since}
-          footer={<MoreLink href={`${PATHS.players}#transfers`}>All transfers</MoreLink>}
+          footer={<MoreLink href={`${PATHS.prices}#transfers`}>All transfers</MoreLink>}
         >
           {data.mostTransferredIn.length ? (
             <TransferList players={data.mostTransferredIn} />

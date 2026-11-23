@@ -6,7 +6,7 @@ import {
   parseSnapshot,
   planSummaryRefresh,
   type Bootstrap,
-  type FplClient,
+  type SnapshotClient,
   type Snapshot,
 } from "../src/lib/fpl";
 import { ARSENAL, loadBootstrap, loadFixtures, loadSummary } from "./helpers";
@@ -20,10 +20,14 @@ function fakeClient(bootstrap: Bootstrap = loadBootstrap()) {
   const getElementSummary = vi.fn(async (id: number) =>
     id === 430 ? loadSummary(430) : loadSummary(1),
   );
-  const client: FplClient = {
+  const client: SnapshotClient = {
     getBootstrap: async () => bootstrap,
     getFixtures: async () => loadFixtures(),
     getElementSummary,
+    // Empty but valid per-gameweek data: test/snapshot-gameweeks.test.ts covers the real thing.
+    getDreamTeam: async () => ({ top_player: null, team: [] }),
+    getEventLive: async () => ({ elements: [] }),
+    getEventStatus: async () => ({ status: [], leagues: "" }),
   };
   return { client, getElementSummary };
 }
@@ -124,8 +128,8 @@ describe("parseSnapshot", () => {
 
   it("rejects an older snapshot version, so fetch refetches every player", async () => {
     const snapshot = await previousSnapshot(MORNING);
-    expect(snapshot.version).toBe(3);
-    expect(() => parseSnapshot({ ...snapshot, version: 2 })).toThrow();
+    expect(snapshot.version).toBe(4);
+    expect(() => parseSnapshot({ ...snapshot, version: 3 })).toThrow();
   });
 
   it("rejects a reused summary that lacks the per-gameweek fields added in version 2", async () => {

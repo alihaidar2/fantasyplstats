@@ -52,14 +52,17 @@ export function startOfUkDay(date: Date): Date {
   return new Date(utcMidnight.getTime() - ukOffsetMinutes(utcMidnight) * 60_000);
 }
 
-function kickoff(fixture: Fixture): Date | null {
+/** The fixture fields the schedule reads, so it works from any snapshot version's fixtures. */
+export type ScheduleFixture = Pick<Fixture, "kickoff_time" | "team_h" | "team_a">;
+
+function kickoff(fixture: ScheduleFixture): Date | null {
   if (!fixture.kickoff_time) return null;
   const date = new Date(fixture.kickoff_time);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
 /** True when any fixture kicks off on the UK calendar day of `now`. */
-export function isMatchDay(fixtures: readonly Fixture[], now: Date): boolean {
+export function isMatchDay(fixtures: readonly ScheduleFixture[], now: Date): boolean {
   const today = ukDateKey(now);
   return fixtures.some((f) => {
     const k = kickoff(f);
@@ -69,7 +72,7 @@ export function isMatchDay(fixtures: readonly Fixture[], now: Date): boolean {
 
 /** Teams with a fixture that kicked off in [since, now]. */
 export function teamsThatPlayed(
-  fixtures: readonly Fixture[],
+  fixtures: readonly ScheduleFixture[],
   since: Date,
   now: Date,
 ): Set<number> {
@@ -113,7 +116,7 @@ export interface RunDecision {
 export function planScheduledRun(
   cron: string,
   now: Date,
-  fixtures: readonly Fixture[] | null,
+  fixtures: readonly ScheduleFixture[] | null,
 ): RunDecision {
   const role = (SCHEDULES as Record<string, ScheduleRole>)[cron];
   if (!role) return { run: true, reason: `unknown schedule "${cron}", running to be safe` };

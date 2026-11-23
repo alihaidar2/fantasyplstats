@@ -1,16 +1,21 @@
+import Link from "next/link";
 import { getPositionColor } from "@/hooks/use-player-utils";
 import PlayerStatus from "./player-status";
 import { formatPrice } from "./player-format";
 import { Badge } from "@/components/ui/badge";
 import type { PlayerDetail } from "@/lib/fpl/transforms";
+import { badgeUrl } from "@/lib/site";
 
-export default function PlayerHeader({ player }: Readonly<{ player: PlayerDetail }>) {
+export default function PlayerHeader({
+  player,
+  teamPath,
+}: Readonly<{ player: PlayerDetail; /** The club's page, when it has one. */ teamPath?: string }>) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4 pl-2">
       <div className="flex items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element -- static export: no image optimizer */}
         <img
-          src={`https://resources.premierleague.com/premierleague/badges/t${player.teamCode}.png`}
+          src={badgeUrl(player.teamCode)}
           alt={`${player.teamName} badge`}
           width={40}
           height={40}
@@ -22,6 +27,17 @@ export default function PlayerHeader({ player }: Readonly<{ player: PlayerDetail
             <Badge className={`text-sm ${getPositionColor(player.positionId)}`}>
               {player.position}
             </Badge>
+            {teamPath ? (
+              <Link
+                href={teamPath}
+                prefetch={false}
+                className="font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+              >
+                {player.teamName}
+              </Link>
+            ) : (
+              <span className="text-gray-600 dark:text-gray-400">{player.teamName}</span>
+            )}
             <span className="text-gray-600 dark:text-gray-400 align-middle">
               {formatPrice(player.price)}
             </span>

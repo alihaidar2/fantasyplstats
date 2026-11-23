@@ -3,8 +3,10 @@
 // it), so build scripts and a future Azure Function can reuse this folder.
 
 export * from "./schemas";
+export * from "./snapshot-schema";
 export * from "./gameweek";
 export * from "./client";
 export * from "./schedule";
 export * from "./snapshot";
 export * from "./transforms";
+export * from "./accessors";

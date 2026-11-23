@@ -15,7 +15,8 @@ import {
 } from "@/components/features/players/player-format";
 import { getFormColor } from "@/hooks/use-player-utils";
 import { getSnapshot } from "@/lib/data";
-import { buildPlayerDetail, type PlayerDetail } from "@/lib/fpl";
+import { buildPlayerDetail, packPlayerGameweeks, type PlayerDetail } from "@/lib/fpl";
+import { buildClubs } from "@/lib/stats/teams";
 import { playerMetadata, playerNotFoundMetadata } from "@/lib/metadata";
 
 // Every player page is generated at build time; unknown ids are a 404.
@@ -148,7 +149,10 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
       </Link>
 
       <div className="mb-10">
-        <PlayerHeader player={player} />
+        <PlayerHeader
+          player={player}
+          teamPath={buildClubs(getSnapshot().bootstrap.teams).find((c) => c.code === player.teamCode)?.path}
+        />
       </div>
 
       {player.setPieces.length > 0 && (
@@ -166,7 +170,7 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
       {/* The history goes to this one client component, so it's serialized once. */}
       {player.history.length > 0 && (
         <div className="my-8">
-          <PlayerCharts history={player.history} />
+          <PlayerCharts packed={packPlayerGameweeks(player.history)} />
         </div>
       )}
     </div>

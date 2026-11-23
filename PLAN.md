@@ -190,6 +190,34 @@ Done when a real gameweek has gone through generate, check, PR and merge end to 
 - Mini-league page and league recaps: needs an Azure Function that reuses `src/lib/fpl/` and `src/lib/recap/`, with caching per league per gameweek and a league size cap, and App Insights monitoring.
 - Paid tier: only after checking FPL's terms, the trademark and tax.
 
+## Step 6: Free toolkit (every FPL dataset gets a home)
+
+Goal: a complete free FPL stats site built only from the FPL data the site already fetches and validates. Rule: if a feature can be calculated from FPL's API data, build it; if it needs another data source or constant model tuning (points predictions, solvers, team news), skip it.
+
+- 6a. Data layer: the snapshot keeps per-match stats, team of the week for settled gameweeks, and live points for the current gameweek (snapshot v4).
+
+  **Done** (#24): snapshot version 4 keeps every fixture's per-player `stats` (the 11 identifiers FPL sends; a new one is kept with a warning), `finished_provisional` and `minutes`; `dreamTeams` for settled gameweeks (fetched once, then reused from the previous snapshot, however old, unless `--full`, a new season, or a player's points for that round no longer match their history); and `live`, the current gameweek's `event/{gw}/live/` (16 stats plus the points breakdown, players with all-zero stats dropped) with `event-status/`, refetched on every build. A cached version 3 snapshot is ignored, so the first v4 run refetches everything. `checkConsistency` warns when a player in match stats, teams of the week or live data is missing from the bootstrap (kept, shown with a placeholder). Typed accessors for the feature steps are in `src/lib/fpl/accessors.ts`. The live snapshot grew from about 3.0 MB to 3.4 MB at GW11 (match stats 245 KB, live 110 KB, teams of the week 5 KB); the new parts reach roughly 1 MB by GW38, when all 380 fixtures have match stats; `out/` is unchanged, since no page reads the new data yet. The CI snapshot now has the recorded match stats, GW1–2 teams of the week and GW3 live data, and the 436 players they name.
+- 6b. Players hub: injuries and availability, price changes (this gameweek and season), value rankings (points and xGI per £m), set-piece takers, template team (most-owned XI).
+
+  **Done** (#25): `/players/availability/` (flagged players grouped by status, most-owned first, with FPL's news and `news_added`), `/players/prices/` (this gameweek's and the season's risers and fallers, net transfers), `/players/value/` (points, xGI and form per £m by position, above a minutes threshold of `max(90, 45 × finished gameweeks)`), `/players/set-pieces/` (every club's takers in FPL's order) and `/players/template/` (the most-owned valid 15 by an exact min-cost flow, its XI, and why ownership isn't effective ownership). Logic in `src/lib/stats/players-hub/`.
+- 6c. Teams: league table built from results; a page per club (results, form, goals for and against, clean sheets, xGC, fixtures, top players).
+
+  **Done** (#26): `/teams/` (the table from confirmed and provisional results, with the Premier League's tie-breakers, form, clean sheets and xGC from the goalkeepers' totals when they add up) and `/teams/<slug>/` for all 20 clubs (slugs keyed on the club's stable `code`). Logic in `src/lib/stats/teams.ts`.
+- 6d. Matches and gameweeks: results per gameweek, a page per match (scorers, assists, bonus, BPS, cards), team of the week, season dashboard (average and highest scores, captaincy, chips, transfers), double and blank gameweek planner.
+
+  **Done** (#28): `/gameweeks/` (season chart and a row per started gameweek), `/gameweeks/<n>/` (numbers, results and the team of the week on a pitch), `/matches/<id>/` for every match that has kicked off (scorers, stat table, BPS and defensive contributions, provisional bonus while FPL hasn't added it) and `/fixtures/schedule/` (doubles, blanks and postponed matches). Three optional `events` fields added to the schema. Logic in `src/lib/stats/matches/`.
+- 6e. Interactive tools (in the browser, from static data): squad and transfer planner (budget, 3 per club, fixtures ahead), player comparison.
+
+  **Done** (#29): `/tools/planner/` (build a squad within FPL's rules, XI and captain, transfers with hits, chips and the bank, saved in the URL and localStorage) and `/tools/compare/` (2 to 4 players, best values highlighted), both reading `/tools/data.json` (about 40 KB for 436 players, players as tuples), plus a `/tools/` hub. Logic in `src/lib/stats/tools.ts` and `tools-data.ts`.
+- 6f. Live: live gameweek points with provisional bonus from BPS; a "how FPL points work" page built from the points FPL actually awarded.
+
+  **Done** (#27): `/live/` (freshness banner, top scorers, a searchable table of everyone who has played, match cards with FPL's or provisional bonus) and `/points/` (the scoring rules per position worked out from the live breakdowns and settled gameweeks, with what the data can't pin down yet). The bonus rule matches FPL's bonus in all 100 recorded GW1–10 matches. Logic in `src/lib/stats/live.ts` and `live-points.ts`.
+- 6g. Integration: navigation for the new pages, sitemap, home page tool cards.
+
+  **Done** (#30, which merges #24–#29): a grouped header (Fixtures, Players, Gameweeks and Tools menus plus Teams and Recap; one Menu panel on phones; current section and page marked), cross-links (club names to club pages, results to match pages, live match cards to match pages, the recap stats box to its gameweek page), the sitemap with every new page (clubs, gameweeks and matches; settled gameweeks dated from the next deadline), twelve tool cards on the home page, `PATHS` in `src/lib/site.ts` for every page, one provisional bonus rule for the live and match pages, and `src/lib/stats/` under the framework-free lint rule. To stay under the 250 MB limit, `npm run build` now deletes each page's `__next._full.txt` (an unused copy of `index.txt`; `scripts/prune-export.ts`, which also reports the size and warns from 200 MB) and player pages send their history as number rows: a synthetic GW38 build (780 players, 380 matches) is 147 MB instead of 207 MB.
+
+Not in step 6: price-change predictions (FPL's projection fields are undocumented), and anything needing a manager's team ID or league (step 8, which needs a backend).
+
 ## Later
 
 Deferred from steps 1–4:
@@ -200,10 +228,25 @@ Deferred from steps 1–4:
 - TypeScript 7: wait until typescript-eslint and Next.js support it (its Dependabot PR failed lint; majors are ignored for now).
 - Per-player Open Graph images: dropped for size (about 53 MB more in `out/`). They would also need a route handler, since Next gives a dynamic `opengraph-image` no file extension.
 
+Deferred from step 6:
+
+- Season-scope match pages (`/matches/2026-27/<id>/`, like the recaps): FPL fixture ids restart each season, so `/matches/1/` will be a different match next season and old links will point at it.
+- The CI fixture snapshot only covers GW1–6 (GW3 current), so CI can't show doubles, blanks, postponements, a live match or a club's upcoming fixtures; those states are covered by unit tests that edit the snapshot. Record a real double gameweek and an in-progress match day when they happen.
+- `out/` growth: about 150 MB at GW38 by the synthetic estimate (match pages about 32 MB, player pages about 104 MB, gameweek pages about 7 MB). Next levers if it gets tight: trim the player page's markup (most of each payload is server-rendered cards and class strings) and the shared layout's weight (the theme toggle and badge classes ship on every page).
+- `ordinal()` exists three times (`player-format.ts`, `players-table-format.ts`, `src/lib/stats/teams.ts`) and the live and match pages each have their own match-state labels; merge them into one framework-free helper.
+- Club names in the fixture matrix and the players table (both client-side TanStack tables) don't link to the club pages yet.
+- Verify `event-status`'s `"r"` value ("points confirmed") once FPL sends one.
+- The gameweeks dashboard's chip columns only cover the wildcard, free hit, bench boost and triple captain; other chips in `chip_plays` aren't shown.
+- The tools' cached data request (`/tools/data.json`) ignores the data version, so a tab left open across a deploy can mix old and new data.
+- The CI fixture snapshot is internally inconsistent (GW3 is current, but GW4–6 fixtures are finished); re-record it from the GW1–10 recordings.
+- Azure's free plan caps all environments together at 500 MB, so keep at most 2 PR previews open late in the season.
+- If FPL adds bonus to the live totals before the fixture's `bonus` stat, provisional bonus could double-count. Guard it by also treating a match's bonus as added when any player's breakdown for it has a `bonus` line (`bonusAdded` only sees the fixture, so the live breakdown has to be passed to it and `matchBonus`, `pendingBonus` and the live page).
+- The live players table shows gameweek totals when filtered to one match of a double gameweek (it says so); per-match figures would need each match's breakdown lines in the packed rows, and BPS isn't in them.
+
 ## Risks to check early
 
 - Whether FPL's API accepts requests from GitHub-hosted runners. Test this first in step 2. If it's blocked, move the fetch into an Azure Function that hands the snapshot to the build.
 - Request volume: about 700 `element-summary` calls per full build (about 15 seconds at 5 at once). Match-day runs refetch only players whose teams have played.
 - Players FPL adds mid-season appear after the next scheduled rebuild.
-- Output size: `out/` is about 95 MB, mostly the RSC payload files Next.js writes next to each of the ~670 player pages. The SWA Free plan allows 250 MB per app.
+- Output size: `out/` was about 118 MB at GW11 before step 6, mostly the RSC payload files Next.js writes next to each of the ~670 player pages. Step 6 adds a page per match, gameweek and club; with the duplicate payloads pruned, the estimate for GW38 is about 150 MB. The SWA Free plan allows 250 MB per app, and the build warns from 200 MB.
 - Off-season: the freshness check will alert hourly during the summer off-season when FPL's API is down. Pause it or make it off-season-aware before then.

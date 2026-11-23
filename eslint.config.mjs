@@ -6,10 +6,10 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // The FPL data layer and the recap tools are shared with build scripts,
-    // the recap workflow and a future Azure Function, so they must not depend
-    // on Next.js, React or the `@/` alias.
-    files: ["src/lib/fpl/**", "src/lib/recap/**"],
+    // The FPL data layer, the recap tools and the page calculations are shared
+    // with build scripts, the recap workflow, the tests and a future Azure
+    // Function, so they must not depend on Next.js, React or the `@/` alias.
+    files: ["src/lib/fpl/**", "src/lib/recap/**", "src/lib/stats/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -17,11 +17,11 @@ const eslintConfig = defineConfig([
           patterns: [
             {
               group: ["next", "next/*", "@next/*", "react", "react/*", "react-dom", "react-dom/*", "server-only"],
-              message: "src/lib/fpl and src/lib/recap must stay framework-free.",
+              message: "src/lib/fpl, src/lib/recap and src/lib/stats must stay framework-free.",
             },
             {
               group: ["@/*"],
-              message: "Use relative imports in src/lib/fpl and src/lib/recap so they work without the Next.js path alias.",
+              message: "Use relative imports in src/lib/fpl, src/lib/recap and src/lib/stats so they work without the Next.js path alias.",
             },
           ],
         },
