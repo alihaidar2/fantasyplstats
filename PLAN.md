@@ -157,7 +157,7 @@ Done when the new views and charts render from a recorded snapshot and from live
 - Players table: Overview, Attack, Defence, Transfers and price, and Minutes and bonus tabs over one TanStack column list. The view is linkable (`/players/#attack`), and the availability badge shows on every view.
 - Player pages: set-piece duties, new season stats, and three charts (points with xG and xA, price and ownership, BPS, bonus and defensive contribution). Each chart stacks panels on a shared gameweek axis instead of using two y-axes, and a gameweek-by-gameweek table is built in the browser on demand. The history reaches the browser once, through one client component.
 - `out/` grew from 90.8 MB to 105.8 MB (97 → 118 MB on disk) with live data at GW11, mostly in player pages (about 20 KB each). The per-gameweek history grows through the season, adding roughly another 10–15 MB by GW38.
-- Follow-up (#PR): the table shows FPL's short names with the full name as a tooltip, search matches short, first, second and full names (ignoring case and accents), column widths are fixed, and pages no longer scroll sideways on phones.
+- Follow-up (#19): the table shows FPL's short names with the full name as a tooltip, search matches short, first, second and full names (ignoring case and accents), column widths are fixed, and pages no longer scroll sideways on phones.
 
 ### 5b: AI gameweek recap (several PRs, in this order)
 
