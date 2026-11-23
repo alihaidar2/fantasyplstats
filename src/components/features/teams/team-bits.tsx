@@ -10,6 +10,7 @@ import {
   type FixtureWeek,
   type Outcome,
 } from "@/lib/stats/teams";
+import { CARD_CLASS } from "@/components/common/styles";
 
 const OUTCOME_COLOR: { [K in Outcome]: string } = {
   W: "bg-green-600",
@@ -126,8 +127,7 @@ export function ClubLink({
   );
 }
 
-export const sectionCardClass =
-  "rounded-xl border border-green-200 bg-white/90 p-4 shadow-sm dark:border-green-900 dark:bg-gray-800/80";
+export const sectionCardClass = `${CARD_CLASS} p-4`;
 
 export function Section({
   id,

@@ -6,14 +6,15 @@ import { getPositionColor } from "@/hooks/use-player-utils";
 import { PATHS, playerPath } from "@/lib/site";
 import { PLAYERS_HUB_PATHS, type HubPlayer } from "@/lib/stats/players-hub";
 import { cn } from "@/lib/utils";
+import { CARD_CLASS, LINK_CLASS } from "@/components/common/styles";
 
 // Server-rendered building blocks shared by the players hub pages. No hooks
 // or state, so none of this ships JavaScript beyond the table primitives.
 
 export const STRONG = "text-gray-900 dark:text-white";
 export const MUTED = "text-gray-600 dark:text-gray-400";
-export const CARD = "rounded-xl border border-green-200 bg-white/90 shadow-sm dark:border-green-900 dark:bg-gray-800/80";
-export const LINK = "font-medium text-emerald-700 hover:underline dark:text-emerald-300";
+export const CARD = CARD_CLASS;
+export const LINK = LINK_CLASS;
 
 const HUB_LINKS = [
   { href: PATHS.players, label: "All players" },
@@ -25,7 +26,7 @@ const HUB_LINKS = [
 ] as const;
 
 /** Links between the hub's pages, with the current one marked. */
-function HubNav({ current }: Readonly<{ current: string }>) {
+export function HubNav({ current }: Readonly<{ current: string }>) {
   return (
     <nav aria-label="Player tools" className="mb-4 -mx-1 overflow-x-auto">
       <ul className="flex gap-1 px-1 text-sm whitespace-nowrap">

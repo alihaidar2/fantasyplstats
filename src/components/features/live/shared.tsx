@@ -4,6 +4,7 @@ import { formatUpdatedAt } from "@/lib/fpl";
 import { badgeUrl, PATHS, playerPath } from "@/lib/site";
 import { refreshCadence } from "@/lib/stats/live";
 import { UpdatedAgo } from "./updated-ago";
+import { CARD_CLASS, LINK_CLASS } from "@/components/common/styles";
 
 /** The live area's routes. */
 export const LIVE_PATHS = {
@@ -11,10 +12,9 @@ export const LIVE_PATHS = {
   points: PATHS.points,
 } as const;
 
-export const cardClass =
-  "rounded-xl border border-green-200 bg-white/90 shadow-sm dark:border-green-900 dark:bg-gray-800/80";
+export const cardClass = CARD_CLASS;
 
-export const linkClass = "font-medium text-emerald-700 hover:underline dark:text-emerald-300";
+export const linkClass = LINK_CLASS;
 
 export function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
   return (

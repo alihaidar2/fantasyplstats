@@ -45,12 +45,26 @@ export interface BonusAward {
  * bonus FPL awarded (test/live.test.ts).
  */
 export function provisionalBonus(fixture: Pick<Fixture, "stats">): BonusAward[] {
-  const rows = matchStatRows(fixture, "bps").filter((r) => r.value > 0);
-  const awards: BonusAward[] = [];
-  for (const row of rows) {
-    const rank = 1 + rows.filter((other) => other.value > row.value).length;
+  return bonusFromBps(matchStatRows(fixture, "bps")).map((r) => ({
+    element: r.element,
+    side: r.side,
+    bps: r.value,
+    bonus: r.bonus,
+  }));
+}
+
+/**
+ * The rule behind `provisionalBonus`, on any list of BPS rows: the players
+ * who get bonus, highest BPS first (ties keep their order in `rows`). The
+ * match pages use it too, so the site has one bonus rule.
+ */
+export function bonusFromBps<T extends { element: number; value: number }>(rows: readonly T[]): (T & { bonus: number })[] {
+  const ranked = rows.filter((r) => r.value > 0).sort((a, b) => b.value - a.value);
+  const awards: (T & { bonus: number })[] = [];
+  for (const row of ranked) {
+    const rank = 1 + ranked.filter((other) => other.value > row.value).length;
     if (rank > 3) break;
-    awards.push({ element: row.element, side: row.side, bps: row.value, bonus: 4 - rank });
+    awards.push({ ...row, bonus: 4 - rank });
   }
   return awards;
 }

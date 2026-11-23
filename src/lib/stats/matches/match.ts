@@ -13,6 +13,7 @@ import {
   type PlayerRef,
   type TeamRef,
 } from "./shared";
+import { bonusFromBps } from "../live";
 
 /** A player and a count, e.g. two goals or 41 BPS. */
 export interface MatchPlayer {
@@ -84,13 +85,8 @@ export interface MatchPageData {
 
 /** BPS rank and bonus a match would award: 3, 2 and 1 for the top three ranks, with ties sharing (FPL's rule). */
 export function provisionalBonus(rows: readonly { element: number; value: number }[]): Map<number, number> {
-  const sorted = [...rows].sort((a, b) => b.value - a.value || a.element - b.element);
-  const bonus = new Map<number, number>();
-  sorted.forEach((row, i) => {
-    const rank = rankAt(sorted, i);
-    if (rank <= 3) bonus.set(row.element, 4 - rank);
-  });
-  return bonus;
+  // The live page's rule (src/lib/stats/live.ts), so both pages always agree.
+  return new Map(bonusFromBps(rows).map((r) => [r.element, r.bonus]));
 }
 
 /** Standard competition rank (1, 1, 3) of the i-th row of a list sorted by value, highest first. */

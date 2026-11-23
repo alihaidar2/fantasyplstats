@@ -4,11 +4,11 @@ import Link from "next/link";
 import type { GameweekState, MatchState } from "@/lib/stats/matches";
 import { badgeUrl, GAMEWEEK_STATE_LABELS, type TeamRef } from "@/lib/stats/matches";
 import { playerPath } from "@/lib/site";
+import { CARD_CLASS, LINK_CLASS } from "@/components/common/styles";
 
-export const cardClass =
-  "rounded-xl border border-green-200 bg-white/90 shadow-sm dark:border-green-900 dark:bg-gray-800/80";
+export const cardClass = CARD_CLASS;
 
-export const linkClass = "font-medium text-emerald-700 hover:underline dark:text-emerald-300";
+export const linkClass = LINK_CLASS;
 
 export function SectionCard({
   id,

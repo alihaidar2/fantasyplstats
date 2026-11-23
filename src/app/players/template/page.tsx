@@ -132,8 +132,8 @@ export default function TemplatePage() {
               value={formatPrice(team.squadCost)}
               note={
                 team.squadCost > STARTING_BUDGET
-                  ? `${formatPrice(team.squadCost - STARTING_BUDGET)} over the £${STARTING_BUDGET}m starting budget`
-                  : `${formatPrice(STARTING_BUDGET - team.squadCost)} under the £${STARTING_BUDGET}m starting budget`
+                  ? `${formatPrice(team.squadCost - STARTING_BUDGET)} over the ${formatPrice(STARTING_BUDGET)} starting budget`
+                  : `${formatPrice(STARTING_BUDGET - team.squadCost)} under the ${formatPrice(STARTING_BUDGET)} starting budget`
               }
             />
             <Stat label="Starting XI cost" value={formatPrice(team.startingCost)} />
