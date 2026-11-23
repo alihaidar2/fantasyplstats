@@ -157,3 +157,30 @@
     @apply bg-gray-100 text-foreground dark:bg-black;
   }
 }
+
+/* The header's navigation (src/components/layout/site-nav.tsx). These are
+   classes rather than utilities in the markup because every page carries the
+   header: written once here, they keep each page's HTML a few KB smaller. */
+@layer components {
+  .nav-item {
+    @apply inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-emerald-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-emerald-400;
+  }
+  .nav-item[data-active] {
+    @apply bg-emerald-50 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200;
+  }
+  .nav-chevron {
+    @apply inline-block size-1.5 -translate-y-0.5 rotate-45 border-r-2 border-b-2 border-current transition-transform;
+  }
+  [aria-expanded="true"] > .nav-chevron {
+    @apply translate-y-0.5 -rotate-135;
+  }
+  .nav-panel {
+    @apply absolute top-full z-50 mt-2 w-56 rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900;
+  }
+  .nav-list a {
+    @apply block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-emerald-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-emerald-400;
+  }
+  .nav-list a[aria-current] {
+    @apply bg-emerald-50 font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200;
+  }
+}

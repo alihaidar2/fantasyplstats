@@ -4,14 +4,15 @@
 
 import { availabilityOf, type Availability } from "../../fpl/transforms";
 import type { Bootstrap, Element } from "../../fpl/schemas";
+import { PATHS } from "../../site";
 
 /** The hub's pages, as site paths ending in "/" (trailingSlash: true). */
 export const PLAYERS_HUB_PATHS = {
-  availability: "/players/availability/",
-  prices: "/players/prices/",
-  value: "/players/value/",
-  setPieces: "/players/set-pieces/",
-  template: "/players/template/",
+  availability: PATHS.availability,
+  prices: PATHS.prices,
+  value: PATHS.value,
+  setPieces: PATHS.setPieces,
+  template: PATHS.template,
 } as const;
 
 export type HubBootstrap = Pick<Bootstrap, "teams" | "element_types" | "elements">;

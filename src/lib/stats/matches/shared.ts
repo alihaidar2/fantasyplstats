@@ -6,17 +6,17 @@
 import type { Bootstrap, Fixture, FplEvent } from "../../fpl";
 import { formatDeadline } from "../../home";
 import { playerRefs, type PlayerRef } from "../../recap-pages";
+import { badgeUrl, gameweekPath, matchPath, PATHS } from "../../site";
 
 export type { PlayerRef };
 
 /** The pages of this area. Paths end in "/" (trailingSlash: true). */
 export const MATCHES_PATHS = {
-  gameweeks: "/gameweeks/",
-  schedule: "/fixtures/schedule/",
+  gameweeks: PATHS.gameweeks,
+  schedule: PATHS.schedule,
 } as const;
 
-export const gameweekPath = (gameweek: number) => `/gameweeks/${gameweek}/`;
-export const matchPath = (fixtureId: number) => `/matches/${fixtureId}/`;
+export { badgeUrl, gameweekPath, matchPath };
 
 /** "Sat 12 Sep, 15:00 UK time" (fixed to UK time, so the static page is the same wherever it's built). */
 export const formatKickoff = formatDeadline;
@@ -30,9 +30,6 @@ export interface TeamRef {
   /** FPL's club code, for the badge image. */
   code: number;
 }
-
-/** The Premier League's badge image for a club code (the same URL the player pages use). */
-export const badgeUrl = (code: number) => `https://resources.premierleague.com/premierleague/badges/t${code}.png`;
 
 /** Looks clubs up by id. An unknown id gets a placeholder rather than throwing. */
 export function teamRefs(bootstrap: Pick<Bootstrap, "teams">): (id: number) => TeamRef {

@@ -3,6 +3,7 @@ import { ordinal } from "@/components/features/players/player-format";
 import { CARD, EmptyState, HubPage, MUTED, PlayerName, STRONG } from "@/components/features/players-hub/hub-ui";
 import { getSnapshot } from "@/lib/data";
 import { pageMetadata } from "@/lib/metadata";
+import { badgeUrl } from "@/lib/site";
 import { buildSetPieces, hasSetPieceData, PLAYERS_HUB_PATHS, type ClubSetPieces } from "@/lib/stats/players-hub";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ function ClubCard({ club }: Readonly<{ club: ClubSetPieces }>) {
       <h2 id={headingId} className={cn("mb-3 flex items-center gap-2 font-bold", STRONG)}>
         {/* eslint-disable-next-line @next/next/no-img-element -- static export: no image optimizer */}
         <img
-          src={`https://resources.premierleague.com/premierleague/badges/t${club.code}.png`}
+          src={badgeUrl(club.code)}
           alt=""
           width={24}
           height={24}

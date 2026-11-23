@@ -15,15 +15,15 @@ import {
   type Snapshot,
   type Team,
 } from "../fpl";
+import { badgeUrl, PATHS, teamPath } from "../site";
 
 type SnapshotParts = Pick<Snapshot, "bootstrap" | "fixtures">;
 
 // ─── Clubs and slugs ────────────────────────────────────────────────────────
 
-export const TEAMS_PATH = "/teams/";
+export const TEAMS_PATH = PATHS.teams;
 
-/** A club page's URL: /teams/manchester-city/ (trailingSlash: true). */
-export const teamPath = (slug: string) => `${TEAMS_PATH}${slug}/`;
+export { badgeUrl, teamPath };
 
 /**
  * Full names and slugs for clubs whose FPL name is abbreviated, keyed by the
@@ -100,9 +100,6 @@ export function buildClubs(teams: readonly Pick<Team, "id" | "code" | "name" | "
     })
     .sort((a, b) => a.name.localeCompare(b.name, "en-GB"));
 }
-
-/** The Premier League's badge image for a club code (as the player page uses). */
-export const badgeUrl = (code: number) => `https://resources.premierleague.com/premierleague/badges/t${code}.png`;
 
 // ─── Results ────────────────────────────────────────────────────────────────
 

@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { Clock, RefreshCw } from "lucide-react";
 import { formatUpdatedAt } from "@/lib/fpl";
-import { playerPath } from "@/lib/site";
+import { badgeUrl, PATHS, playerPath } from "@/lib/site";
 import { refreshCadence } from "@/lib/stats/live";
 import { UpdatedAgo } from "./updated-ago";
 
-/** The live area's routes. The integration step adds them to the header and sitemap. */
+/** The live area's routes. */
 export const LIVE_PATHS = {
-  live: "/live/",
-  points: "/points/",
+  live: PATHS.live,
+  points: PATHS.points,
 } as const;
 
 export const cardClass =
@@ -41,7 +41,7 @@ export function TeamBadge({ code, name, size = 20 }: { code: number; name: strin
   return (
     // eslint-disable-next-line @next/next/no-img-element -- static export: no image optimizer
     <img
-      src={`https://resources.premierleague.com/premierleague/badges/t${code}.png`}
+      src={badgeUrl(code)}
       alt=""
       title={name}
       width={size}

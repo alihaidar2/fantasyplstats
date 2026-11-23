@@ -14,13 +14,14 @@ import {
   type Availability,
   type MatrixFixture,
 } from "../fpl/transforms";
+import { PATHS } from "../site";
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
 export const TOOLS_PATHS = {
-  hub: "/tools/",
-  planner: "/tools/planner/",
-  compare: "/tools/compare/",
+  hub: PATHS.tools,
+  planner: PATHS.planner,
+  compare: PATHS.compare,
 } as const;
 
 /** Where the build writes the compact data file the tools fetch. */

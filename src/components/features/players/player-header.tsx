@@ -3,6 +3,7 @@ import PlayerStatus from "./player-status";
 import { formatPrice } from "./player-format";
 import { Badge } from "@/components/ui/badge";
 import type { PlayerDetail } from "@/lib/fpl/transforms";
+import { badgeUrl } from "@/lib/site";
 
 export default function PlayerHeader({ player }: Readonly<{ player: PlayerDetail }>) {
   return (
@@ -10,7 +11,7 @@ export default function PlayerHeader({ player }: Readonly<{ player: PlayerDetail
       <div className="flex items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element -- static export: no image optimizer */}
         <img
-          src={`https://resources.premierleague.com/premierleague/badges/t${player.teamCode}.png`}
+          src={badgeUrl(player.teamCode)}
           alt={`${player.teamName} badge`}
           width={40}
           height={40}
