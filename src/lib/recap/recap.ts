@@ -66,6 +66,39 @@ export const checkReportSchema = z.object({
   namesChecked: z.number().int().nonnegative(),
 });
 
+/** One attempt by the model at the recap: it ends with a submission, or is cut short. */
+export const recapAttemptSchema = z.object({
+  attempt: z.number().int().min(1),
+  /** "passed" or "failed" is the checker's verdict on what it submitted; "aborted" means it never got that far. */
+  outcome: z.enum(["passed", "failed", "aborted"]),
+  /** Why it was cut short, e.g. "timeout". Only when aborted. */
+  reason: z.string().optional(),
+  /** Investigating tool calls made in this attempt (submit_recap is not counted). */
+  toolCalls: z.number().int().nonnegative(),
+  /** What the checker said about a failed submission. */
+  issues: z.array(checkIssueSchema),
+});
+
+/** How the agent got to the saved text. Absent from recaps written before the agent logged it. */
+export const recapRunSchema = z.object({
+  /** "first-try": the first submission passed. "after-retry": the second did. "fallback": the template was used. */
+  outcome: z.enum(["first-try", "after-retry", "fallback"]),
+  /** True when the text is the deterministic template rather than the model's writing. */
+  fallback: z.boolean(),
+  /** Why the template was used. */
+  fallbackReason: z.string().optional(),
+  attempts: z.array(recapAttemptSchema),
+  /** Requests made to the model. */
+  modelCalls: z.number().int().nonnegative(),
+  /** False when the model has no entry in the price table, so costUsd is 0 rather than known. */
+  priced: z.boolean(),
+  limits: z.object({
+    maxToolCallsPerAttempt: z.number().int().positive(),
+    maxOutputTokens: z.number().int().positive(),
+    timeoutMs: z.number().int().positive(),
+  }),
+});
+
 export const RECAP_VERSION = 1;
 
 /** A saved recap. */
@@ -83,9 +116,14 @@ export const recapSchema = z.object({
   /** The model that wrote it, or "hand-written". */
   model: z.string().min(1),
   usage: z.object({
+    /** Every input token, including those read from or written to the prompt cache. */
     inputTokens: z.number().int().nonnegative(),
     outputTokens: z.number().int().nonnegative(),
+    /** Every logged tool call: the length of `evidence`. */
     toolCalls: z.number().int().nonnegative(),
+    /** The parts of inputTokens that were cache reads and cache writes, which are priced differently. */
+    cacheReadInputTokens: z.number().int().nonnegative().optional(),
+    cacheCreationInputTokens: z.number().int().nonnegative().optional(),
   }),
   costUsd: z.number().nonnegative(),
   timing: z.object({
@@ -93,6 +131,8 @@ export const recapSchema = z.object({
     durationMs: z.number().int().nonnegative(),
   }),
   generatedAt: z.iso.datetime(),
+  /** Attempts, and whether the template fallback was used. Optional: older recaps don't have it. */
+  run: recapRunSchema.optional(),
 });
 
 export type Claim = z.infer<typeof claimSchema>;
@@ -100,4 +140,6 @@ export type RecapDraft = z.infer<typeof recapDraftSchema>;
 export type EvidenceEntry = z.infer<typeof evidenceEntrySchema>;
 export type CheckIssue = z.infer<typeof checkIssueSchema>;
 export type CheckReport = z.infer<typeof checkReportSchema>;
+export type RecapAttempt = z.infer<typeof recapAttemptSchema>;
+export type RecapRun = z.infer<typeof recapRunSchema>;
 export type Recap = z.infer<typeof recapSchema>;

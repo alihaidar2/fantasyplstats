@@ -42,3 +42,6 @@ next-env.d.ts
 
 # FPL data snapshot written by `npm run fetch`
 /.data/
+
+# Recap eval reports written by `npm run recap:eval`
+/evals/results/
