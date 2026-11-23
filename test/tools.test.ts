@@ -61,7 +61,13 @@ import { buildFixtureSnapshot } from "./fixture-client";
 // Ids encode the position: 1xx goalkeepers, 2xx defenders, 3xx midfielders,
 // 4xx forwards. Teams 1–20 with short names T1..T20.
 
-function player(id: number, position: PositionId, teamId: number, price: number, extra: Partial<ToolPlayer> = {}): ToolPlayer {
+function player(
+  id: number,
+  position: PositionId,
+  teamId: number,
+  price: number,
+  extra: Partial<ToolPlayer> = {},
+): ToolPlayer {
   return {
     id,
     name: `P${id}`,
@@ -110,7 +116,12 @@ function ready(): PlannerState {
   return { ...s, starters: defaultStarters(s.squad, BY_ID), captain: 301, vice: 401 };
 }
 
-const counts = (gk: number, def: number, mid: number, fwd: number): PositionCounts => ({ 1: gk, 2: def, 3: mid, 4: fwd });
+const counts = (gk: number, def: number, mid: number, fwd: number): PositionCounts => ({
+  1: gk,
+  2: def,
+  3: mid,
+  4: fwd,
+});
 const codes = (s: PlannerState, lookup = BY_ID) => checkSquad(s, lookup).issues.map((i) => i.code);
 
 // ─── Formations ─────────────────────────────────────────────────────────────
@@ -752,6 +763,10 @@ describe("tools data file", () => {
     expect(perPlayer).toBeLessThan(130);
     // A full season has about 850 players: well under 150 KB.
     expect(perPlayer * 850).toBeLessThan(150_000);
+  });
+
+  it("names the season, since player ids change between seasons", () => {
+    expect(data.season).toMatch(/^\d{4}-\d{2}$/);
   });
 
   it("rejects a file of another version", () => {

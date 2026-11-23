@@ -4,13 +4,8 @@
 
 import type { Snapshot } from "../fpl/snapshot-schema";
 import { buildFixtureMatrix, foldForSearch } from "../fpl/transforms";
-import {
-  PLAYER_FIELDS,
-  TOOLS_DATA_VERSION,
-  type FixtureTuple,
-  type PlayerTuple,
-  type ToolsDataFile,
-} from "./tools";
+import { seasonOf } from "../recap/context";
+import { PLAYER_FIELDS, TOOLS_DATA_VERSION, type FixtureTuple, type PlayerTuple, type ToolsDataFile } from "./tools";
 
 /** How many gameweeks of fixtures the tools show. */
 export const TOOLS_FIXTURE_WEEKS = 6;
@@ -53,7 +48,11 @@ export function buildToolsData(snapshot: Snapshot): ToolsDataFile {
     const id = idByShort.get(row.team);
     if (id === undefined) continue;
     fixturesByTeam[String(id)] = gameweeks.map((gw) =>
-      (row.weeks[gw - 1] ?? []).map((f): FixtureTuple => [idByShort.get(f.opponent) ?? 0, f.home ? 1 : 0, f.difficulty]),
+      (row.weeks[gw - 1] ?? []).map((f): FixtureTuple => [
+        idByShort.get(f.opponent) ?? 0,
+        f.home ? 1 : 0,
+        f.difficulty,
+      ]),
     );
   }
 
@@ -91,6 +90,7 @@ export function buildToolsData(snapshot: Snapshot): ToolsDataFile {
   return {
     v: TOOLS_DATA_VERSION,
     generatedAt: snapshot.generatedAt,
+    season: seasonOf(snapshot),
     gameweeks,
     teams: [...bootstrap.teams]
       .sort((a, b) => a.short_name.localeCompare(b.short_name))

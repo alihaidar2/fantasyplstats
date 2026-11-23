@@ -136,6 +136,8 @@ export type FixtureTuple = [opponent: number, home: 0 | 1, difficulty: number];
 export interface ToolsDataFile {
   v: typeof TOOLS_DATA_VERSION;
   generatedAt: string;
+  /** "2026-27": player ids are only stable within a season, so saved squads are kept per season. */
+  season: string;
   /** The gameweeks `fixtures` covers, from the next deadline on; empty once the season is over. */
   gameweeks: number[];
   /** [id, short name, name]. */
@@ -184,6 +186,7 @@ export interface ToolPlayer {
 
 export interface ToolsData {
   generatedAt: string;
+  season: string;
   gameweeks: number[];
   teams: ReadonlyMap<number, ToolTeam>;
   players: ToolPlayer[];
@@ -261,6 +264,7 @@ export function decodeToolsData(raw: unknown): ToolsData {
 
   return {
     generatedAt: String(file.generatedAt ?? ""),
+    season: String(file.season ?? ""),
     gameweeks: file.gameweeks,
     teams,
     players,
@@ -285,7 +289,10 @@ export function parseMillions(text: string): number | null {
 
 // ─── Squad arithmetic ───────────────────────────────────────────────────────
 
-export type PlayerLookup = ReadonlyMap<number, Pick<ToolPlayer, "id" | "name" | "teamId" | "team" | "position" | "price" | "availability">>;
+export type PlayerLookup = ReadonlyMap<
+  number,
+  Pick<ToolPlayer, "id" | "name" | "teamId" | "team" | "position" | "price" | "availability">
+>;
 
 export type PositionCounts = Record<PositionId, number>;
 
@@ -325,18 +332,14 @@ export const formationLabel = (c: PositionCounts) => `${c[2]}-${c[3]}-${c[4]}`;
 
 /** A complete XI that FPL accepts: 11 players, 1 GK, 3–5 DEF, 2–5 MID, 1–3 FWD. */
 export function isValidFormation(c: PositionCounts): boolean {
-  return (
-    total(c) === XI_SIZE &&
-    POSITION_RULES.every((r) => c[r.id] >= r.minXI && c[r.id] <= r.maxXI)
-  );
+  return total(c) === XI_SIZE && POSITION_RULES.every((r) => c[r.id] >= r.minXI && c[r.id] <= r.maxXI);
 }
 
 /** Every formation FPL allows, as "D-M-F" labels. */
 export const VALID_FORMATIONS: readonly string[] = (() => {
   const out: string[] = [];
   for (let d = 3; d <= 5; d++)
-    for (let m = 2; m <= 5; m++)
-      for (let f = 1; f <= 3; f++) if (1 + d + m + f === XI_SIZE) out.push(`${d}-${m}-${f}`);
+    for (let m = 2; m <= 5; m++) for (let f = 1; f <= 3; f++) if (1 + d + m + f === XI_SIZE) out.push(`${d}-${m}-${f}`);
   return out;
 })();
 
@@ -581,7 +584,12 @@ export function startPlayer(state: PlannerState, id: number, players: PlayerLook
 }
 
 /** Swaps a starter and a bench player, if the XI stays completable. The armband stays with the starter's replacement only if picked again. */
-export function swapPlayers(state: PlannerState, starterId: number, benchId: number, players: PlayerLookup): PlannerState {
+export function swapPlayers(
+  state: PlannerState,
+  starterId: number,
+  benchId: number,
+  players: PlayerLookup,
+): PlannerState {
   const s = players.get(starterId);
   const b = players.get(benchId);
   if (!s || !b || !state.starters.includes(starterId) || state.starters.includes(benchId)) return state;
@@ -682,8 +690,14 @@ export function transferSummary(
   players: PlayerLookup,
 ): TransferSummary {
   const done = state.transfers.filter((t) => t.in !== null);
-  const sold = squadCost(done.map((t) => t.out), players);
-  const bought = squadCost(done.map((t) => t.in!), players);
+  const sold = squadCost(
+    done.map((t) => t.out),
+    players,
+  );
+  const bought = squadCost(
+    done.map((t) => t.in!),
+    players,
+  );
   const hitCost = transferHitCost(done.length, state.freeTransfers, state.chip);
   return {
     made: done.length,
@@ -816,11 +830,7 @@ export function checkSquad(state: PlannerState, players: PlayerLookup): SquadChe
 
   if (!canCompleteFormation(starterCounts)) {
     const broken = POSITION_RULES.filter((r) => starterCounts[r.id] > r.maxXI || starterCounts[r.id] < r.minXI)
-      .map((r) =>
-        starterCounts[r.id] > r.maxXI
-          ? `at most ${r.maxXI} ${r.short}`
-          : `at least ${r.minXI} ${r.short}`,
-      )
+      .map((r) => (starterCounts[r.id] > r.maxXI ? `at most ${r.maxXI} ${r.short}` : `at least ${r.minXI} ${r.short}`))
       .join(", ");
     issues.push({
       code: "formation",
@@ -828,7 +838,11 @@ export function checkSquad(state: PlannerState, players: PlayerLookup): SquadChe
       message: `The XI must have exactly 1 GKP, 3–5 DEF, 2–5 MID and 1–3 FWD (${broken || "check positions"}).`,
     });
   } else if (starters.length === XI_SIZE && !isValidFormation(starterCounts)) {
-    issues.push({ code: "formation", severity: "error", message: `${formationLabel(starterCounts)} isn't a valid formation.` });
+    issues.push({
+      code: "formation",
+      severity: "error",
+      message: `${formationLabel(starterCounts)} isn't a valid formation.`,
+    });
   }
 
   const activeSet = new Set(starters);
@@ -839,7 +853,11 @@ export function checkSquad(state: PlannerState, players: PlayerLookup): SquadChe
     if (vice === null) issues.push({ code: "vice", severity: "todo", message: "Choose a vice-captain from your XI." });
   }
   if (captain !== null && captain === vice) {
-    issues.push({ code: "vice", severity: "error", message: "The captain and vice-captain must be different players." });
+    issues.push({
+      code: "vice",
+      severity: "error",
+      message: "The captain and vice-captain must be different players.",
+    });
   }
 
   for (const id of starters) {
@@ -926,7 +944,12 @@ export function decodePlannerState(search: string, players: PlayerLookup): Decod
   const counts = zeroCounts();
   for (const id of splitIds(params.get("squad"))) {
     const p = players.get(id);
-    if (!p || squad.includes(id) || squad.length >= SQUAD_SIZE || counts[p.position] >= positionRule(p.position).squad) {
+    if (
+      !p ||
+      squad.includes(id) ||
+      squad.length >= SQUAD_SIZE ||
+      counts[p.position] >= positionRule(p.position).squad
+    ) {
       dropped++;
       continue;
     }
@@ -989,8 +1012,7 @@ export function decodePlannerState(search: string, players: PlayerLookup): Decod
       captain,
       vice,
       bank: mode === "transfers" && Number.isInteger(bank) && bank >= 0 && bank <= 1000 ? bank : 0,
-      freeTransfers:
-        mode === "transfers" && Number.isInteger(ft) && ft >= 0 && ft <= MAX_FREE_TRANSFERS ? ft : 1,
+      freeTransfers: mode === "transfers" && Number.isInteger(ft) && ft >= 0 && ft <= MAX_FREE_TRANSFERS ? ft : 1,
       chip: mode === "transfers" ? chip : "none",
     },
     dropped,
@@ -1089,8 +1111,23 @@ export const COMPARE_METRICS: readonly CompareMetric[] = [
   { id: "price", label: "Price", group: "Overview", better: "lower", format: "price", value: (p) => p.price },
   { id: "selected", label: "Ownership", group: "Overview", better: null, format: "pct", value: (p) => p.selected },
   { id: "points", label: "Total points", group: "Overview", better: "higher", format: "int", value: (p) => p.points },
-  { id: "form", label: "Form", group: "Overview", better: "higher", format: "dec1", hint: "Points per match, last 30 days", value: (p) => p.form },
-  { id: "ppm", label: "Points per £m", group: "Overview", better: "higher", format: "dec1", value: (p) => pointsPerMillion(p.points, p.price) },
+  {
+    id: "form",
+    label: "Form",
+    group: "Overview",
+    better: "higher",
+    format: "dec1",
+    hint: "Points per match over 30 days",
+    value: (p) => p.form,
+  },
+  {
+    id: "ppm",
+    label: "Points per £m",
+    group: "Overview",
+    better: "higher",
+    format: "dec1",
+    value: (p) => pointsPerMillion(p.points, p.price),
+  },
   { id: "minutes", label: "Minutes", group: "Overview", better: "higher", format: "int", value: (p) => p.minutes },
   { id: "starts", label: "Starts", group: "Overview", better: "higher", format: "int", value: (p) => p.starts },
 
@@ -1098,21 +1135,101 @@ export const COMPARE_METRICS: readonly CompareMetric[] = [
   { id: "assists", label: "Assists", group: "Attack", better: "higher", format: "int", value: (p) => p.assists },
   { id: "xg", label: "Expected goals (xG)", group: "Attack", better: "higher", format: "dec2", value: (p) => p.xg },
   { id: "xa", label: "Expected assists (xA)", group: "Attack", better: "higher", format: "dec2", value: (p) => p.xa },
-  { id: "xgi", label: "Expected goal involvements (xGI)", group: "Attack", better: "higher", format: "dec2", value: (p) => p.xgi },
+  {
+    id: "xgi",
+    label: "Expected goal involvements (xGI)",
+    group: "Attack",
+    better: "higher",
+    format: "dec2",
+    value: (p) => p.xgi,
+  },
 
-  { id: "points90", label: "Points per 90", group: "Per 90 minutes", better: "higher", format: "dec2", value: (p) => per90(p.points, p.minutes) },
-  { id: "xg90", label: "xG per 90", group: "Per 90 minutes", better: "higher", format: "dec2", value: (p) => per90(p.xg, p.minutes) },
-  { id: "xa90", label: "xA per 90", group: "Per 90 minutes", better: "higher", format: "dec2", value: (p) => per90(p.xa, p.minutes) },
-  { id: "xgi90", label: "xGI per 90", group: "Per 90 minutes", better: "higher", format: "dec2", value: (p) => per90(p.xgi, p.minutes) },
-  { id: "dc90", label: "Defensive contributions per 90", group: "Per 90 minutes", better: "higher", format: "dec2", value: (p) => per90(p.defensiveContribution, p.minutes) },
+  {
+    id: "points90",
+    label: "Points per 90",
+    group: "Per 90 minutes",
+    better: "higher",
+    format: "dec2",
+    value: (p) => per90(p.points, p.minutes),
+  },
+  {
+    id: "xg90",
+    label: "xG per 90",
+    group: "Per 90 minutes",
+    better: "higher",
+    format: "dec2",
+    value: (p) => per90(p.xg, p.minutes),
+  },
+  {
+    id: "xa90",
+    label: "xA per 90",
+    group: "Per 90 minutes",
+    better: "higher",
+    format: "dec2",
+    value: (p) => per90(p.xa, p.minutes),
+  },
+  {
+    id: "xgi90",
+    label: "xGI per 90",
+    group: "Per 90 minutes",
+    better: "higher",
+    format: "dec2",
+    value: (p) => per90(p.xgi, p.minutes),
+  },
+  {
+    id: "dc90",
+    label: "Defensive contributions per 90",
+    group: "Per 90 minutes",
+    better: "higher",
+    format: "dec2",
+    value: (p) => per90(p.defensiveContribution, p.minutes),
+  },
 
-  { id: "cs", label: "Clean sheets", group: "Defence and bonus", better: "higher", format: "int", value: (p) => p.cleanSheets },
-  { id: "dc", label: "Defensive contributions", group: "Defence and bonus", better: "higher", format: "int", hint: "Clearances, blocks, interceptions and tackles (plus recoveries for midfielders and forwards)", value: (p) => p.defensiveContribution },
+  {
+    id: "cs",
+    label: "Clean sheets",
+    group: "Defence and bonus",
+    better: "higher",
+    format: "int",
+    value: (p) => p.cleanSheets,
+  },
+  {
+    id: "dc",
+    label: "Defensive contributions",
+    group: "Defence and bonus",
+    better: "higher",
+    format: "int",
+    hint: "Clearances, blocks, interceptions, tackles (and recoveries for MID and FWD)",
+    value: (p) => p.defensiveContribution,
+  },
   { id: "saves", label: "Saves", group: "Defence and bonus", better: "higher", format: "int", value: (p) => p.saves },
-  { id: "bonus", label: "Bonus points", group: "Defence and bonus", better: "higher", format: "int", value: (p) => p.bonus },
+  {
+    id: "bonus",
+    label: "Bonus points",
+    group: "Defence and bonus",
+    better: "higher",
+    format: "int",
+    value: (p) => p.bonus,
+  },
 
-  { id: "matches", label: "Matches", group: "Fixtures", better: "higher", format: "int", hint: "In the gameweeks shown: a blank counts 0, a double 2", value: (_, t) => fixtureOutlook(t).matches },
-  { id: "difficulty", label: "Average difficulty", group: "Fixtures", better: "lower", format: "dec2", hint: "FPL's 1 (easiest) to 5 (hardest)", value: (_, t) => fixtureOutlook(t).averageDifficulty },
+  {
+    id: "matches",
+    label: "Matches",
+    group: "Fixtures",
+    better: "higher",
+    format: "int",
+    hint: "A blank counts 0, a double 2",
+    value: (_, t) => fixtureOutlook(t).matches,
+  },
+  {
+    id: "difficulty",
+    label: "Average difficulty",
+    group: "Fixtures",
+    better: "lower",
+    format: "dec2",
+    hint: "FPL's rating: 1 easiest, 5 hardest",
+    value: (_, t) => fixtureOutlook(t).averageDifficulty,
+  },
 ];
 
 /**
