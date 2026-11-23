@@ -24,6 +24,7 @@
 
 import path from "node:path";
 import { parseArgs } from "node:util";
+import Anthropic from "@anthropic-ai/sdk";
 import type { AgentLimits } from "../src/lib/recap/agent";
 import { anthropicModel } from "../src/lib/recap/anthropic-model";
 import { fakeJudgeModel, fakeWriterModel } from "../src/lib/recap/fakes";
@@ -75,8 +76,13 @@ async function main(): Promise<number> {
     if (!values["no-judge"] && values.model === values["judge-model"]) {
       throw new Error(`--judge-model must differ from --model (both are ${values.model}).`);
     }
-    writer = anthropicModel(values.model!);
-    judge = values["no-judge"] ? null : anthropicModel(values["judge-model"]!);
+    // One client for the writer and the judge. With Workload Identity
+    // Federation each client exchanges the identity token on its first
+    // request, and a second exchange of the same GitHub token is refused
+    // (401), so a separate judge client failed while the writer worked.
+    const client = new Anthropic();
+    writer = anthropicModel(values.model!, client);
+    judge = values["no-judge"] ? null : anthropicModel(values["judge-model"]!, client);
   }
 
   const { report, summary, dir } = await runEval({
@@ -89,7 +95,10 @@ async function main(): Promise<number> {
   });
   console.log(summary);
   console.log(`Report: ${path.relative(process.cwd(), dir)}/`);
-  return report.totals.errors > 0 ? 1 : 0;
+  // A requested judge that failed makes the run fail too, so a broken
+  // judge can't pass as a green run with no scores.
+  const judgeFailed = judge !== null && report.gameweeks.some((g) => g.judgeNote?.startsWith("The judge failed"));
+  return report.totals.errors > 0 || judgeFailed ? 1 : 0;
 }
 
 main().then(
