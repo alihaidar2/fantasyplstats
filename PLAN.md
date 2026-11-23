@@ -127,6 +127,52 @@ Done when a scheduled run deploys on its own, and pointing the fetch at a bad FP
 - Open Graph: one site-wide image, written to `out/opengraph-image/og.png` so Azure serves it as a PNG. Per-player images were measured and dropped: they added about 53 MB to `out/` (94 → 150 MB) for about 2.5 seconds of build time.
 - Analytics: Cloudflare Web Analytics (cookieless). The beacon is only in production builds, and only when the `CF_ANALYTICS_TOKEN` Actions secret is set.
 
+## Step 5: Features (more stats, then the AI gameweek recap)
+
+Goal: give people a reason to come back every gameweek. The home page becomes the latest recap, with the free tools around it. The mini-league page and any paid tier come later.
+
+`docs/fpl-api.md` describes every FPL endpoint and field this step relies on. Read it first.
+
+### 5a: More stats (one PR, no AI)
+
+- Widen the zod schemas to keep fields FPL already sends that the site drops. No new endpoints.
+  - Players (`bootstrap-static`): `expected_goal_involvements`, the `_per_90` versions of the expected stats, `defensive_contribution` (+ per 90), `clearances_blocks_interceptions`, `tackles`, `recoveries`, `saves_per_90`, `starts`, `chance_of_playing_next_round`, `transfers_in_event`, `transfers_out_event`, `cost_change_event`, `cost_change_start`, and the set-piece order fields.
+  - Per-gameweek history (`element-summary`): `goals_scored`, `assists`, `bonus`, `bps`, `defensive_contribution`, `value` (price), `selected` (ownership count), `transfers_balance`.
+  - Gameweeks (`events`): `data_checked`, `average_entry_score`, `highest_score`, `most_captained`, `most_transferred_in`, `top_element_info`, `chip_plays`.
+- Players table: keep today's columns as the "Overview" view and add switchable views:
+  - Attack: xG, xA, xGI (each also per 90), goals minus xG, set-piece badges.
+  - Defence: defensive contribution (+ per 90), CBI, tackles, recoveries, xGC per 90, saves per 90.
+  - Transfers and price: transfers in and out this gameweek, price change this gameweek and since the start.
+  - Minutes and bonus: minutes, starts, bonus, BPS.
+  - An availability badge from `chance_of_playing_next_round` on every view.
+- Player pages: a price and ownership chart over the season, xG and xA added to the points chart, per-gameweek bonus, BPS and defensive contribution, and set-piece duties.
+- Not included: FPL's price-change projection fields (undocumented; watch them first), FPL's own expected points (`ep_next`), and the rank fields.
+- Measure `out/` before and after (about 94 MB now; the Free plan allows 250 MB), and keep page data slim.
+
+Done when the new views and charts render from a recorded snapshot and from live data on the PR preview, tests cover the new transforms, and the `out/` size change is in the PR description.
+
+### 5b: AI gameweek recap (several PRs, in this order)
+
+An agent investigates each finished gameweek through tools over verified data, writes a short recap, and a deterministic checker verifies every claim before a person approves it.
+
+1. **Tools and checker** (plain code, no AI calls). In `src/lib/recap/`, with no Next.js, React or `@/` imports.
+   - Fetch and validate the gameweek: `event/{gw}/live/`, `event-status/`, `dream-team/{gw}/`, `fixtures/?event={gw}`, plus the snapshot. Add zod schemas for the new endpoints.
+   - Story-shaped tools that return readable results with season context: `gameweek_summary`, `top_performers`, `player_story`, `find_players`, `ownership_outcomes`, `expected_vs_actual`, `defensive_contributions`, `team_story`, `discipline_and_availability`, `price_changes`, `season_records`, and `submit_recap`. This list is a starting point: the evals decide what to merge, split or drop.
+   - Every tool result gets an id and goes into an evidence log.
+   - Checker: every number and every player or club name in the recap must appear in tool results the agent received; each claim's numbers must appear in the results it cites; length limits; nothing about betting or odds, no links, no managers' real names. The recap can only cover what the data shows (no team news, quotes or tactics).
+   - Tests: tools against recorded data (including double and blank gameweeks), and a set of deliberately broken recaps the checker must reject.
+2. **Eval harness.** Record GW1–12 of 2026/27 into `test/fixtures/`. For each gameweek, a reference list of its 3–5 biggest stories (drafted from the data, corrected by hand). A script runs the agent on every recorded gameweek and reports: checker pass rate, story coverage against the references, tool calls, tokens, cost and time.
+3. **The agent.** Claude API tool use, with limits on tool calls, tokens and time. On a checker failure: one retry with the errors, then a template recap built from the top tool results. Choose between Haiku and Sonnet with the evals. Score writing quality with a different, stronger model (Opus) against a written rubric. Log every run (tool calls, tokens, cost, check results) next to the recap.
+4. **Publishing.** A scheduled workflow runs once a gameweek is settled (`finished` and `data_checked` on the event, bonus added and points final in `event-status/`) and no recap exists for it yet. It writes `content/recaps/<season>/gw<N>.json` and opens a PR. A person reads it on the preview and merges it to publish. Recap PRs never auto-merge. The API key is the `ANTHROPIC_API_KEY` Actions secret (Max plan monthly API credits).
+5. **Site.** The home page shows the latest recap with a gameweek stats box, the next deadline, easiest upcoming fixtures, price risers and fallers, most transferred in, and links to Fixtures and Players. Each recap has a permanent page at `/recap/<season>/gw<N>/`, plus an archive. With no recap yet, the home page falls back to the deadline and fixtures view.
+
+Done when a real gameweek has gone through generate, check, PR and merge end to end, a recap with an invented number is rejected by the checker, and the eval report is in the PR that introduces the agent.
+
+### After step 5
+
+- Mini-league page and league recaps: needs an Azure Function that reuses `src/lib/fpl/` and `src/lib/recap/`, with caching per league per gameweek and a league size cap, and App Insights monitoring.
+- Paid tier: only after checking FPL's terms, the trademark and tax.
+
 ## Later
 
 Deferred from steps 1–4:
@@ -134,6 +180,7 @@ Deferred from steps 1–4:
 - Make the freshness check off-season-aware, so it doesn't alert hourly through the summer while FPL's API is down.
 - Per-player sitemap `lastmod`: change a player's date only when that player's data changes, instead of every entry using the snapshot's `generatedAt`.
 - Migrate to TanStack Table v9 (Dependabot's v9 PR broke the build; major updates are ignored for now).
+- TypeScript 7: wait until typescript-eslint and Next.js support it (its Dependabot PR failed lint; majors are ignored for now).
 - Per-player Open Graph images: dropped for size (about 53 MB more in `out/`). They would also need a route handler, since Next gives a dynamic `opengraph-image` no file extension.
 
 ## Risks to check early
