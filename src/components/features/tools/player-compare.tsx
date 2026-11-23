@@ -9,6 +9,7 @@ import {
   decodeCompareIds,
   DEFAULT_FILTER,
   encodeCompareIds,
+  isOtherSeason,
   formatTenths,
   MAX_COMPARE,
   MIN_COMPARE,
@@ -49,15 +50,17 @@ export default function PlayerCompare({ version }: Readonly<{ version: string }>
 
 function Compare({ data }: Readonly<{ data: ToolsData }>) {
   // Mounted only in the browser once the data has loaded, so the URL can be read here.
-  const [ids, setIds] = React.useState(() => decodeCompareIds(window.location.search, data.byId));
+  const [otherSeason] = React.useState(() => isOtherSeason(window.location.search, data.season));
+  // A link from another season names other players' ids, so it isn't loaded.
+  const [ids, setIds] = React.useState(() => (otherSeason ? [] : decodeCompareIds(window.location.search, data.byId)));
   const [filter, setFilter] = React.useState<PlayerFilter>(DEFAULT_FILTER);
   const searchRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    const search = encodeCompareIds(ids);
+    const search = encodeCompareIds(ids, data.season);
     const { pathname, hash } = window.location;
     window.history.replaceState(window.history.state, "", `${pathname}${search ? `?${search}` : ""}${hash}`);
-  }, [ids]);
+  }, [ids, data.season]);
 
   const players = React.useMemo(
     () =>
@@ -79,6 +82,14 @@ function Compare({ data }: Readonly<{ data: ToolsData }>) {
 
   return (
     <div className="flex flex-col gap-8 text-gray-900 dark:text-gray-100">
+      {otherSeason && (
+        <p
+          role="status"
+          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200"
+        >
+          That link is from another season, so its players aren&apos;t loaded: player ids change every season.
+        </p>
+      )}
       <section aria-labelledby="comparison-heading" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="comparison-heading" className="text-lg font-semibold text-gray-900 dark:text-white">

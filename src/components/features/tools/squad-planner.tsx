@@ -19,9 +19,10 @@ import {
   encodePlannerState,
   formatTenths,
   formationLabel,
+  isOtherSeason,
   keepTransfers,
   MAX_FREE_TRANSFERS,
-  parseMillions,
+  parseBank,
   POSITION_RULES,
   positionCounts,
   removePlayer,
@@ -88,9 +89,14 @@ function Planner({ data }: Readonly<{ data: ToolsData }>) {
   // Mounted only in the browser, once the data has loaded, so reading the URL
   // and storage while initialising can't cause a hydration mismatch.
   const [initial] = React.useState(() => {
-    const fromUrl = new URLSearchParams(window.location.search).has("squad");
-    const search = fromUrl ? window.location.search : readSaved(data.season);
-    return { ...decodePlannerState(search, data.byId), fromUrl };
+    const fromLink = new URLSearchParams(window.location.search).has("squad");
+    // A link from another season names other players' ids: don't load it.
+    const otherSeason = fromLink && isOtherSeason(window.location.search, data.season);
+    const fromUrl = fromLink && !otherSeason;
+    const saved = readSaved(data.season);
+    const search = fromUrl ? window.location.search : saved;
+    // Opening a link must not replace the visitor's own saved squad until they edit it.
+    return { ...decodePlannerState(search, data.byId), fromUrl, otherSeason, saved: fromUrl ? saved : "" };
   });
   const [plan, setPlan] = React.useState<PlannerState>(initial.state);
   const [filter, setFilter] = React.useState<PlayerFilter>(DEFAULT_FILTER);
@@ -103,13 +109,15 @@ function Planner({ data }: Readonly<{ data: ToolsData }>) {
   const summary = React.useMemo(() => transferSummary(plan, data.byId), [plan, data.byId]);
   const transfers = plan.mode === "transfers";
 
-  // Keep the URL (a shareable link) and storage in step with the plan.
+  // Keep the URL (a shareable link) in step with the plan, and storage too
+  // once the plan is the visitor's own: a plan loaded from a link is only
+  // saved after they edit it.
   React.useEffect(() => {
-    const search = encodePlannerState(plan);
+    const search = encodePlannerState(plan, data.season);
     const { pathname, hash } = window.location;
     window.history.replaceState(window.history.state, "", `${pathname}${search ? `?${search}` : ""}${hash}`);
-    writeSaved({ season: data.season, search });
-  }, [plan, data.season]);
+    if (!initial.fromUrl || plan !== initial.state) writeSaved({ season: data.season, search });
+  }, [plan, data.season, initial]);
 
   const update = (next: PlannerState) => {
     setPlan(next);
@@ -381,6 +389,34 @@ function Planner({ data }: Readonly<{ data: ToolsData }>) {
 
   return (
     <div className="flex flex-col gap-6 text-gray-900 dark:text-gray-100">
+      {initial.otherSeason && (
+        <p
+          role="status"
+          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200"
+        >
+          That link is from another season, so its players aren&apos;t loaded: player ids change every season.
+        </p>
+      )}
+
+      {initial.fromUrl && initial.saved !== "" && plan === initial.state && (
+        <p
+          role="status"
+          className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white/90 p-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300"
+        >
+          This squad is from a link. Your own saved squad is untouched until you change this one.
+          <button
+            type="button"
+            className={neutralButton}
+            onClick={() => {
+              setPlan(decodePlannerState(initial.saved, data.byId).state);
+              setSwapFrom(null);
+            }}
+          >
+            Load my saved squad
+          </button>
+        </p>
+      )}
+
       {initial.dropped > 0 && (
         <p
           role="status"
@@ -660,7 +696,7 @@ function Summary({
     setBankFor(plan.bank);
     setBankText((plan.bank / 10).toFixed(1));
   }
-  const bankValid = parseMillions(bankText) !== null;
+  const bankValid = parseBank(bankText) !== null;
 
   if (plan.mode === "squad") {
     return (
@@ -697,7 +733,7 @@ function Summary({
           value={bankText}
           onChange={(e) => {
             setBankText(e.target.value);
-            const tenths = parseMillions(e.target.value);
+            const tenths = parseBank(e.target.value);
             if (tenths !== null) {
               setBankFor(tenths);
               onChange({ ...plan, bank: tenths });

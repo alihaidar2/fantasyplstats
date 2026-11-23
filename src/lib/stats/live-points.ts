@@ -297,7 +297,17 @@ const LIVE_STAT_ACTIONS = [
   "own_goals",
 ] as const;
 
-type PointsSnapshot = Pick<Snapshot, "bootstrap" | "fixtures" | "live" | "summaries">;
+type PointsSnapshot = Pick<Snapshot, "bootstrap" | "fixtures" | "live" | "summaries"> & Pick<Partial<Snapshot>, "previousLive">;
+
+/**
+ * The live data the rules are read from: the current gameweek's, or, while it
+ * has no points breakdown yet (after the deadline, before the first kickoff),
+ * the last settled gameweek's.
+ */
+export function pointsLive(snapshot: Pick<PointsSnapshot, "live" | "previousLive">): Snapshot["live"] {
+  const hasLines = (l: Snapshot["live"] | undefined) => !!l?.elements.some((p) => p.explain.some((x) => x.stats.length > 0));
+  return hasLines(snapshot.live) || !snapshot.previousLive ? snapshot.live : snapshot.previousLive;
+}
 
 /** Bounds on the minutes a clean sheet needs: at least `from`, at most `to`. Null bounds weren't seen. */
 export interface MinutesBounds {
@@ -313,9 +323,9 @@ export interface MinutesBounds {
  * doesn't list. Also bounds the minutes a clean sheet needs, from players
  * whose team kept one (conceded nothing in the whole match).
  */
-export function liveEvidence(snapshot: Pick<PointsSnapshot, "bootstrap" | "fixtures" | "live">, evidence: Evidence): MinutesBounds {
+export function liveEvidence(snapshot: Pick<PointsSnapshot, "bootstrap" | "fixtures" | "live" | "previousLive">, evidence: Evidence): MinutesBounds {
   const bounds: MinutesBounds = { minWith: null, maxWithout: null };
-  const live = snapshot.live;
+  const live = pointsLive(snapshot);
   if (!live) return bounds;
   const elements = new Map(snapshot.bootstrap.elements.map((e) => [e.id, e]));
   const fixtures = new Map(snapshot.fixtures.map((f) => [f.id, f]));
@@ -575,7 +585,7 @@ export function describeRule(action: PointAction, rule: Rule): { text: string; d
         const previous = rule.levels[i - 1];
         if (!previous) {
           if (level.points !== 0) {
-            parts.push(`${fmt(level.points)}`);
+            parts.push(level.from > 1 ? `${fmt(level.points)} from ${level.from}` : `${fmt(level.points)}`);
             details.push(`${fmt(level.points)} from ${action.unit(level.from)}`);
           }
           return;
@@ -606,8 +616,8 @@ function lineLabel(identifier: string, value: number): string {
   return unit.charAt(0).toUpperCase() + unit.slice(1);
 }
 
-function pickExamples(snapshot: Pick<PointsSnapshot, "bootstrap" | "fixtures" | "live">): PointsExample[] {
-  const live = snapshot.live;
+function pickExamples(snapshot: Pick<PointsSnapshot, "bootstrap" | "fixtures" | "live" | "previousLive">): PointsExample[] {
+  const live = pointsLive(snapshot);
   if (!live) return [];
   const elements = new Map(snapshot.bootstrap.elements.map((e) => [e.id, e]));
   const teams = new Map(snapshot.bootstrap.teams.map((t) => [t.id, t.short_name]));
@@ -727,9 +737,10 @@ export function buildPointsPage(snapshot: PointsSnapshot): PointsPage {
     return { action: id, label: action.label, cells };
   });
 
-  const liveLines = snapshot.live?.elements.reduce((n, p) => n + p.explain.reduce((m, x) => m + x.stats.length, 0), 0) ?? 0;
+  const live = pointsLive(snapshot);
+  const liveLines = live?.elements.reduce((n, p) => n + p.explain.reduce((m, x) => m + x.stats.length, 0), 0) ?? 0;
   return {
-    gameweek: snapshot.live?.gameweek ?? null,
+    gameweek: live?.gameweek ?? null,
     rows,
     cleanSheetMinutes,
     examples: pickExamples(snapshot),

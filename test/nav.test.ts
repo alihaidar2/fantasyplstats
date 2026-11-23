@@ -1,7 +1,7 @@
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { buildNav, currentHref, normalisePath, sectionOf } from "../src/lib/nav";
+import { buildNav, currentHref, navState, normalisePath, NOT_FOUND_SEGMENT, sectionOf } from "../src/lib/nav";
 
 const APP = join(__dirname, "..", "src", "app");
 
@@ -15,7 +15,7 @@ const hasPage = (path: string) => {
 };
 
 describe("main navigation", () => {
-  const nav = buildNav({ latest: 11, teamOfTheWeek: 10 });
+  const nav = buildNav({ latest: 11, teamOfTheWeek: 10, recaps: true });
 
   it("has six sections, with every link pointing at a page that exists", () => {
     expect(nav.map((s) => s.label)).toEqual(["Fixtures", "Players", "Teams", "Gameweeks", "Tools", "Recap"]);
@@ -37,7 +37,7 @@ describe("main navigation", () => {
   });
 
   it("leaves the gameweek links out before the season starts", () => {
-    const pre = buildNav({ latest: null, teamOfTheWeek: null });
+    const pre = buildNav({ latest: null, teamOfTheWeek: null, recaps: true });
     const hrefs = pre.find((s) => s.id === "gameweeks")!.links.map((l) => l.href);
     expect(hrefs).toEqual(["/live/", "/gameweeks/", "/points/"]);
   });
@@ -66,8 +66,31 @@ describe("main navigation", () => {
     expect(currentHref(nav, "/players")).toBe("/players/");
     expect(currentHref(nav, "/players/123/")).toBeNull();
     // The results link comes before the team of the week when both point at the same page.
-    const same = buildNav({ latest: 10, teamOfTheWeek: 10 });
+    const same = buildNav({ latest: 10, teamOfTheWeek: 10, recaps: true });
     expect(currentHref(same, "/gameweeks/10/")).toBe("/gameweeks/10/");
     expect(currentHref(nav, "/gameweeks/10/")).toBe("/gameweeks/10/#team-of-the-week");
+  });
+});
+
+describe("section links and the not-found page", () => {
+  const nav = buildNav({ latest: 11, teamOfTheWeek: 10, recaps: true });
+
+  it("gives every section a main page that exists and is one of its links", () => {
+    for (const section of nav) {
+      expect(hasPage(section.href), section.id).toBe(true);
+      expect(section.links.map((l) => l.href), section.id).toContain(section.href);
+    }
+    expect(nav.map((s) => s.href)).toEqual(["/fixtures/", "/players/", "/teams/", "/gameweeks/", "/tools/", "/recap/"]);
+  });
+
+  it("leaves the Recap item out until a recap is published", () => {
+    const none = buildNav({ latest: 11, teamOfTheWeek: 10, recaps: false });
+    expect(none.map((s) => s.id)).toEqual(["fixtures", "players", "teams", "gameweeks", "tools"]);
+  });
+
+  it("marks no section or page as current on the not-found page, whatever URL was asked for", () => {
+    expect(navState(nav, "/players/", "players")).toEqual({ active: "players", current: "/players/" });
+    expect(navState(nav, "/players/", NOT_FOUND_SEGMENT)).toEqual({ active: null, current: null });
+    expect(navState(nav, "/tools/compare/", NOT_FOUND_SEGMENT)).toEqual({ active: null, current: null });
   });
 });

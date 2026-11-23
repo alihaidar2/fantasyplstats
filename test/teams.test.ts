@@ -397,6 +397,23 @@ describe("buildClubPage", () => {
     expect(clubDescription(page)).toMatch(/^Arsenal are (joint )?\d+(st|nd|rd|th) in the Premier League with 6 points from 2 games \(W2 D0 L0\)\. Next: .+ \([HA]\) in GW4\./);
   });
 
+  it("starts the strip at the next unfinished gameweek, so a blank there still shows", () => {
+    const future = clone(snapshot);
+    const unplay = (f: Fixture) =>
+      Object.assign(f, { started: false, finished: false, finished_provisional: false, minutes: 0, team_h_score: null, team_a_score: null, stats: [] });
+    const ars = future.fixtures.filter((f) => f.team_h === 1 || f.team_a === 1);
+    const [gw4, gw5, gw6] = [4, 5, 6].map((gw) => ars.find((f) => f.event === gw)!);
+    [gw4, gw5, gw6].forEach(unplay);
+    // Arsenal's GW4 match is postponed: GW4 (the next gameweek) is their blank.
+    Object.assign(gw4, { event: null, kickoff_time: null });
+    const weeks = buildClubPage(future, "arsenal")!.nextWeeks.map((w) => [w.gameweek, w.fixtures.length]);
+    expect(weeks).toEqual([
+      [4, 0],
+      [5, 1],
+      [6, 1],
+    ]);
+  });
+
   it("shows matches in progress separately, without counting them", () => {
     const live = clone(snapshot);
     const f = live.fixtures.find((x) => x.event === 6 && (x.team_h === 1 || x.team_a === 1))!;

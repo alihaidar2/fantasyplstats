@@ -5,7 +5,7 @@ import {
   MATCH_STAT_IDENTIFIERS,
   SNAPSHOT_LIVE_STATS,
   SNAPSHOT_VERSION,
-  SnapshotConsistencyError,
+  FplRequestError,
   buildSnapshot,
   checkConsistency,
   dreamTeamSchema,
@@ -193,6 +193,49 @@ describe("teams of the week", () => {
     expect(planDreamTeams({ bootstrap, previous: null })).toEqual({ fetch: [1, 2], reuse: [] });
   });
 
+  it("skip, with a warning, a settled gameweek whose team of the week is a 404", async () => {
+    const client = createFixtureClient();
+    const real = client.getDreamTeam;
+    client.getDreamTeam = async (gw) => {
+      if (gw === 2) throw new FplRequestError("Request to dream-team/2/ returned HTTP 404", "dream-team/2/", 404);
+      return real(gw);
+    };
+    const log = vi.fn();
+    const { snapshot } = await buildSnapshot({ client, now: NOW, log });
+    expect(Object.keys(snapshot.dreamTeams)).toEqual(["1"]);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("warning: no team of the week for gameweek 2"));
+  });
+
+  it("warn about, and keep, a team of the week or live player that isn't in the bootstrap", async () => {
+    const client = createFixtureClient();
+    const real = client.getDreamTeam;
+    client.getDreamTeam = async (gw) => {
+      const team = await real(gw);
+      if (gw === 1) team.team[0].element = 9999;
+      return team;
+    };
+    const log = vi.fn();
+    const { snapshot } = await buildSnapshot({ client, now: NOW, log });
+    expect(snapshot.dreamTeams[1].team[0].element).toBe(9999);
+    expect(log).toHaveBeenCalledWith(expect.stringMatching(/^warning: gameweek 1's team of the week names unknown players: 9999/));
+  });
+
+  it("refetch a reused team of the week when a player's points for that round have changed", async () => {
+    const previous = await fixtureSnapshot();
+    const player = previous.dreamTeams[1].team[0];
+    // FPL corrected the points after the team was stored.
+    previous.dreamTeams[1].team[0] = { ...player, points: player.points + 3 };
+    const { client, getDreamTeam } = spyClient();
+    const { dreamTeamPlan, snapshot } = await buildSnapshot({ client, previous, now: NOW });
+    expect(dreamTeamPlan).toEqual({ fetch: [1], reuse: [2] });
+    expect(getDreamTeam.mock.calls.map(([gw]) => gw)).toEqual([1]);
+    expect(snapshot.dreamTeams[1].team[0].points).toBe(player.points);
+
+    // An unchanged team is still reused.
+    const unchanged = await buildSnapshot({ client: spyClient().client, previous: await fixtureSnapshot(), now: NOW });
+    expect(unchanged.dreamTeamPlan).toEqual({ fetch: [], reuse: [1, 2] });
+  });
+
   it("fail the build when a settled gameweek's team can't be fetched", async () => {
     const client = createFixtureClient();
     client.getDreamTeam = async () => {
@@ -232,6 +275,52 @@ describe("live data", () => {
     client.getEventLive = async () => ({ elements: [] });
     const { snapshot } = await buildSnapshot({ client, now: NOW });
     expect(snapshot.live).toMatchObject({ gameweek: 3, elements: [] });
+  });
+});
+
+describe("the live response schema", () => {
+  it("doesn't need the fields the snapshot drops, so an FPL rename can't fail every deploy", () => {
+    const raw = structuredClone(loadRaw(gwFile(3, "live.json"))) as { elements: { stats: Record<string, unknown> }[] };
+    const dropped = [
+      "in_dreamteam",
+      "tackles",
+      "recoveries",
+      "clearances_blocks_interceptions",
+      "expected_goals",
+      "expected_assists",
+      "expected_goal_involvements",
+      "expected_goals_conceded",
+    ];
+    for (const e of raw.elements) for (const key of dropped) delete e.stats[key];
+    const parsed = eventLiveSchema.parse(raw);
+    expect(trimLive(3, parsed, { status: [], leagues: "" }).elements.length).toBeGreaterThan(250);
+    // The fields the snapshot keeps are still required.
+    delete raw.elements[0].stats.total_points;
+    expect(() => eventLiveSchema.parse(raw)).toThrow();
+  });
+});
+
+describe("the last settled gameweek's live data", () => {
+  it("is kept only while the current gameweek has no points breakdown", async () => {
+    const client = createFixtureClient();
+    const real = client.getEventLive;
+    const asked: number[] = [];
+    client.getEventLive = async (gw) => {
+      asked.push(gw);
+      return gw === 3 ? { elements: [] } : real(3);
+    };
+    const { snapshot } = await buildSnapshot({ client, now: NOW });
+    expect(snapshot.live).toMatchObject({ gameweek: 3, elements: [] });
+    expect(asked).toEqual([3, 2]);
+    expect(snapshot.previousLive?.gameweek).toBe(2);
+    expect(snapshot.previousLive!.elements.length).toBeGreaterThan(250);
+  });
+
+  it("isn't fetched once the current gameweek has kicked off", async () => {
+    const { client, getEventLive } = spyClient();
+    const { snapshot } = await buildSnapshot({ client, now: NOW });
+    expect(getEventLive.mock.calls).toEqual([[3]]);
+    expect(snapshot.previousLive).toBeUndefined();
   });
 });
 
@@ -286,17 +375,17 @@ describe("checkConsistency for the gameweek data", () => {
     expect(check).not.toThrow();
   });
 
-  it("rejects match stats naming an unknown player", async () => {
+  it("warns about match stats naming an unknown player, without failing", async () => {
     const { s, check } = await parts();
     s.fixtures[0].stats[0].h.push({ element: 9999, value: 1 });
-    expect(check).toThrow(SnapshotConsistencyError);
-    expect(check).toThrow(/fixture \d+'s stats name unknown players: 9999/);
+    expect(check).not.toThrow();
+    expect(check()).toEqual([expect.stringMatching(/fixture \d+'s stats name unknown players: 9999/)]);
   });
 
-  it("rejects a team of the week naming an unknown player, or for a gameweek that isn't settled", async () => {
+  it("warns about a team of the week naming an unknown player; rejects one for a gameweek that isn't settled", async () => {
     const { s, check } = await parts();
     s.dreamTeams[1].team[0].element = 9999;
-    expect(check).toThrow(/gameweek 1's team of the week names unknown players: 9999/);
+    expect(check()).toEqual([expect.stringMatching(/gameweek 1's team of the week names unknown players: 9999/)]);
 
     const other = await parts();
     other.s.dreamTeams[3] = other.s.dreamTeams[1];
@@ -307,10 +396,10 @@ describe("checkConsistency for the gameweek data", () => {
     expect(unknown.check).toThrow(/unknown gameweek 40/);
   });
 
-  it("rejects live data naming an unknown player or fixture, or a player twice", async () => {
+  it("warns about live data naming an unknown player; rejects an unknown fixture or a player twice", async () => {
     const a = await parts();
     a.s.live!.elements[0].id = 9999;
-    expect(a.check).toThrow(/live data names unknown players: 9999/);
+    expect(a.check()).toEqual([expect.stringMatching(/live data names unknown players: 9999/)]);
 
     const b = await parts();
     b.s.live!.elements[0].explain[0].fixture = 9999;
@@ -325,7 +414,7 @@ describe("checkConsistency for the gameweek data", () => {
     expect(d.check).toThrow(/live data for unknown gameweek 40/);
   });
 
-  it("fails the build early when the fixtures name an unknown player", async () => {
+  it("warns about, and keeps, an unknown player in the fixtures' stats", async () => {
     const client = createFixtureClient();
     const getFixtures = client.getFixtures;
     client.getFixtures = async () => {
@@ -333,10 +422,10 @@ describe("checkConsistency for the gameweek data", () => {
       fixtures[0].stats[0].a.push({ element: 9999, value: 1 });
       return fixtures;
     };
-    const getElementSummary = vi.fn(client.getElementSummary);
-    client.getElementSummary = getElementSummary;
-    await expect(buildSnapshot({ client, now: NOW })).rejects.toThrow(/unknown players: 9999/);
-    expect(getElementSummary).not.toHaveBeenCalled();
+    const log = vi.fn();
+    const { snapshot } = await buildSnapshot({ client, now: NOW, log });
+    expect(log).toHaveBeenCalledWith(expect.stringMatching(/^warning: fixture \d+'s stats name unknown players: 9999/));
+    expect(snapshot.fixtures[0].stats[0].a.at(-1)?.element).toBe(9999);
   });
 
   it("warns about, but keeps, a stat identifier it doesn't know", async () => {

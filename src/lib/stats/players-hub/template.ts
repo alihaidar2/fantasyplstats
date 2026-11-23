@@ -172,8 +172,10 @@ export function pickStartingXI(squad: readonly Element[]): { starting: Element[]
 
 /** Null when no valid squad exists or nobody owns anyone yet (ownership is what the template is made of). */
 export function buildTemplateTeam(bootstrap: HubBootstrap & Pick<Bootstrap, "events">): TemplateTeam | null {
-  if (!bootstrap.elements.some((e) => ownershipTenths(e) > 0)) return null;
-  const squadElements = pickMaxWeightSquad(weighted(shortlist(bootstrap.elements)));
+  // Players who left the league ("u") and non-squad positions (managers, type 5) can't be picked.
+  const elements = bootstrap.elements.filter((e) => e.status !== "u" && e.element_type >= 1 && e.element_type <= 4);
+  if (!elements.some((e) => ownershipTenths(e) > 0)) return null;
+  const squadElements = pickMaxWeightSquad(weighted(shortlist(elements)));
   if (!squadElements) return null;
   const squad = squadElements.sort(templateOrder);
   const { starting, bench } = pickStartingXI(squad);

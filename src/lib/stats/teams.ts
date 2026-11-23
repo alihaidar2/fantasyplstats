@@ -531,7 +531,17 @@ export function buildClubPage(snapshot: SnapshotParts, slug: string, table = bui
 
   const lastGameweek = Math.max(0, ...bootstrap.events.map((e) => e.id));
   const scheduled = upcoming.filter((f) => f.gameweek !== null);
-  const firstWeek = scheduled.length ? Math.min(...scheduled.map((f) => f.gameweek!)) : null;
+  // The strip starts at the next unfinished gameweek, or the current one if
+  // the club still has a match in it, so a blank there shows as "No match".
+  const open = bootstrap.events.filter((e) => !e.finished).sort((a, b) => a.id - b.id);
+  const stillToPlay = (gw: number) => ours.some((f) => f.event === gw && !isResult(f));
+  const firstOpen = open[0];
+  const firstWeek =
+    scheduled.length === 0 || !firstOpen
+      ? null
+      : firstOpen.is_current && !stillToPlay(firstOpen.id)
+        ? (open[1]?.id ?? null)
+        : firstOpen.id;
   const nextWeeks: FixtureWeek[] =
     firstWeek === null
       ? []

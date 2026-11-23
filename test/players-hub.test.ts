@@ -383,6 +383,25 @@ describe("buildTemplateTeam", () => {
     expect(team.captain).toBeNull();
   });
 
+  it("leaves out players who left the league and managers (type 5)", () => {
+    const elements: Element[] = [];
+    let id = 1;
+    for (const [position, quota] of Object.entries(SQUAD_QUOTAS)) {
+      for (let i = 0; i < quota + 1; i++) {
+        elements.push(el({ id, team: 1 + (id % 20), element_type: Number(position), selected_by_percent: owned(20 - id) }));
+        id++;
+      }
+    }
+    // The two most-owned players of all: one has left, one is a manager.
+    elements.push(el({ id: 100, team: 1, element_type: 3, status: "u", selected_by_percent: owned(90) }));
+    elements.push(el({ id: 101, team: 2, element_type: 5, selected_by_percent: owned(80) }));
+    const team = buildTemplateTeam(bootstrapWith(elements))!;
+    const ids = [...team.lines.flatMap((l) => l.players), ...team.bench].map((p) => p.id);
+    expect(ids).toHaveLength(15);
+    expect(ids).not.toContain(100);
+    expect(ids).not.toContain(101);
+  });
+
   it("is null when nobody is owned or a squad can't be filled", () => {
     expect(buildTemplateTeam(bootstrapWith([el({ id: 1, selected_by_percent: "0.0" })]))).toBeNull();
     expect(buildTemplateTeam(bootstrapWith([el({ id: 1, selected_by_percent: owned(5) })]))).toBeNull();

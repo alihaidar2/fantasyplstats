@@ -2,17 +2,18 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import SiteNav from "@/components/layout/site-nav";
-import { getSnapshot } from "@/lib/data";
+import { getRecaps, getSnapshot } from "@/lib/data";
 import { teamsOfTheWeek } from "@/lib/fpl";
 import type { NavGameweeks } from "@/lib/nav";
 import { startedGameweeks } from "@/lib/stats/matches";
 
-/** The two gameweek pages the menu links to; only these numbers go to the client. */
+/** The two gameweek pages the menu links to, and whether there are recaps; only these go to the client. */
 function navGameweeks(): NavGameweeks {
   const snapshot = getSnapshot();
   return {
     latest: startedGameweeks(snapshot.bootstrap.events, snapshot.fixtures).at(-1) ?? null,
     teamOfTheWeek: teamsOfTheWeek(snapshot).at(-1)?.gameweek ?? null,
+    recaps: getRecaps().length > 0,
   };
 }
 

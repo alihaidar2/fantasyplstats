@@ -40,7 +40,7 @@ Then open [http://localhost:3000](http://localhost:3000). No environment variabl
 
 | Command                  | What it does                                                                                     |
 | ------------------------ | ------------------------------------------------------------------------------------------------ |
-| `npm run fetch`          | Fetch and validate FPL data into `.data/snapshot.json`. Add `-- --full` to refetch every player. |
+| `npm run fetch`          | Fetch and validate FPL data into `.data/snapshot.json`. Add `-- --full` to refetch every player and team of the week. |
 | `npm run fetch:fixtures` | Write `.data/snapshot.json` from the recorded responses in `test/fixtures/`, with no network     |
 | `npm run dev`            | Start the dev server (needs a snapshot)                                                          |
 | `npm run build`          | Static export of every page to `out/` (needs a snapshot)                                         |

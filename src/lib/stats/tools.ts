@@ -230,9 +230,8 @@ export function decodeToolsData(raw: unknown): ToolsData {
   const players: ToolPlayer[] = [];
   for (const t of file.players) {
     const [id, name, fullName, teamId, position, price, points, form, selected, minutes, starts] = t;
-    if (!isNumber(id) || !isPositionId(position) || !isNumber(price) || !teams.has(teamId)) {
-      throw new Error(`Malformed player in tools data: ${JSON.stringify(t)}`);
-    }
+    // A row this version can't use (say, a new position) is skipped, not fatal: one odd player shouldn't break the tools.
+    if (!isNumber(id) || !isPositionId(position) || !isNumber(price) || !teams.has(teamId)) continue;
     players.push({
       id,
       name,
@@ -286,6 +285,15 @@ export function parseMillions(text: string): number | null {
   const clean = text.trim().replace(/^£/, "").replace(/m$/i, "");
   if (!/^\d{1,3}(\.\d)?$/.test(clean)) return null;
   return Math.round(Number(clean) * 10);
+}
+
+/** The most money the bank can hold, in tenths: the planner's input and a link's `bank` agree on it. */
+export const MAX_BANK = BUDGET;
+
+/** The bank typed by a user, in tenths: a price from £0.0m to £100.0m, or null. */
+export function parseBank(text: string): number | null {
+  const tenths = parseMillions(text);
+  return tenths !== null && tenths <= MAX_BANK ? tenths : null;
 }
 
 // ─── Squad arithmetic ───────────────────────────────────────────────────────
@@ -888,11 +896,24 @@ export function checkSquad(state: PlannerState, players: PlayerLookup): SquadChe
 // ─── URL encoding ───────────────────────────────────────────────────────────
 //
 // The planner's state as short query parameters, so a squad is a shareable
-// link: ?squad=1.2.3&bench=2&c=3&vc=1, plus mode=transfers&out=5.6&in=7.0&ft=1&bank=5&chip=wc.
+// link: ?squad=1.2.3&s=2026-27&bench=2&c=3&vc=1, plus mode=transfers&out=5.6&in=7.0&ft=1&bank=5&chip=wc.
 // Ids are joined by "." (safe in a URL without escaping). "in" lines up with
 // "out"; 0 is a transfer with no replacement yet.
 
 const CHIP_CODES: Record<Exclude<Chip, "none">, string> = { wildcard: "wc", freehit: "fh" };
+
+/**
+ * A link carries `s=2026-27`, the season of the data it was made from: player
+ * ids are only stable within a season, so a link from another season would
+ * name the wrong players.
+ */
+export const linkSeason = (search: string): string | null => new URLSearchParams(search).get("s");
+
+/** Whether a link says it was made in a different season from `season`. Links without one are taken as current. */
+export const isOtherSeason = (search: string, season: string): boolean => {
+  const linked = linkSeason(search);
+  return linked !== null && linked !== season;
+};
 
 const joinIds = (ids: readonly number[]) => ids.join(".");
 const splitIds = (text: string | null): number[] =>
@@ -901,10 +922,11 @@ const splitIds = (text: string | null): number[] =>
     .filter((s) => /^\d{1,6}$/.test(s))
     .map(Number);
 
-export function encodePlannerState(state: PlannerState): string {
+export function encodePlannerState(state: PlannerState, season?: string): string {
   const params = new URLSearchParams();
   if (state.squad.length === 0) return "";
   params.set("squad", joinIds(state.squad));
+  if (season) params.set("s", season);
   // Store the bench rather than the XI: it's shorter, and an empty bench is
   // the common case while building. Slots, not the resulting squad, so a
   // player transferred out with no replacement yet keeps his bench place.
@@ -1012,7 +1034,7 @@ export function decodePlannerState(search: string, players: PlayerLookup): Decod
       starters,
       captain,
       vice,
-      bank: mode === "transfers" && Number.isInteger(bank) && bank >= 0 && bank <= 1000 ? bank : 0,
+      bank: mode === "transfers" && Number.isInteger(bank) && bank >= 0 && bank <= MAX_BANK ? bank : 0,
       freeTransfers: mode === "transfers" && Number.isInteger(ft) && ft >= 0 && ft <= MAX_FREE_TRANSFERS ? ft : 1,
       chip: mode === "transfers" ? chip : "none",
     },
@@ -1270,5 +1292,5 @@ export function decodeCompareIds(search: string, players: ReadonlyMap<number, un
   return ids;
 }
 
-export const encodeCompareIds = (ids: readonly number[]): string =>
-  ids.length ? new URLSearchParams({ ids: joinIds(ids) }).toString() : "";
+export const encodeCompareIds = (ids: readonly number[], season?: string): string =>
+  ids.length ? new URLSearchParams({ ids: joinIds(ids), ...(season ? { s: season } : {}) }).toString() : "";

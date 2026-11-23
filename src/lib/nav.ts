@@ -14,6 +14,8 @@ export type NavSectionId = "fixtures" | "players" | "teams" | "gameweeks" | "too
 export interface NavSection {
   id: NavSectionId;
   label: string;
+  /** The section's main page: what its label links to, so it works without JavaScript. */
+  href: string;
   /** A section with one page is a plain link; one with several is a menu. */
   links: readonly NavLink[];
 }
@@ -23,17 +25,20 @@ export interface NavGameweeks {
   latest: number | null;
   /** The newest gameweek FPL has published a team of the week for; null before any is settled. */
   teamOfTheWeek: number | null;
+  /** Whether any recap is published; the Recap item is left out until one is. */
+  recaps: boolean;
 }
 
 /**
  * The header's sections, in order. The gameweek links depend on the snapshot,
  * so they are passed in (and left out before the season starts).
  */
-export function buildNav({ latest, teamOfTheWeek }: NavGameweeks): NavSection[] {
+export function buildNav({ latest, teamOfTheWeek, recaps }: NavGameweeks): NavSection[] {
   return [
     {
       id: "fixtures",
       label: "Fixtures",
+      href: PATHS.fixtures,
       links: [
         { label: "Fixture difficulty", href: PATHS.fixtures },
         { label: "Doubles and blanks", href: PATHS.schedule },
@@ -42,6 +47,7 @@ export function buildNav({ latest, teamOfTheWeek }: NavGameweeks): NavSection[] 
     {
       id: "players",
       label: "Players",
+      href: PATHS.players,
       links: [
         { label: "All players", href: PATHS.players },
         { label: "Injuries", href: PATHS.availability },
@@ -51,10 +57,11 @@ export function buildNav({ latest, teamOfTheWeek }: NavGameweeks): NavSection[] 
         { label: "Template team", href: PATHS.template },
       ],
     },
-    { id: "teams", label: "Teams", links: [{ label: "Premier League table", href: PATHS.teams }] },
+    { id: "teams", label: "Teams", href: PATHS.teams, links: [{ label: "Premier League table", href: PATHS.teams }] },
     {
       id: "gameweeks",
       label: "Gameweeks",
+      href: PATHS.gameweeks,
       links: [
         { label: "Live points", href: PATHS.live },
         ...(latest ? [{ label: `Gameweek ${latest} results`, href: gameweekPath(latest) }] : []),
@@ -68,13 +75,16 @@ export function buildNav({ latest, teamOfTheWeek }: NavGameweeks): NavSection[] 
     {
       id: "tools",
       label: "Tools",
+      href: PATHS.tools,
       links: [
         { label: "Squad planner", href: PATHS.planner },
         { label: "Compare players", href: PATHS.compare },
         { label: "All tools", href: PATHS.tools },
       ],
     },
-    { id: "recap", label: "Recap", links: [{ label: "Gameweek recaps", href: PATHS.recaps }] },
+    ...(recaps
+      ? [{ id: "recap" as const, label: "Recap", href: PATHS.recaps, links: [{ label: "Gameweek recaps", href: PATHS.recaps }] }]
+      : []),
   ];
 }
 
@@ -110,4 +120,21 @@ export function currentHref(sections: readonly NavSection[], pathname: string): 
     }
   }
   return null;
+}
+
+/** The layout segment of the not-found page: `usePathname()` there is the real URL on the client, but "/_not-found/" in the exported HTML. */
+export const NOT_FOUND_SEGMENT = "/_not-found";
+
+/**
+ * The current section and page for the header. On the not-found page neither
+ * is set, so the client's render matches the exported HTML (which was made for
+ * "/_not-found/", not the URL that was asked for).
+ */
+export function navState(
+  sections: readonly NavSection[],
+  pathname: string,
+  segment: string | null,
+): { active: NavSectionId | null; current: string | null } {
+  if (segment === NOT_FOUND_SEGMENT) return { active: null, current: null };
+  return { active: sectionOf(pathname), current: currentHref(sections, pathname) };
 }

@@ -30,6 +30,10 @@ import {
   isValidFormation,
   keepTransfers,
   parseMillions,
+  parseBank,
+  isOtherSeason,
+  linkSeason,
+  MAX_BANK,
   per90,
   pointsPerMillion,
   positionCounts,
@@ -595,6 +599,12 @@ describe("prices", () => {
     expect(parseMillions("1.25")).toBeNull();
     expect(parseMillions("-1")).toBeNull();
     expect(parseMillions("")).toBeNull();
+    // The bank input stops where a link's `bank` does: £100.0m.
+    expect(parseBank("100.0")).toBe(MAX_BANK);
+    expect(parseBank("100.1")).toBeNull();
+    expect(parseBank("999.9")).toBeNull();
+    expect(decodePlannerState(`squad=101&mode=transfers&bank=${MAX_BANK}`, BY_ID).state.bank).toBe(MAX_BANK);
+    expect(decodePlannerState(`squad=101&mode=transfers&bank=${MAX_BANK + 1}`, BY_ID).state.bank).toBe(0);
   });
 });
 
@@ -767,6 +777,36 @@ describe("tools data file", () => {
 
   it("names the season, since player ids change between seasons", () => {
     expect(data.season).toMatch(/^\d{4}-\d{2}$/);
+  });
+
+  it("leaves out elements that aren't a squad position (managers, type 5), and skips bad rows when decoding", () => {
+    const withManager = structuredClone(snapshot);
+    withManager.bootstrap.elements.push({ ...withManager.bootstrap.elements[0], id: 99999, element_type: 5 });
+    const file = buildToolsData(withManager);
+    expect(file.players.map((p) => p[0])).not.toContain(99999);
+    expect(file.players).toHaveLength(snapshot.bootstrap.elements.length);
+
+    // A file that does hold one (say, from a newer build) decodes without it.
+    const bad = JSON.parse(json);
+    bad.players.push([99999, "Boss", "", bad.players[0][3], 5, 50, 0, 0, 0, 0, 0]);
+    const decoded = decodeToolsData(bad);
+    expect(decoded.byId.has(99999)).toBe(false);
+    expect(decoded.players).toHaveLength(data.players.length);
+  });
+
+  it("puts the season in share links, and spots a link from another season", () => {
+    const s = { ...EMPTY_STATE, squad: [101, 201] };
+    const search = encodePlannerState(s, data.season);
+    expect(search).toContain(`s=${data.season}`);
+    expect(linkSeason(search)).toBe(data.season);
+    expect(isOtherSeason(search, data.season)).toBe(false);
+    expect(isOtherSeason(search, "2027-28")).toBe(true);
+    // Links made before seasons were added are taken as current.
+    expect(isOtherSeason("squad=1.2", data.season)).toBe(false);
+    expect(encodeCompareIds([1, 2], data.season)).toBe(`ids=1.2&s=${data.season}`);
+    expect(isOtherSeason(encodeCompareIds([1, 2], "2025-26"), data.season)).toBe(true);
+    // The season doesn't change what a link decodes to.
+    expect(decodePlannerState(search, BY_ID).state).toEqual(decodePlannerState(encodePlannerState(s), BY_ID).state);
   });
 
   it("rejects a file of another version", () => {

@@ -69,7 +69,7 @@ export function ClubBadge({ code, size = 20, className }: { code: number; size?:
   );
 }
 
-/** The next few gameweeks as coloured cells: "—" for a blank, two badges for a double. */
+/** The next few gameweeks as coloured cells: "No match" for a blank, two badges for a double. */
 export function FixtureStrip({ weeks }: { weeks: readonly FixtureWeek[] }) {
   return (
     <ol className="grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -80,9 +80,8 @@ export function FixtureStrip({ weeks }: { weeks: readonly FixtureWeek[] }) {
             <span
               className={cn("rounded px-1.5 py-2 text-center text-xs", getDifficultyColor())}
               title="Blank gameweek: no fixture"
-              aria-label="Blank gameweek: no fixture"
             >
-              —
+              No match
             </span>
           ) : (
             <span className="flex gap-1">

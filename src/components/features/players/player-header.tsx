@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getPositionColor } from "@/hooks/use-player-utils";
 import PlayerStatus from "./player-status";
 import { formatPrice } from "./player-format";
@@ -27,9 +28,13 @@ export default function PlayerHeader({
               {player.position}
             </Badge>
             {teamPath ? (
-              <a href={teamPath} className="font-medium text-emerald-700 hover:underline dark:text-emerald-300">
+              <Link
+                href={teamPath}
+                prefetch={false}
+                className="font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+              >
                 {player.teamName}
-              </a>
+              </Link>
             ) : (
               <span className="text-gray-600 dark:text-gray-400">{player.teamName}</span>
             )}

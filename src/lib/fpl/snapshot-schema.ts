@@ -35,6 +35,12 @@ export const snapshotSchema = z.object({
   dreamTeams: z.record(idKey, dreamTeamSchema),
   /** The current gameweek's live data, refreshed on every build. Null when no gameweek is current (pre-season). */
   live: snapshotLiveSchema.nullable(),
+  /**
+   * The latest settled gameweek's live data, kept only while the current
+   * gameweek's has no points breakdown yet (between its deadline and its first
+   * kickoff), so /points/ still has the points FPL awarded to learn from.
+   */
+  previousLive: snapshotLiveSchema.nullish(),
 });
 
 export type Snapshot = z.infer<typeof snapshotSchema>;

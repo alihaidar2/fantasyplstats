@@ -56,7 +56,8 @@ export function buildToolsData(snapshot: Snapshot): ToolsDataFile {
     );
   }
 
-  const players = bootstrap.elements.map((e) => {
+  // Only the four squad positions: FPL added managers as type 5 in 2024/25, and they can't be picked.
+  const players = bootstrap.elements.filter((e) => e.element_type >= 1 && e.element_type <= 4).map((e) => {
     const fullName = `${e.first_name} ${e.second_name}`.trim();
     const name = e.web_name.trim() || fullName;
     return trimTuple([

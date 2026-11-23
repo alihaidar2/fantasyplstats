@@ -70,6 +70,8 @@ export function LivePlayersTable({
   }, [players, match, position, query, sort]);
 
   const shown = showAll ? rows : rows.slice(0, PAGE);
+  // The columns are gameweek totals: a player in a double gameweek has both matches in them, whichever one is filtered to.
+  const doubleInFilter = match !== "all" && rows.some((p) => p.matches.length > 1);
   const toggleSort = (key: SortKey) =>
     setSort((current) => (current.key === key ? { key, desc: !current.desc } : { key, desc: true }));
 
@@ -112,6 +114,13 @@ export function LivePlayersTable({
           {rows.length} player{rows.length === 1 ? "" : "s"}
         </p>
       </div>
+
+      {doubleInFilter && (
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          The figures are gameweek totals: players marked ×2 played twice this gameweek, so theirs include both
+          matches, not just this one.
+        </p>
+      )}
 
       <div className="rounded-md border border-gray-200 dark:border-gray-700">
         <Table className="min-w-[36rem]">
@@ -174,6 +183,14 @@ export function LivePlayersTable({
                         {p.name}
                       </Link>
                       <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">{p.team}</span>
+                      {p.matches.length > 1 && (
+                        <span
+                          className="shrink-0 text-xs font-semibold text-gray-500 dark:text-gray-400"
+                          title="Played twice this gameweek: the figures add both matches together"
+                        >
+                          ×2
+                        </span>
+                      )}
                     </div>
                   </TableCell>
                   {columns.map((c) => (

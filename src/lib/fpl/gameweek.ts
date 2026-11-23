@@ -7,7 +7,11 @@ import { decimalString, fixtureSchema } from "./schemas";
 
 const playerId = z.number().int().positive();
 
-/** One player's totals for a gameweek (both matches added together in a double gameweek). */
+/**
+ * One player's totals for a gameweek (both matches added together in a double
+ * gameweek). The fields the snapshot doesn't keep are optional, so an FPL
+ * rename can't fail every deploy.
+ */
 export const liveStatsSchema = z.object({
   minutes: z.number().int(),
   starts: z.number().int(),
@@ -23,16 +27,16 @@ export const liveStatsSchema = z.object({
   saves: z.number().int(),
   bonus: z.number().int(),
   bps: z.number().int(),
-  clearances_blocks_interceptions: z.number().int(),
-  recoveries: z.number().int(),
-  tackles: z.number().int(),
+  clearances_blocks_interceptions: z.number().int().optional(),
+  recoveries: z.number().int().optional(),
+  tackles: z.number().int().optional(),
   defensive_contribution: z.number().int(),
-  expected_goals: decimalString,
-  expected_assists: decimalString,
-  expected_goal_involvements: decimalString,
-  expected_goals_conceded: decimalString,
+  expected_goals: decimalString.optional(),
+  expected_assists: decimalString.optional(),
+  expected_goal_involvements: decimalString.optional(),
+  expected_goals_conceded: decimalString.optional(),
   total_points: z.number().int(),
-  in_dreamteam: z.boolean(),
+  in_dreamteam: z.boolean().optional(),
 });
 
 /** Where a player's points came from in one fixture, e.g. `{identifier: "goals_scored", value: 2, points: 12}`. */

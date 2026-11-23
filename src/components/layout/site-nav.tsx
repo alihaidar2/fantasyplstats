@@ -2,14 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { buildNav, currentHref, sectionOf, type NavGameweeks, type NavSection } from "@/lib/nav";
+import { buildNav, navState, type NavGameweeks, type NavSection } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 // The header's navigation. From `md` up it's a row of sections, each a link
-// or a disclosure menu (the WAI-ARIA "disclosure navigation" pattern, not an
-// ARIA menu: these are ordinary links). Below `md` one Menu button opens every
+// to its main page, with a separate button that opens its menu when it has
+// several pages (the WAI-ARIA "disclosure navigation" pattern, not an ARIA
+// menu: these are ordinary links, and the section links work without
+// JavaScript). Below `md` one Menu button opens every
 // section's links as a list under the header. Escape closes either and puts
 // focus back on its button; clicking outside or following a link closes it.
 // The current section is highlighted and the current page's link gets
@@ -19,8 +21,9 @@ import { cn } from "@/lib/utils";
 
 function useNav(gameweeks: NavGameweeks) {
   const pathname = usePathname() ?? "/";
+  const segment = useSelectedLayoutSegment();
   const sections = React.useMemo(() => buildNav(gameweeks), [gameweeks]);
-  return { sections, active: sectionOf(pathname), current: currentHref(sections, pathname) };
+  return { sections, ...navState(sections, pathname, segment) };
 }
 
 /** Moves focus between a menu's links with the arrow keys, Home and End. */
@@ -75,29 +78,20 @@ function DesktopNav({ gameweeks }: Readonly<{ gameweeks: NavGameweeks }>) {
   return (
     <nav ref={navRef} aria-label="Main" className="hidden md:block">
       <ul className="flex items-center gap-1 lg:gap-2">
-        {sections.map((section, index) => {
+        {sections.map((section) => {
           const isActive = section.id === active;
-          const sectionLabel = (
-            <>
+          const sectionLink = (
+            <Link
+              href={section.href}
+              aria-current={section.href === current ? "page" : undefined}
+              data-active={isActive || undefined}
+              className="nav-item"
+            >
               {section.label}
               {isActive && <span className="sr-only"> (current section)</span>}
-            </>
+            </Link>
           );
-          if (section.links.length === 1) {
-            const link = section.links[0];
-            return (
-              <li key={section.id}>
-                <Link
-                  href={link.href}
-                  aria-current={link.href === current ? "page" : undefined}
-                  data-active={isActive || undefined}
-                  className="nav-item"
-                >
-                  {sectionLabel}
-                </Link>
-              </li>
-            );
-          }
+          if (section.links.length === 1) return <li key={section.id}>{sectionLink}</li>;
           const isOpen = open === section.id;
           return (
             <li
@@ -130,29 +124,32 @@ function DesktopNav({ gameweeks }: Readonly<{ gameweeks: NavGameweeks }>) {
                 }
               }}
             >
-              <button
-                type="button"
-                id={`${id}-${section.id}-button`}
-                aria-expanded={isOpen}
-                aria-controls={`${id}-${section.id}`}
-                onClick={() => setOpen(isOpen ? null : section.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "ArrowDown" && !isOpen) {
-                    event.preventDefault();
-                    setOpen(section.id);
-                    requestAnimationFrame(() => focusLink(list(section.id), "first"));
-                  }
-                }}
-                data-active={isActive || undefined}
-                className="nav-item"
-              >
-                {sectionLabel}
-                <span className="nav-chevron" aria-hidden />
-              </button>
+              <div className="flex items-center">
+                {sectionLink}
+                <button
+                  type="button"
+                  id={`${id}-${section.id}-button`}
+                  aria-label={`${section.label} menu`}
+                  aria-expanded={isOpen}
+                  aria-controls={`${id}-${section.id}`}
+                  onClick={() => setOpen(isOpen ? null : section.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "ArrowDown" && !isOpen) {
+                      event.preventDefault();
+                      setOpen(section.id);
+                      requestAnimationFrame(() => focusLink(list(section.id), "first"));
+                    }
+                  }}
+                  data-active={isActive || undefined}
+                  className="nav-item -ml-1 px-1.5"
+                >
+                  <span className="nav-chevron" aria-hidden />
+                </button>
+              </div>
               <ul
                 id={`${id}-${section.id}`}
                 hidden={!isOpen}
-                className={cn("nav-panel nav-list", index >= sections.length - 2 ? "right-0" : "left-0")}
+                className={cn("nav-panel nav-list", section.id === "tools" ? "right-0" : "left-0")}
               >
                 <NavLinks section={section} current={current} onNavigate={close} />
               </ul>

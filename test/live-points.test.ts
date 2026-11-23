@@ -53,6 +53,9 @@ describe("fitting a rule", () => {
     expect(describeRule(pointAction("minutes"), minutes).text).toBe("+1, +2 from 60");
     const dc = deriveRule("step", obs([[3, 0], [10, 0], [16, 2]]));
     expect(describeRule(pointAction("defensive_contribution"), dc).text).toBe("+2 from 11–16");
+    // A first level that starts above 1 says where it starts.
+    const late = deriveRule("step", obs([[90, 2], [95, 2]]));
+    expect(describeRule(pointAction("minutes"), late).text).toBe("+2 from 90");
     expect(deriveRule("step", obs([[5, 2], [10, 0]]))).toEqual({ kind: "conflict" });
     const unreached = deriveRule("step", obs([[5, 0], [9, 0]]));
     expect(unreached).toEqual({ kind: "none-yet", maxValue: 9 });
@@ -176,6 +179,22 @@ describe("the points page", () => {
   it("needs a breakdown to start from", () => {
     // Season rows alone never have just one unknown part, so they can't seed the rules.
     expect(buildPointsPage({ ...snapshot, live: null }).hasData).toBe(false);
+  });
+
+  it("reads the last settled gameweek's breakdown while the current one has none", () => {
+    const earlier = trimLive(2, loadRecordedGameweek(2).live, { status: [], leagues: "" });
+    const empty = { ...snapshot, live: { ...snapshot.live!, elements: [] } };
+    // After the deadline, before the first kickoff: nothing to learn from yet...
+    expect(buildPointsPage(empty).hasData).toBe(false);
+    // ...unless the snapshot kept the previous gameweek's breakdown.
+    const page = buildPointsPage({ ...empty, previousLive: earlier });
+    expect(page.hasData).toBe(true);
+    expect(page.gameweek).toBe(2);
+    expect(page.liveLines).toBeGreaterThan(0);
+    const goals = page.rows.find((r) => r.action === "goals_scored")!;
+    expect([goals.cells[2].text, goals.cells[3].text, goals.cells[4].text]).toEqual(["+6", "+5", "+4"]);
+    // The current gameweek's own breakdown wins once it exists.
+    expect(buildPointsPage({ ...snapshot, previousLive: earlier }).gameweek).toBe(3);
   });
 
   it("has nothing to say before the season", () => {
