@@ -17,13 +17,16 @@ const fixture = (id: number, kickoff: string | null, team_h = 1, team_a = 2): Fi
   event: 1,
   kickoff_time: kickoff,
   started: false,
+  finished_provisional: false,
   finished: false,
+  minutes: 0,
   team_h,
   team_a,
   team_h_score: null,
   team_a_score: null,
   team_h_difficulty: 3,
   team_a_difficulty: 3,
+  stats: [],
 });
 
 describe("UK time", () => {

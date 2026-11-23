@@ -22,6 +22,7 @@ import {
   eventStatusSchema,
   gameweekFixturesSchema,
   parseSnapshot,
+  trimLive,
   type Snapshot,
 } from "../src/lib/fpl";
 
@@ -90,10 +91,17 @@ async function main() {
       if (row && event.ranked_count > 0 && row.selected / event.ranked_count >= MIN_OWNERSHIP) keep.add(Number(id));
     }
   }
-  raw["event-status.json"] = eventStatusSchema.parse(await getRaw("event-status/"));
+  const eventStatus = eventStatusSchema.parse(await getRaw("event-status/"));
+  raw["event-status.json"] = eventStatus;
 
-  // Trim: the kept players, the first gameweeks, and GW `last` as the current one.
+  // Trim: the kept players, the first gameweeks, and GW `last` as the current
+  // one. Match stats name only kept players (so other gameweeks' stats are
+  // partial), teams of the week are the recorded gameweeks' (complete, since
+  // their players are all kept), and the live data is GW `last`'s with the
+  // recorded event-status, which describes a later gameweek.
   const elements = full.bootstrap.elements.filter((e) => keep.has(e.id));
+  const lastLive = eventLiveSchema.parse(raw[`live-${last}.json`]);
+  lastLive.elements = lastLive.elements.filter((e) => keep.has(e.id));
   const snapshot: Snapshot = parseSnapshot({
     ...full,
     bootstrap: {
@@ -108,7 +116,20 @@ async function main() {
         })),
       elements,
     },
-    fixtures: full.fixtures.filter((f) => f.event !== null && f.event <= eventsThrough),
+    fixtures: full.fixtures
+      .filter((f) => f.event !== null && f.event <= eventsThrough)
+      .map((f) => ({
+        ...f,
+        stats: f.stats.map((s) => ({
+          identifier: s.identifier,
+          h: s.h.filter((r) => keep.has(r.element)),
+          a: s.a.filter((r) => keep.has(r.element)),
+        })),
+      })),
+    dreamTeams: Object.fromEntries(
+      gameweeks.map((gw) => [gw, dreamTeamSchema.parse(raw[`dream-team-${gw}.json`])]),
+    ),
+    live: trimLive(last, lastLive, eventStatus),
     summaries: Object.fromEntries(
       elements.map((e) => [
         e.id,

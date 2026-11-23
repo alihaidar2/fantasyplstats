@@ -39,7 +39,8 @@ describe("schemas", () => {
     expect(bootstrap.teams).toHaveLength(20);
     expect(bootstrap).not.toHaveProperty("game_settings");
     expect(bootstrap.elements[0]).not.toHaveProperty("price_change_projections");
-    expect(loadFixtures()[0]).not.toHaveProperty("stats");
+    expect(loadFixtures()[0]).not.toHaveProperty("pulse_id");
+    expect(loadFixtures()[0]).toHaveProperty("stats");
   });
 
   it("reject a response with a renamed field", () => {

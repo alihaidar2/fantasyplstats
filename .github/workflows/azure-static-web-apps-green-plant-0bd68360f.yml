@@ -25,7 +25,7 @@ on:
   workflow_dispatch:
     inputs:
       full:
-        description: Refetch every player's element-summary instead of reusing the previous snapshot
+        description: Refetch every player's element-summary and every team of the week instead of reusing the previous snapshot
         type: boolean
         default: false
 

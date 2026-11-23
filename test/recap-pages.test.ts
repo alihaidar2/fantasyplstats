@@ -190,7 +190,7 @@ describe("sitemap with recaps", () => {
     expect(byUrl.get("https://fantasyplstats.com/recap/")?.lastModified).toBe("2026-12-01T10:00:00.000Z");
     expect(byUrl.get("https://fantasyplstats.com/recap/2026-27/gw5/")?.lastModified).toBe("2026-12-01T10:00:00.000Z");
     expect(byUrl.get("https://fantasyplstats.com/recap/2026-27/gw4/")?.lastModified).toBe(sample().generatedAt);
-    expect(entries).toHaveLength(3 + 1 + 2 + snapshot.bootstrap.elements.length);
+    expect(entries).toHaveLength(buildSitemap(snapshot).length + 1 + 2);
     expect(new Set(entries.map((e) => e.url)).size).toBe(entries.length);
   });
 

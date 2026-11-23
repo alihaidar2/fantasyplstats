@@ -7,8 +7,8 @@ import type {
   ElementSummary,
   FplEvent,
   Fixture,
-  Snapshot,
 } from "./schemas";
+import type { Snapshot } from "./snapshot-schema";
 
 // ─── Gameweeks ──────────────────────────────────────────────────────────────
 
@@ -361,6 +361,45 @@ export interface PlayerGameweek {
   selected: number;
   /** Transfers in minus out before that gameweek's deadline. */
   transfersBalance: number;
+}
+
+/** PlayerGameweek's fields in the order packPlayerGameweeks writes them. */
+const PLAYER_GAMEWEEK_FIELDS = [
+  "gameweek",
+  "points",
+  "minutes",
+  "goals",
+  "assists",
+  "xg",
+  "xa",
+  "bonus",
+  "bps",
+  "defensiveContribution",
+  "price",
+  "selected",
+  "transfersBalance",
+] as const satisfies readonly (keyof PlayerGameweek)[];
+
+/** A PlayerGameweek as a row of numbers (PLAYER_GAMEWEEK_FIELDS order). */
+export type PackedPlayerGameweek = number[];
+
+/**
+ * The player page sends the history to the browser as rows of numbers: the
+ * keys would be most of the payload, and a page's payload is written about
+ * three times into out/ for each of the ~700 player pages.
+ */
+export function packPlayerGameweeks(rows: readonly PlayerGameweek[]): PackedPlayerGameweek[] {
+  return rows.map((r) => PLAYER_GAMEWEEK_FIELDS.map((f) => r[f]));
+}
+
+export function unpackPlayerGameweeks(rows: readonly PackedPlayerGameweek[]): PlayerGameweek[] {
+  return rows.map((r) => {
+    const row = {} as PlayerGameweek;
+    PLAYER_GAMEWEEK_FIELDS.forEach((f, i) => {
+      row[f] = r[i];
+    });
+    return row;
+  });
 }
 
 export function buildPlayerGameweeks(summary: ElementSummary | undefined): PlayerGameweek[] {

@@ -23,7 +23,7 @@
     "dev": "next dev",
     "fetch": "tsx scripts/fetch-fpl.ts",
     "fetch:fixtures": "tsx scripts/fixture-snapshot.ts",
-    "build": "next build",
+    "build": "next build && tsx scripts/prune-export.ts",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
