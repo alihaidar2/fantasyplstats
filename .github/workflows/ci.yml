@@ -50,13 +50,36 @@ jobs:
       - name: 📼 Build FPL snapshot from fixtures
         run: npm run fetch:fixtures
 
+      # With no recaps (RECAP_CONTENT_DIR names a folder that doesn't exist), so
+      # this build always checks the home page's no-recap fallback, even once
+      # content/recaps/ has recaps. npm test validates content/recaps/ itself.
       - name: 🛠️ Build static site
         run: npm run build
+        env:
+          RECAP_CONTENT_DIR: test/fixtures/no-recaps
 
       # Player 1 (Raya) is in test/fixtures/bootstrap-static.json.
       - name: ✅ Check build output
         run: |
-          for file in out/index.html out/health.json out/players/1/index.html; do
+          for file in out/index.html out/health.json out/players/1/index.html out/recap/index.html; do
             test -s "$file" || { echo "::error::Missing or empty $file"; exit 1; }
           done
+          if grep -q 'Latest recap' out/index.html; then echo "::error::The no-recap build shows a recap"; exit 1; fi
           echo "Build output looks complete."
+
+      # Again with the hand-written GW4 sample recap from test/fixtures/recaps/,
+      # so every PR also builds the recap pages and the home page's recap block.
+      # The sample never goes into content/recaps/, so it can't be published.
+      - name: 🛠️ Build static site with a fixture recap
+        run: npm run build
+        env:
+          RECAP_CONTENT_DIR: test/fixtures/recaps
+
+      - name: ✅ Check recap build output
+        run: |
+          for file in out/index.html out/recap/index.html out/recap/2026-27/gw4/index.html; do
+            test -s "$file" || { echo "::error::Missing or empty $file"; exit 1; }
+          done
+          grep -q 'href="/recap/2026-27/gw4/"' out/index.html || { echo "::error::The home page doesn't link to the recap"; exit 1; }
+          grep -q '/recap/2026-27/gw4/' out/sitemap.xml || { echo "::error::The sitemap doesn't list the recap"; exit 1; }
+          echo "Recap pages built."

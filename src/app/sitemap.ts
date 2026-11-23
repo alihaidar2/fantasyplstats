@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getSnapshot } from "@/lib/data";
+import { getRecaps, getSnapshot } from "@/lib/data";
 import { buildSitemap } from "@/lib/sitemap";
 
 // Prerendered to out/sitemap.xml: a static export only emits route handlers
@@ -7,5 +7,5 @@ import { buildSitemap } from "@/lib/sitemap";
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return buildSitemap(getSnapshot());
+  return buildSitemap(getSnapshot(), getRecaps());
 }

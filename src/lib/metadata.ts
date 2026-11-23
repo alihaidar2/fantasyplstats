@@ -11,6 +11,7 @@
 
 import type { Metadata } from "next";
 import type { PlayerDetail } from "./fpl";
+import { formatSeason, type PublishedRecap } from "./recaps";
 import { PATHS, playerPath, SITE_DESCRIPTION, SITE_NAME, SITE_OG_IMAGE, SITE_URL } from "./site";
 
 type OpenGraph = NonNullable<Metadata["openGraph"]>;
@@ -126,6 +127,44 @@ export const playerNotFoundMetadata: Metadata = {
   title: "Player not found",
   robots: { index: false },
 };
+
+/** Cuts text to at most `max` characters at a word boundary, adding "…" if it was cut. */
+export function truncateDescription(text: string, max = 160): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:.\-–—]+$/, "")}…`;
+}
+
+/** Metadata for /recap/<season>/gw<N>/: the headline as the title, the opening as the description. */
+export function recapMetadata(recap: PublishedRecap): Metadata {
+  return pageMetadata({
+    title: `GW${recap.gameweek} recap: ${recap.headline}`,
+    description: truncateDescription(
+      `Fantasy Premier League ${formatSeason(recap.season)} Gameweek ${recap.gameweek} recap. ${recap.paragraphs[0]}`,
+    ),
+    path: recap.path,
+    openGraph: { type: "article", publishedTime: recap.generatedAt },
+  });
+}
+
+/** For an unknown recap. dynamicParams = false makes this unreachable in the export, but keep it safe. */
+export const recapNotFoundMetadata: Metadata = {
+  title: "Recap not found",
+  robots: { index: false },
+};
+
+/** The archive. Until the first recap is published it is an empty page, so keep it out of search results. */
+export function recapArchiveMetadata(recapCount: number): Metadata {
+  const metadata = pageMetadata({
+    title: "FPL gameweek recaps",
+    description:
+      "Every Fantasy Premier League gameweek recap on FPL Stats: the week's biggest scores, captains, differentials and talking points, written from verified FPL data.",
+    path: PATHS.recaps,
+  });
+  return recapCount > 0 ? metadata : { ...metadata, robots: { index: false } };
+}
 
 /** The 404 page: no canonical. Next adds <meta name="robots" content="noindex"> to not-found pages itself. */
 export const notFoundMetadata: Metadata = {

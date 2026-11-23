@@ -15,6 +15,7 @@ export const PATHS = {
   home: "/",
   fixtures: "/fixtures/",
   players: "/players/",
+  recaps: "/recap/",
 } as const;
 
 /**
@@ -32,7 +33,10 @@ export const SITE_OG_IMAGE = {
   alt: `${SITE_NAME}: Fantasy Premier League fixture difficulty and player stats`,
 } as const;
 
-export const playerPath =(id: number | string) => `/players/${id}/`;
+export const playerPath = (id: number | string) => `/players/${id}/`;
+
+/** A recap's permanent page: /recap/2026-27/gw4/ (the gameweek is not zero-padded). */
+export const recapPath = (season: string, gameweek: number) => `/recap/${season}/gw${gameweek}/`;
 
 /** Absolute URL for a site path. */
 export const absoluteUrl = (path: string) => new URL(path, SITE_URL).toString();
