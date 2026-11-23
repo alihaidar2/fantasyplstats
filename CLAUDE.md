@@ -6,7 +6,7 @@ Fantasy Premier League stats site at fantasyplstats.com: a fixture difficulty ma
 
 ## Current work
 
-Steps 1–4 of `PLAN.md` (production readiness) are done. Step 5 (features) comes next, once it's written into `PLAN.md`. Read `PLAN.md` before starting, and do one step per branch and pull request. Deferred work is under "Later" in `PLAN.md`.
+Steps 1–4 of `PLAN.md` (production readiness) are done. Step 5 (features: more stats, then the AI gameweek recap) is in progress. `docs/fpl-api.md` is the reference for FPL endpoints and fields. Read `PLAN.md` before starting, and do one step per branch and pull request. Deferred work is under "Later" in `PLAN.md`.
 
 ## Commands
 
