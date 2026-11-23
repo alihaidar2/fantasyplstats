@@ -122,6 +122,18 @@ describe("parseSnapshot", () => {
     expect(parseSnapshot(JSON.parse(JSON.stringify(snapshot)))).toEqual(snapshot);
   });
 
+  it("rejects a version 1 snapshot, so fetch refetches every player", async () => {
+    const snapshot = await previousSnapshot(MORNING);
+    expect(snapshot.version).toBe(2);
+    expect(() => parseSnapshot({ ...snapshot, version: 1 })).toThrow();
+  });
+
+  it("rejects a reused summary that lacks the per-gameweek fields added in version 2", async () => {
+    const snapshot = JSON.parse(JSON.stringify(await previousSnapshot(MORNING)));
+    for (const h of snapshot.summaries[430].history) delete h.selected;
+    expect(() => parseSnapshot(snapshot)).toThrow();
+  });
+
   it("rejects a snapshot missing a player's summary", async () => {
     const snapshot = await previousSnapshot(MORNING);
     delete snapshot.summaries[430];

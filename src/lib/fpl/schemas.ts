@@ -10,6 +10,12 @@ const decimalString = z
   .string()
   .regex(/^-?\d+(\.\d+)?$/, "expected a decimal string");
 
+/** Set-piece order (1 = first choice), or null when the player has no duty. */
+const setPieceOrder = z.number().int().positive().nullable();
+
+/** Bump when the snapshot shape changes, so an older cached snapshot is refetched in full. */
+export const SNAPSHOT_VERSION = 2;
+
 export const eventSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
@@ -18,6 +24,16 @@ export const eventSchema = z.object({
   is_previous: z.boolean(),
   is_current: z.boolean(),
   is_next: z.boolean(),
+  data_checked: z.boolean(),
+  // Zero or null until the gameweek has been played.
+  average_entry_score: z.number().int(),
+  highest_score: z.number().int().nullable(),
+  most_captained: z.number().int().nullable(),
+  most_transferred_in: z.number().int().nullable(),
+  top_element_info: z
+    .object({ id: z.number().int().positive(), points: z.number().int() })
+    .nullable(),
+  chip_plays: z.array(z.object({ chip_name: z.string(), num_played: z.number().int() })),
 });
 
 export const teamSchema = z.object({
@@ -44,7 +60,14 @@ export const elementSchema = z.object({
   element_type: z.number().int().positive(),
   status: z.string(),
   news: z.string(),
+  /** Percent; null when FPL has no injury or availability news. */
+  chance_of_playing_next_round: z.number().int().min(0).max(100).nullable(),
   now_cost: z.number().int(),
+  /** Price changes in tenths of a million, this gameweek and since the season started. */
+  cost_change_event: z.number().int(),
+  cost_change_start: z.number().int(),
+  transfers_in_event: z.number().int(),
+  transfers_out_event: z.number().int(),
   total_points: z.number().int(),
   points_per_game: decimalString,
   form: decimalString,
@@ -60,15 +83,30 @@ export const elementSchema = z.object({
   yellow_cards: z.number().int(),
   red_cards: z.number().int(),
   saves: z.number().int(),
+  // The _per_90 fields arrive as numbers, unlike the season totals (strings).
+  saves_per_90: z.number(),
   bonus: z.number().int(),
   bps: z.number().int(),
+  defensive_contribution: z.number().int(),
+  defensive_contribution_per_90: z.number(),
+  clearances_blocks_interceptions: z.number().int(),
+  tackles: z.number().int(),
+  recoveries: z.number().int(),
   influence: decimalString,
   creativity: decimalString,
   threat: decimalString,
   ict_index: decimalString,
   expected_goals: decimalString,
   expected_assists: decimalString,
+  expected_goal_involvements: decimalString,
   expected_goals_conceded: decimalString,
+  expected_goals_per_90: z.number(),
+  expected_assists_per_90: z.number(),
+  expected_goal_involvements_per_90: z.number(),
+  expected_goals_conceded_per_90: z.number(),
+  penalties_order: setPieceOrder,
+  direct_freekicks_order: setPieceOrder,
+  corners_and_indirect_freekicks_order: setPieceOrder,
 });
 
 export const bootstrapSchema = z.object({
@@ -101,8 +139,18 @@ export const historyEntrySchema = z.object({
   kickoff_time: z.string().nullable(),
   minutes: z.number().int(),
   total_points: z.number().int(),
+  goals_scored: z.number().int(),
+  assists: z.number().int(),
+  bonus: z.number().int(),
+  bps: z.number().int(),
+  defensive_contribution: z.number().int(),
   expected_goals: decimalString,
   expected_assists: decimalString,
+  /** Price that gameweek, in tenths of a million. */
+  value: z.number().int(),
+  /** How many FPL managers owned the player that gameweek (a count, not a percent). */
+  selected: z.number().int(),
+  transfers_balance: z.number().int(),
 });
 
 export const elementSummarySchema = z.object({
@@ -110,7 +158,7 @@ export const elementSummarySchema = z.object({
 });
 
 export const snapshotSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(SNAPSHOT_VERSION),
   generatedAt: z.iso.datetime(),
   /** How this snapshot's element summaries were produced. */
   mode: z.enum(["full", "incremental"]),

@@ -104,12 +104,90 @@ export function weekSortValue(week: readonly MatrixFixture[]): number {
 
 // ─── Players ────────────────────────────────────────────────────────────────
 
+/** Rounds away floating-point noise (0.1 + 0.2) for display and sorting. */
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** A price in tenths of a million (FPL's unit) as millions. */
+const toMillions = (tenths: number) => round2(tenths / 10);
+
+export type AvailabilityStatus = "doubtful" | "injured" | "suspended" | "unavailable" | "not-eligible";
+
+/** Why a player might miss the next gameweek. Null when they're fully available. */
+export interface Availability {
+  status: AvailabilityStatus;
+  /** FPL's chance of playing next round, in percent; null when FPL gives none. */
+  chance: number | null;
+  news: string;
+}
+
+const STATUS_BY_CODE: Record<string, AvailabilityStatus> = {
+  d: "doubtful",
+  i: "injured",
+  s: "suspended",
+  u: "unavailable",
+  n: "not-eligible",
+};
+
+export const AVAILABILITY_LABELS: Record<AvailabilityStatus, string> = {
+  doubtful: "Doubtful",
+  injured: "Injured",
+  suspended: "Suspended",
+  unavailable: "Unavailable",
+  "not-eligible": "Not eligible",
+};
+
+export function availabilityOf(
+  e: Pick<Element, "status" | "chance_of_playing_next_round" | "news">,
+): Availability | null {
+  const chance = e.chance_of_playing_next_round;
+  const status =
+    STATUS_BY_CODE[e.status] ??
+    // An "available" player with a reduced chance is effectively doubtful.
+    (chance !== null && chance < 100 ? "doubtful" : null);
+  if (!status) return null;
+  return { status, chance, news: e.news };
+}
+
+export type SetPieceKind = "penalties" | "freekicks" | "corners";
+
+export interface SetPieceDuty {
+  kind: SetPieceKind;
+  /** 1 is first choice. */
+  order: number;
+}
+
+export const SET_PIECE_LABELS: Record<SetPieceKind, string> = {
+  penalties: "Penalties",
+  freekicks: "Direct free kicks",
+  corners: "Corners and indirect free kicks",
+};
+
+/** The player's set-piece duties, in FPL's order (penalties, free kicks, corners). */
+export function setPieceDuties(
+  e: Pick<
+    Element,
+    "penalties_order" | "direct_freekicks_order" | "corners_and_indirect_freekicks_order"
+  >,
+): SetPieceDuty[] {
+  const duties: [SetPieceKind, number | null][] = [
+    ["penalties", e.penalties_order],
+    ["freekicks", e.direct_freekicks_order],
+    ["corners", e.corners_and_indirect_freekicks_order],
+  ];
+  return duties.flatMap(([kind, order]) => (order === null ? [] : [{ kind, order }]));
+}
+
+/** One row of the players table. Each group of fields feeds one table view. */
 export interface PlayerRow {
   id: number;
   name: string;
   team: string;
   position: string;
   positionId: number;
+  /** Shown on every view; null when the player is fully available. */
+  availability: Availability | null;
+
+  // Overview
   price: number;
   totalPoints: number;
   pointsPerGame: number;
@@ -118,6 +196,42 @@ export interface PlayerRow {
   goals: number;
   assists: number;
   cleanSheets: number;
+
+  // Attack
+  xg: number;
+  xa: number;
+  xgi: number;
+  xgPer90: number;
+  xaPer90: number;
+  xgiPer90: number;
+  /** Goals scored minus expected goals: positive means finishing above expectation. */
+  goalsMinusXg: number;
+  setPieces: SetPieceDuty[];
+
+  // Defence
+  defensiveContribution: number;
+  defensiveContributionPer90: number;
+  /** Clearances, blocks and interceptions. */
+  cbi: number;
+  tackles: number;
+  recoveries: number;
+  xgcPer90: number;
+  savesPer90: number;
+
+  // Transfers and price
+  transfersInEvent: number;
+  transfersOutEvent: number;
+  /** Transfers in minus out this gameweek. */
+  netTransfersEvent: number;
+  /** Price change in £m this gameweek and since the season started. */
+  priceChangeEvent: number;
+  priceChangeStart: number;
+
+  // Minutes and bonus
+  minutes: number;
+  starts: number;
+  bonus: number;
+  bps: number;
 }
 
 function lookups(bootstrap: Pick<Bootstrap, "teams" | "element_types">) {
@@ -132,26 +246,107 @@ export function buildPlayerRows(
   bootstrap: Pick<Bootstrap, "teams" | "element_types" | "elements">,
 ): PlayerRow[] {
   const { teams, positions } = lookups(bootstrap);
-  return bootstrap.elements.map((e) => ({
-    id: e.id,
-    name: fullName(e),
-    team: teams.get(e.team)?.short_name ?? "—",
-    position: positions.get(e.element_type)?.singular_name_short ?? "—",
-    positionId: e.element_type,
-    price: e.now_cost / 10,
-    totalPoints: e.total_points,
-    pointsPerGame: Number(e.points_per_game),
-    form: Number(e.form),
-    selectedByPercent: Number(e.selected_by_percent),
-    goals: e.goals_scored,
-    assists: e.assists,
-    cleanSheets: e.clean_sheets,
-  }));
+  return bootstrap.elements.map((e) => {
+    const xg = Number(e.expected_goals);
+    return {
+      id: e.id,
+      name: fullName(e),
+      team: teams.get(e.team)?.short_name ?? "—",
+      position: positions.get(e.element_type)?.singular_name_short ?? "—",
+      positionId: e.element_type,
+      availability: availabilityOf(e),
+
+      price: toMillions(e.now_cost),
+      totalPoints: e.total_points,
+      pointsPerGame: Number(e.points_per_game),
+      form: Number(e.form),
+      selectedByPercent: Number(e.selected_by_percent),
+      goals: e.goals_scored,
+      assists: e.assists,
+      cleanSheets: e.clean_sheets,
+
+      xg,
+      xa: Number(e.expected_assists),
+      xgi: Number(e.expected_goal_involvements),
+      xgPer90: e.expected_goals_per_90,
+      xaPer90: e.expected_assists_per_90,
+      xgiPer90: e.expected_goal_involvements_per_90,
+      goalsMinusXg: round2(e.goals_scored - xg),
+      setPieces: setPieceDuties(e),
+
+      defensiveContribution: e.defensive_contribution,
+      defensiveContributionPer90: e.defensive_contribution_per_90,
+      cbi: e.clearances_blocks_interceptions,
+      tackles: e.tackles,
+      recoveries: e.recoveries,
+      xgcPer90: e.expected_goals_conceded_per_90,
+      savesPer90: e.saves_per_90,
+
+      transfersInEvent: e.transfers_in_event,
+      transfersOutEvent: e.transfers_out_event,
+      netTransfersEvent: e.transfers_in_event - e.transfers_out_event,
+      priceChangeEvent: toMillions(e.cost_change_event),
+      priceChangeStart: toMillions(e.cost_change_start),
+
+      minutes: e.minutes,
+      starts: e.starts,
+      bonus: e.bonus,
+      bps: e.bps,
+    };
+  });
 }
 
-export interface PointsByGameweek {
+/**
+ * One gameweek of a player's season. A double gameweek's matches are added
+ * together; price, ownership and net transfers are per gameweek, so they come
+ * from the gameweek's last match.
+ */
+export interface PlayerGameweek {
   gameweek: number;
   points: number;
+  minutes: number;
+  goals: number;
+  assists: number;
+  xg: number;
+  xa: number;
+  bonus: number;
+  bps: number;
+  defensiveContribution: number;
+  /** Price in £m that gameweek. */
+  price: number;
+  /** FPL managers who owned the player that gameweek (a count). */
+  selected: number;
+  /** Transfers in minus out before that gameweek's deadline. */
+  transfersBalance: number;
+}
+
+export function buildPlayerGameweeks(summary: ElementSummary | undefined): PlayerGameweek[] {
+  const matches = [...(summary?.history ?? [])].sort(
+    (a, b) =>
+      a.round - b.round ||
+      (a.kickoff_time ?? "").localeCompare(b.kickoff_time ?? "") ||
+      a.fixture - b.fixture,
+  );
+  const byGameweek = new Map<number, PlayerGameweek>();
+  for (const h of matches) {
+    const prev = byGameweek.get(h.round);
+    byGameweek.set(h.round, {
+      gameweek: h.round,
+      points: (prev?.points ?? 0) + h.total_points,
+      minutes: (prev?.minutes ?? 0) + h.minutes,
+      goals: (prev?.goals ?? 0) + h.goals_scored,
+      assists: (prev?.assists ?? 0) + h.assists,
+      xg: round2((prev?.xg ?? 0) + Number(h.expected_goals)),
+      xa: round2((prev?.xa ?? 0) + Number(h.expected_assists)),
+      bonus: (prev?.bonus ?? 0) + h.bonus,
+      bps: (prev?.bps ?? 0) + h.bps,
+      defensiveContribution: (prev?.defensiveContribution ?? 0) + h.defensive_contribution,
+      price: toMillions(h.value),
+      selected: h.selected,
+      transfersBalance: h.transfers_balance,
+    });
+  }
+  return [...byGameweek.values()];
 }
 
 export interface PlayerDetail {
@@ -162,8 +357,8 @@ export interface PlayerDetail {
   position: string;
   positionId: number;
   price: number;
-  status: string;
-  news: string;
+  availability: Availability | null;
+  setPieces: SetPieceDuty[];
   stats: Pick<
     Element,
     | "total_points"
@@ -174,10 +369,13 @@ export interface PlayerDetail {
     | "assists"
     | "expected_goals"
     | "expected_assists"
+    | "expected_goal_involvements"
     | "clean_sheets"
     | "goals_conceded"
     | "saves"
     | "expected_goals_conceded"
+    | "defensive_contribution"
+    | "defensive_contribution_per_90"
     | "yellow_cards"
     | "red_cards"
     | "own_goals"
@@ -190,9 +388,14 @@ export interface PlayerDetail {
     | "starts"
     | "bonus"
     | "bps"
-  >;
-  /** Points per gameweek, with a double gameweek's matches added together. */
-  history: PointsByGameweek[];
+  > & {
+    /** Goals scored minus expected goals. */
+    goalsMinusXg: number;
+    /** Price change in £m since the season started. */
+    priceChangeStart: number;
+  };
+  /** Per-gameweek history for the charts, in gameweek order. */
+  history: PlayerGameweek[];
 }
 
 export function buildPlayerDetail(
@@ -201,10 +404,6 @@ export function buildPlayerDetail(
   summary: ElementSummary | undefined,
 ): PlayerDetail {
   const { teams, positions } = lookups(bootstrap);
-  const byGameweek = new Map<number, number>();
-  for (const h of summary?.history ?? []) {
-    byGameweek.set(h.round, (byGameweek.get(h.round) ?? 0) + h.total_points);
-  }
 
   return {
     id: element.id,
@@ -213,9 +412,9 @@ export function buildPlayerDetail(
     teamCode: element.team_code,
     position: positions.get(element.element_type)?.singular_name ?? "—",
     positionId: element.element_type,
-    price: element.now_cost / 10,
-    status: element.status,
-    news: element.news,
+    price: toMillions(element.now_cost),
+    availability: availabilityOf(element),
+    setPieces: setPieceDuties(element),
     stats: {
       total_points: element.total_points,
       points_per_game: element.points_per_game,
@@ -225,10 +424,13 @@ export function buildPlayerDetail(
       assists: element.assists,
       expected_goals: element.expected_goals,
       expected_assists: element.expected_assists,
+      expected_goal_involvements: element.expected_goal_involvements,
       clean_sheets: element.clean_sheets,
       goals_conceded: element.goals_conceded,
       saves: element.saves,
       expected_goals_conceded: element.expected_goals_conceded,
+      defensive_contribution: element.defensive_contribution,
+      defensive_contribution_per_90: element.defensive_contribution_per_90,
       yellow_cards: element.yellow_cards,
       red_cards: element.red_cards,
       own_goals: element.own_goals,
@@ -241,10 +443,10 @@ export function buildPlayerDetail(
       starts: element.starts,
       bonus: element.bonus,
       bps: element.bps,
+      goalsMinusXg: round2(element.goals_scored - Number(element.expected_goals)),
+      priceChangeStart: toMillions(element.cost_change_start),
     },
-    history: [...byGameweek]
-      .sort(([a], [b]) => a - b)
-      .map(([gameweek, points]) => ({ gameweek, points })),
+    history: buildPlayerGameweeks(summary),
   };
 }
 

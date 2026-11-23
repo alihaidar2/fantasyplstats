@@ -151,6 +151,13 @@ Goal: give people a reason to come back every gameweek. The home page becomes th
 
 Done when the new views and charts render from a recorded snapshot and from live data on the PR preview, tests cover the new transforms, and the `out/` size change is in the PR description.
 
+**Done** (#18):
+- The schemas keep the listed fields, and the snapshot is now version 2, so a cached version 1 snapshot fails validation and the next fetch refetches every player. The `_per_90` fields arrive as numbers, not strings.
+- Transforms in `src/lib/fpl/transforms.ts` add availability (from `status` and `chance_of_playing_next_round`), set-piece duties, goals minus xG, net transfers, price changes in £m, and per-gameweek rows for the player page (a double gameweek's matches added together).
+- Players table: Overview, Attack, Defence, Transfers and price, and Minutes and bonus tabs over one TanStack column list. The view is linkable (`/players/#attack`), and the availability badge shows on every view.
+- Player pages: set-piece duties, new season stats, and three charts (points with xG and xA, price and ownership, BPS, bonus and defensive contribution). Each chart stacks panels on a shared gameweek axis instead of using two y-axes, and a gameweek-by-gameweek table is built in the browser on demand. The history reaches the browser once, through one client component.
+- `out/` grew from 90.8 MB to 105.8 MB (97 → 118 MB on disk) with live data at GW11, mostly in player pages (about 20 KB each). The per-gameweek history grows through the season, adding roughly another 10–15 MB by GW38.
+
 ### 5b: AI gameweek recap (several PRs, in this order)
 
 An agent investigates each finished gameweek through tools over verified data, writes a short recap, and a deterministic checker verifies every claim before a person approves it.
@@ -181,6 +188,7 @@ Deferred from steps 1–4:
 - Per-player sitemap `lastmod`: change a player's date only when that player's data changes, instead of every entry using the snapshot's `generatedAt`.
 - Migrate to TanStack Table v9 (Dependabot's v9 PR broke the build; major updates are ignored for now).
 - TypeScript 7: wait until typescript-eslint and Next.js support it (its Dependabot PR failed lint; majors are ignored for now).
+- The header's nav is about 10px wider than a 390px phone screen, so every page scrolls sideways slightly (seen in step 5a, already in production).
 - Per-player Open Graph images: dropped for size (about 53 MB more in `out/`). They would also need a route handler, since Next gives a dynamic `opengraph-image` no file extension.
 
 ## Risks to check early

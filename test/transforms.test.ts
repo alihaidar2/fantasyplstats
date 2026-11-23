@@ -22,6 +22,13 @@ const event = (id: number, flags: Partial<FplEvent> = {}): FplEvent => ({
   is_previous: false,
   is_current: false,
   is_next: false,
+  data_checked: false,
+  average_entry_score: 0,
+  highest_score: null,
+  most_captained: null,
+  most_transferred_in: null,
+  top_element_info: null,
+  chip_plays: [],
   ...flags,
 });
 
@@ -134,8 +141,17 @@ describe("player view models", () => {
     expect(typeof raya.form).toBe("number");
     expect(Object.keys(raya).sort()).toEqual(
       [
-        "assists", "cleanSheets", "form", "goals", "id", "name", "pointsPerGame",
-        "position", "positionId", "price", "selectedByPercent", "team", "totalPoints",
+        "id", "name", "team", "position", "positionId", "availability",
+        // Overview
+        "price", "totalPoints", "pointsPerGame", "form", "selectedByPercent", "goals", "assists", "cleanSheets",
+        // Attack
+        "xg", "xa", "xgi", "xgPer90", "xaPer90", "xgiPer90", "goalsMinusXg", "setPieces",
+        // Defence
+        "defensiveContribution", "defensiveContributionPer90", "cbi", "tackles", "recoveries", "xgcPer90", "savesPer90",
+        // Transfers and price
+        "transfersInEvent", "transfersOutEvent", "netTransfersEvent", "priceChangeEvent", "priceChangeStart",
+        // Minutes and bonus
+        "minutes", "starts", "bonus", "bps",
       ].sort(),
     );
   });
@@ -150,7 +166,7 @@ describe("player view models", () => {
     const detail = buildPlayerDetail(bootstrap, raya, summary);
     expect(detail.teamName).toBe("Arsenal");
     expect(detail.position).toBe("Goalkeeper");
-    expect(detail.history[0]).toEqual({
+    expect(detail.history[0]).toMatchObject({
       gameweek: first.round,
       points: first.total_points + second.total_points,
     });

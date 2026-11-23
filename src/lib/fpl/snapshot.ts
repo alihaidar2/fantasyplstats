@@ -5,6 +5,7 @@
 import type { FplClient } from "./client";
 import { isMatchDay, startOfUkDay, teamsThatPlayed } from "./schedule";
 import {
+  SNAPSHOT_VERSION,
   snapshotSchema,
   type Bootstrap,
   type ElementSummary,
@@ -160,7 +161,7 @@ export async function buildSnapshot(options: BuildSnapshotOptions): Promise<Buil
   for (const [id, summary] of fetched) summaries[id] = summary;
 
   const snapshot = parseSnapshot({
-    version: 1,
+    version: SNAPSHOT_VERSION,
     generatedAt: now.toISOString(),
     mode: plan.mode,
     bootstrap,
