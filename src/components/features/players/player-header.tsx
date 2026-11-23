@@ -1,5 +1,6 @@
 import { getPositionColor } from "@/hooks/use-player-utils";
 import PlayerStatus from "./player-status";
+import { formatPrice } from "./player-format";
 import { Badge } from "@/components/ui/badge";
 import type { PlayerDetail } from "@/lib/fpl/transforms";
 
@@ -22,7 +23,7 @@ export default function PlayerHeader({ player }: Readonly<{ player: PlayerDetail
               {player.position}
             </Badge>
             <span className="text-gray-600 dark:text-gray-400 align-middle">
-              £{player.price.toFixed(1)}m
+              {formatPrice(player.price)}
             </span>
           </div>
         </div>

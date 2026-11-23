@@ -26,7 +26,7 @@ Anything marked *unverified* comes from client libraries or older guides and has
 ### Formats and ids
 
 - **Prices** are integers in tenths of a million: `now_cost: 63` is £6.3m. Manager `bank` and `value` use the same unit.
-- **Many decimals are strings**: `form`, `selected_by_percent`, `points_per_game`, `ep_this`, `ep_next`, `expected_*`, `influence`, `creativity`, `threat`, `ict_index`, `value_form`, `value_season`. Convert before sorting or comparing.
+- **Many decimals are strings**: `form`, `selected_by_percent`, `points_per_game`, `ep_this`, `ep_next`, the `expected_*` season totals, `influence`, `creativity`, `threat`, `ict_index`, `value_form`, `value_season`. Convert before sorting or comparing. The `_per_90` fields (`expected_goals_per_90`, `saves_per_90`, `defensive_contribution_per_90`, ...) are plain numbers, not strings.
 - **Timestamps** are ISO 8601 in UTC (`"2026-08-21T19:00:00Z"`).
 - **Nullable**: `chance_of_playing_*` is `null` when there's no injury news; fixture scores are `null` before kickoff; `event` on a fixture is `null` while it's unscheduled (postponed).
 - **Ids**:

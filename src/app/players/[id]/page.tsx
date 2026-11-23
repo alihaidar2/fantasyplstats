@@ -5,8 +5,14 @@ import type { LucideIcon } from "lucide-react";
 import { ArrowLeft, BarChart2, Goal, Shield, Flag, Award, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import PlayerPointsChart from "@/components/features/players/player-points-chart";
+import PlayerCharts from "@/components/features/players/player-charts";
 import PlayerHeader from "@/components/features/players/player-header";
+import PlayerSetPieces from "@/components/features/players/player-set-pieces";
+import {
+  formatNumber,
+  formatPriceChange,
+  formatSigned,
+} from "@/components/features/players/player-format";
 import { getFormColor } from "@/hooks/use-player-utils";
 import { getSnapshot } from "@/lib/data";
 import { buildPlayerDetail, type PlayerDetail } from "@/lib/fpl";
@@ -70,6 +76,7 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
         { label: "Points Per Game", value: s.points_per_game },
         { label: "Form", value: s.form, className: getFormColor(s.form) },
         { label: "Ownership", value: `${Number(s.selected_by_percent).toFixed(1)}%` },
+        { label: "Price Change Since Start", value: formatPriceChange(s.priceChangeStart) },
       ],
     },
     {
@@ -80,6 +87,8 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
         { label: "Assists", value: s.assists },
         { label: "Expected Goals", value: s.expected_goals },
         { label: "Expected Assists", value: s.expected_assists },
+        { label: "Expected Goal Involvements", value: s.expected_goal_involvements },
+        { label: "Goals Minus xG", value: formatSigned(s.goalsMinusXg, 2) },
       ],
     },
     {
@@ -90,6 +99,11 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
         { label: "Goals Conceded", value: s.goals_conceded },
         { label: "Saves", value: s.saves },
         { label: "Expected Goals Conceded", value: s.expected_goals_conceded },
+        { label: "Defensive Contribution", value: s.defensive_contribution },
+        {
+          label: "Defensive Contribution per 90",
+          value: formatNumber(s.defensive_contribution_per_90, 2),
+        },
       ],
     },
     {
@@ -137,17 +151,22 @@ export default async function PlayerPage({ params }: PageProps<"/players/[id]">)
         <PlayerHeader player={player} />
       </div>
 
+      {player.setPieces.length > 0 && (
+        <div className="mb-8">
+          <PlayerSetPieces duties={player.setPieces} />
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {cards.map((card) => (
           <StatCard key={card.title} {...card} />
         ))}
       </div>
 
+      {/* The history goes to this one client component, so it's serialized once. */}
       {player.history.length > 0 && (
-        <div className="my-6">
-          <Card className="rounded-xl border border-green-200 dark:border-green-900">
-            <PlayerPointsChart history={player.history} />
-          </Card>
+        <div className="my-8">
+          <PlayerCharts history={player.history} />
         </div>
       )}
     </div>

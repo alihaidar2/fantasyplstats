@@ -2,11 +2,9 @@
 
 import * as React from "react";
 import {
-  Column,
-  ColumnDef,
   ColumnFiltersState,
+  PaginationState,
   SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -25,7 +23,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Select,
@@ -34,297 +31,174 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import type { PlayerRow } from "@/lib/fpl/transforms";
-import { getFormColor, getPositionColor } from "@/hooks/use-player-utils";
-import Link from "next/link";
+import { PLAYER_COLUMNS, PLAYER_COLUMN_IDS, columnWidthStyle } from "./players-table-columns";
+import { PlayersTableTabs, tabIdFor } from "./players-table-tabs";
+import {
+  DEFAULT_VIEW,
+  PLAYERS_TABLE_VIEWS,
+  getView,
+  hashForView,
+  sortingForView,
+  viewFromHash,
+  visibilityForView,
+  type PlayersTableViewId,
+} from "./players-table-views";
+
+const PANEL_ID = "players-table-panel";
+const VIEW_CHANGE_EVENT = "players-table-view-change";
+
+function subscribeToView(onChange: () => void) {
+  window.addEventListener("hashchange", onChange);
+  window.addEventListener(VIEW_CHANGE_EVENT, onChange);
+  return () => {
+    window.removeEventListener("hashchange", onChange);
+    window.removeEventListener(VIEW_CHANGE_EVENT, onChange);
+  };
+}
+
+/**
+ * The selected view lives in the URL hash (#attack) so a view is linkable.
+ * The page is a static export, so the server render (and hydration) use the
+ * default view and the hash takes over right after.
+ */
+function useSelectedView(): [PlayersTableViewId, (view: PlayersTableViewId) => void] {
+  const view = React.useSyncExternalStore(
+    subscribeToView,
+    () => viewFromHash(window.location.hash),
+    () => DEFAULT_VIEW,
+  );
+  const selectView = (next: PlayersTableViewId) => {
+    const { pathname, search } = window.location;
+    // replaceState doesn't fire hashchange, so announce the change ourselves.
+    window.history.replaceState(null, "", `${pathname}${search}${hashForView(next)}`);
+    window.dispatchEvent(new Event(VIEW_CHANGE_EVENT));
+  };
+  return [view, selectView];
+}
 
 interface PlayersDataTableProps {
   players: PlayerRow[];
 }
 
 export function PlayersDataTable({ players }: PlayersDataTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "totalPoints", desc: true },
-  ]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [viewId, selectView] = useSelectedView();
+  const view = getView(viewId);
+
+  const [sorting, setSorting] = React.useState<SortingState>([{ ...view.defaultSort }]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [positionFilter, setPositionFilter] = React.useState<string>("all");
-  const [pageSize, setPageSize] = React.useState<number>(10);
 
-  const SortableHeader = ({
-    column,
-    children,
-    className = "",
-    style,
-  }: {
-    column: Column<PlayerRow, unknown>;
-    children: React.ReactNode;
-    className?: string;
-    style?: React.CSSProperties;
-  }) => (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className={`h-auto p-0 font-normal w-full justify-center ${className}`}
-      style={style}
-    >
-      {children}
-      {column.getIsSorted() === "asc" ? (
-        <ChevronUp className="ml-2 h-4 w-4" />
-      ) : column.getIsSorted() === "desc" ? (
-        <ChevronDown className="ml-2 h-4 w-4" />
-      ) : (
-        <ChevronsUpDown className="ml-2 h-4 w-4" />
-      )}
-    </Button>
+  // On a view change (tab, hash link or the hash read after hydration), keep
+  // the sort if its column is still visible, else use the view's default, and
+  // go back to the first page. Adjusting state while rendering avoids a
+  // render with a sort on a hidden column.
+  const [renderedViewId, setRenderedViewId] = React.useState(viewId);
+  if (renderedViewId !== viewId) {
+    setRenderedViewId(viewId);
+    setSorting((current) => sortingForView(current, view));
+    setPagination((current) => ({ ...current, pageIndex: 0 }));
+  }
+
+  const columnVisibility = React.useMemo(
+    () => visibilityForView(view, PLAYER_COLUMN_IDS),
+    [view],
   );
-
-  const columns: ColumnDef<PlayerRow>[] = [
-    {
-      accessorKey: "name",
-      header: ({ column }) => (
-        <SortableHeader
-          column={column}
-          className="pl-2 pr-18 justify-start min-w-[250px]"
-        >
-          Player
-        </SortableHeader>
-      ),
-      size: 20,
-      cell: ({ row }) => {
-        const player = row.original;
-        return (
-          <Link href={`/players/${player.id}`} className="block">
-            <div className="font-medium text-gray-900 dark:text-white truncate pl-2 pr-18 min-w-[250px] hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
-              {player.name}
-            </div>
-          </Link>
-        );
-      },
-    },
-    {
-      accessorKey: "position",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Position</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Badge className={`text-xs ${getPositionColor(row.original.positionId)}`}>
-            {row.original.position}
-          </Badge>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "team",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Team</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.original.team}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "price",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Price</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div className="text-center text-gray-900 dark:text-white">
-          £{row.original.price.toFixed(1)}m
-        </div>
-      ),
-    },
-    {
-      accessorKey: "totalPoints",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Points</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div className="text-center font-medium text-gray-900 dark:text-white">
-          {row.original.totalPoints}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "pointsPerGame",
-      header: ({ column }) => (
-        <SortableHeader column={column}>PPG</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.original.pointsPerGame.toFixed(1)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "form",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Form</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div
-          className={`text-center font-medium ${getFormColor(row.original.form)}`}
-        >
-          {row.original.form.toFixed(1)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "selectedByPercent",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Ownership</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.original.selectedByPercent.toFixed(1)}%
-        </div>
-      ),
-    },
-    {
-      accessorKey: "goals",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Goals</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.original.goals}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "assists",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Assists</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.original.assists}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "cleanSheets",
-      header: ({ column }) => (
-        <SortableHeader column={column}>CS</SortableHeader>
-      ),
-      size: 8,
-      cell: ({ row }) => (
-        <div className="text-center text-gray-600 dark:text-gray-400">
-          {row.original.cleanSheets}
-        </div>
-      ),
-    },
-  ];
 
   const filteredPlayers = React.useMemo(
     () =>
       positionFilter === "all"
         ? players
         : players.filter((p) => String(p.positionId) === positionFilter),
-    [players, positionFilter]
+    [players, positionFilter],
   );
 
   const table = useReactTable({
     data: filteredPlayers,
-    columns,
+    columns: PLAYER_COLUMNS,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
+      pagination,
     },
   });
 
   return (
     <Card className="border-2 border-gray-200 bg-white shadow-lg dark:bg-gray-900 dark:border-gray-700">
       <CardHeader>
-        <div className="flex items-center gap-4 pt-6">
-          <Input
-            placeholder="Filter players..."
-            value={
-              (table.getColumn("name")?.getFilterValue() as string) ?? ""
-            }
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
+        <div className="flex flex-col gap-4 pt-6">
+          <PlayersTableTabs
+            views={PLAYERS_TABLE_VIEWS}
+            selected={viewId}
+            onSelect={selectView}
+            panelId={PANEL_ID}
           />
-          <Select value={positionFilter} onValueChange={setPositionFilter}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Position" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="1">GKP</SelectItem>
-              <SelectItem value="2">DEF</SelectItem>
-              <SelectItem value="3">MID</SelectItem>
-              <SelectItem value="4">FWD</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-4">
+            <Input
+              placeholder="Filter players..."
+              aria-label="Filter players by name"
+              value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                table.getColumn("name")?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+            <Select value={positionFilter} onValueChange={setPositionFilter}>
+              <SelectTrigger className="w-32" aria-label="Filter by position">
+                <SelectValue placeholder="Position" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="1">GKP</SelectItem>
+                <SelectItem value="2">DEF</SelectItem>
+                <SelectItem value="3">MID</SelectItem>
+                <SelectItem value="4">FWD</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
+        <div
+          id={PANEL_ID}
+          role="tabpanel"
+          aria-labelledby={tabIdFor(viewId)}
+          className="rounded-md border"
+        >
+          {/* The Table component scrolls horizontally inside this panel on narrow screens. */}
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
+                    const sorted = header.column.getIsSorted();
                     return (
                       <TableHead
                         key={header.id}
-                        style={{
-                          width:
-                            header.column.getSize() === 20
-                              ? "10%"
-                              : header.column.getSize() === 8
-                              ? "4%"
-                              : "1.5%",
-                          minWidth:
-                            header.column.getSize() === 20
-                              ? "75px"
-                              : header.column.getSize() === 8
-                              ? "40px"
-                              : "15px",
-                          maxWidth:
-                            header.column.getSize() === 20
-                              ? "10%"
-                              : header.column.getSize() === 8
-                              ? "4%"
-                              : "1.5%",
-                        }}
+                        style={columnWidthStyle(header.column.getSize())}
+                        aria-sort={
+                          sorted === "asc"
+                            ? "ascending"
+                            : sorted === "desc"
+                              ? "descending"
+                              : undefined
+                        }
                       >
                         {header.isPlaceholder
                           ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                          : flexRender(header.column.columnDef.header, header.getContext())}
                       </TableHead>
                     );
                   })}
@@ -332,40 +206,12 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
+                  <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        style={{
-                          width:
-                            cell.column.getSize() === 20
-                              ? "10%"
-                              : cell.column.getSize() === 8
-                              ? "4%"
-                              : "1.5%",
-                          minWidth:
-                            cell.column.getSize() === 20
-                              ? "75px"
-                              : cell.column.getSize() === 8
-                              ? "40px"
-                              : "15px",
-                          maxWidth:
-                            cell.column.getSize() === 20
-                              ? "10%"
-                              : cell.column.getSize() === 8
-                              ? "4%"
-                              : "1.5%",
-                        }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                      <TableCell key={cell.id} style={columnWidthStyle(cell.column.getSize())}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -373,7 +219,7 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length}
+                    colSpan={table.getVisibleLeafColumns().length}
                     className="h-24 text-center"
                   >
                     No results.
@@ -383,19 +229,14 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 py-4">
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Show
-            </span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Show</span>
             <Select
-              value={pageSize.toString()}
-              onValueChange={(value) => {
-                setPageSize(Number(value));
-                table.setPageSize(Number(value));
-              }}
+              value={pagination.pageSize.toString()}
+              onValueChange={(value) => table.setPageSize(Number(value))}
             >
-              <SelectTrigger className="w-20">
+              <SelectTrigger className="w-20" aria-label="Players per page">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -405,9 +246,7 @@ export function PlayersDataTable({ players }: PlayersDataTableProps) {
                 <SelectItem value="100">100</SelectItem>
               </SelectContent>
             </Select>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              per page
-            </span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">per page</span>
           </div>
           <div className="space-x-2">
             <Button
