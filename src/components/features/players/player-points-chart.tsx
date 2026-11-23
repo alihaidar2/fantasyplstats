@@ -8,7 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import type { PointsByGameweek } from "@/lib/fpl/transforms";
+import type { PlayerGameweek } from "@/lib/fpl/transforms";
 import React from "react";
 
 // Define a local TooltipPayload type for Recharts payload entries
@@ -48,7 +48,7 @@ function ThemedTooltip({
 export default function PlayerPointsChart({
   history,
 }: Readonly<{
-  history: PointsByGameweek[];
+  history: PlayerGameweek[];
 }>) {
   const data = history;
 

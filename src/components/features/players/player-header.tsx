@@ -27,7 +27,7 @@ export default function PlayerHeader({ player }: Readonly<{ player: PlayerDetail
           </div>
         </div>
       </div>
-      <PlayerStatus status={player.status} news={player.news} />
+      <PlayerStatus availability={player.availability} />
     </div>
   );
 }
