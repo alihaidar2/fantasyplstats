@@ -34,7 +34,13 @@ function ClubCard({ club }: Readonly<{ club: ClubSetPieces }>) {
           loading="lazy"
           className="h-6 w-6"
         />
-        {club.name}
+        {club.path ? (
+          <a href={club.path} className="hover:underline">
+            {club.name}
+          </a>
+        ) : (
+          club.name
+        )}
       </h2>
       <dl className="space-y-2 text-sm">
         {club.duties.map((d) => (

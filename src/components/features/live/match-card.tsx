@@ -98,6 +98,22 @@ function BonusList({ match }: { match: LiveMatch }) {
   );
 }
 
+/** A club's short name linking to its page, with the full name on hover and for screen readers. */
+function ClubName({ team }: { team: LiveMatch["home"] }) {
+  const name = (
+    <abbr title={team.name} className="no-underline">
+      {team.short}
+    </abbr>
+  );
+  return team.path ? (
+    <a href={team.path} className="truncate font-semibold hover:underline">
+      {name}
+    </a>
+  ) : (
+    <span className="truncate font-semibold">{name}</span>
+  );
+}
+
 /** One match of the gameweek: score, state, scorers and assisters, and bonus (provisional or FPL's). */
 export function MatchCard({ match }: { match: LiveMatch }) {
   const titleId = `match-${match.id}`;
@@ -105,13 +121,16 @@ export function MatchCard({ match }: { match: LiveMatch }) {
     <article aria-labelledby={titleId} className={`${cardClass} flex flex-col gap-3 p-4`}>
       <div className="flex items-center justify-between gap-2">
         <StateBadge match={match} />
+        {match.path && (
+          <a href={match.path} className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-300">
+            Match stats<span className="sr-only">: {match.home.name} v {match.away.name}</span>
+          </a>
+        )}
       </div>
       <h3 id={titleId} className="flex items-center justify-between gap-2 text-gray-900 dark:text-white">
         <span className="flex min-w-0 flex-1 items-center gap-2">
           <TeamBadge code={match.home.code} name={match.home.name} />
-          <span className="truncate font-semibold" title={match.home.name}>
-            {match.home.short}
-          </span>
+          <ClubName team={match.home} />
         </span>
         <span className="shrink-0 text-xl font-bold tabular-nums">
           {match.home.score !== null && match.away.score !== null ? (
@@ -128,9 +147,7 @@ export function MatchCard({ match }: { match: LiveMatch }) {
           )}
         </span>
         <span className="flex min-w-0 flex-1 items-center justify-end gap-2">
-          <span className="truncate font-semibold" title={match.away.name}>
-            {match.away.short}
-          </span>
+          <ClubName team={match.away} />
           <TeamBadge code={match.away.code} name={match.away.name} />
         </span>
       </h3>

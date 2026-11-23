@@ -10,6 +10,7 @@ import {
   Section,
   STRONG,
   type Column,
+  TeamName,
 } from "@/components/features/players-hub/hub-ui";
 import { formatNewsDate, formatOwnership } from "@/components/features/players-hub/hub-format";
 import { getSnapshot } from "@/lib/data";
@@ -33,7 +34,7 @@ function chanceText(chance: number | null): string {
 
 const COLUMNS: Column<AvailabilityRow>[] = [
   { header: "Player", cell: (p) => <PlayerName player={p} showAvailability={false} /> },
-  { header: "Team", cell: (p) => p.team },
+  { header: "Team", cell: (p) => <TeamName player={p} /> },
   { header: "Pos", title: "Position", cell: (p) => <PositionBadge player={p} /> },
   { header: "Price", numeric: true, cell: (p) => <span className={STRONG}>{formatPrice(p.price)}</span> },
   {

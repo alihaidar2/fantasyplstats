@@ -19,6 +19,9 @@ import {
   type Side,
   type Snapshot,
 } from "../fpl";
+import { matchPath } from "../site";
+import { hasMatchPage } from "./matches/shared";
+import { buildClubs } from "./teams";
 
 // ─── Bonus ──────────────────────────────────────────────────────────────────
 
@@ -142,6 +145,8 @@ export interface LiveTeam {
   short: string;
   /** "Arsenal" */
   name: string;
+  /** The club's page (/teams/arsenal/); "" for a club FPL no longer lists. */
+  path: string;
   score: number | null;
 }
 
@@ -154,6 +159,8 @@ export interface LiveMatchPlayer {
 
 export interface LiveMatch {
   id: number;
+  /** The match page, once the match has kicked off (match pages exist from kick-off). */
+  path: string | null;
   kickoff: string | null;
   /** "15:00", UK time, or null when unscheduled. */
   kickoffLabel: string | null;
@@ -274,11 +281,13 @@ export function buildLivePage(snapshot: LiveSnapshot): LivePage | null {
     const e = players.get(id);
     return e ? e.web_name.trim() || `${e.first_name} ${e.second_name}`.trim() : `Player ${id}`;
   };
+  const clubPath = new Map(buildClubs(teams).map((c) => [c.id, c.path]));
   const team = (id: number, score: number | null): LiveTeam => ({
     id,
     code: teamById.get(id)?.code ?? 0,
     short: teamById.get(id)?.short_name ?? "—",
     name: teamById.get(id)?.name ?? "Unknown",
+    path: clubPath.get(id) ?? "",
     score,
   });
 
@@ -293,6 +302,7 @@ export function buildLivePage(snapshot: LiveSnapshot): LivePage | null {
     const scored = home.score !== null && away.score !== null;
     return {
       id: f.id,
+      path: hasMatchPage(f) ? matchPath(f.id) : null,
       kickoff: f.kickoff_time,
       kickoffLabel: f.kickoff_time ? kickoffFormat.format(new Date(f.kickoff_time)) : null,
       state,

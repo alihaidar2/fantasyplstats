@@ -3,6 +3,7 @@
 
 import { SET_PIECE_LABELS, setPieceDuties, type SetPieceKind } from "../../fpl/transforms";
 import type { Bootstrap } from "../../fpl/schemas";
+import { buildClubs } from "../teams";
 import { byOwnership, hubPlayers, type HubBootstrap, type HubPlayer } from "./common";
 
 export interface SetPieceTaker extends HubPlayer {
@@ -16,6 +17,8 @@ export interface ClubSetPieces {
   shortName: string;
   /** The club's `code`, for its badge image. */
   code: number;
+  /** The club's page (/teams/arsenal/). */
+  path: string;
   duties: { kind: SetPieceKind; label: string; takers: SetPieceTaker[] }[];
 }
 
@@ -38,6 +41,7 @@ export function buildSetPieces(bootstrap: HubBootstrap & Pick<Bootstrap, "teams"
     }
   }
 
+  const clubPaths = new Map(buildClubs(bootstrap.teams).map((c) => [c.id, c.path]));
   return [...bootstrap.teams]
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((t) => ({
@@ -45,6 +49,7 @@ export function buildSetPieces(bootstrap: HubBootstrap & Pick<Bootstrap, "teams"
       name: t.name,
       shortName: t.short_name,
       code: t.code,
+      path: clubPaths.get(t.id) ?? "",
       duties: KINDS.map((kind) => ({
         kind,
         label: SET_PIECE_LABELS[kind],

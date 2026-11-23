@@ -7,6 +7,7 @@ import type { Bootstrap, Fixture, FplEvent } from "../../fpl";
 import { formatDeadline } from "../../home";
 import { playerRefs, type PlayerRef } from "../../recap-pages";
 import { badgeUrl, gameweekPath, matchPath, PATHS } from "../../site";
+import { buildClubs } from "../teams";
 
 export type { PlayerRef };
 
@@ -29,12 +30,16 @@ export interface TeamRef {
   short: string;
   /** FPL's club code, for the badge image. */
   code: number;
+  /** The club's page (/teams/arsenal/); "" for a club FPL no longer lists. */
+  path: string;
 }
 
 /** Looks clubs up by id. An unknown id gets a placeholder rather than throwing. */
 export function teamRefs(bootstrap: Pick<Bootstrap, "teams">): (id: number) => TeamRef {
-  const teams = new Map(bootstrap.teams.map((t) => [t.id, { id: t.id, name: t.name, short: t.short_name, code: t.code }]));
-  return (id) => teams.get(id) ?? { id, name: `Team ${id}`, short: "—", code: 0 };
+  const teams = new Map(
+    buildClubs(bootstrap.teams).map((c) => [c.id, { id: c.id, name: c.name, short: c.shortName, code: c.code, path: c.path }]),
+  );
+  return (id) => teams.get(id) ?? { id, name: `Team ${id}`, short: "—", code: 0, path: "" };
 }
 
 /** Looks players up by id, with a placeholder for one FPL no longer lists (so a match never loses a line). */

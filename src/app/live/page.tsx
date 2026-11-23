@@ -15,8 +15,9 @@ import {
 import { getSnapshot } from "@/lib/data";
 import { nextDeadline } from "@/lib/home";
 import { pageMetadata } from "@/lib/metadata";
-import { PATHS } from "@/lib/site";
+import { gameweekPath, PATHS } from "@/lib/site";
 import { bonusCheck, buildLivePage, dayPointsLabel, type LiveDay, type LivePage } from "@/lib/stats/live";
+import { startedGameweeks } from "@/lib/stats/matches";
 
 const TOP_SCORERS = 10;
 
@@ -145,7 +146,13 @@ export default function LivePointsPage() {
       <header>
         {page && (
           <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-            Gameweek {page.gameweek}
+            {startedGameweeks(snapshot.bootstrap.events, snapshot.fixtures).includes(page.gameweek) ? (
+              <Link href={gameweekPath(page.gameweek)} className="hover:underline">
+                Gameweek {page.gameweek}
+              </Link>
+            ) : (
+              `Gameweek ${page.gameweek}`
+            )}
           </p>
         )}
         <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">Live gameweek points</h1>

@@ -1,7 +1,7 @@
 // The double and blank gameweek planner's sections. Server-rendered: no client JavaScript.
 
 import type { PlannerFixture, PlannerWeek, SchedulePlanner } from "@/lib/stats/matches";
-import { cardClass, TeamBadge } from "./bits";
+import { cardClass, ClubLink, TeamBadge } from "./bits";
 
 const fixtureText = (f: PlannerFixture) => `${f.opponent} (${f.home ? "H" : "A"})`;
 
@@ -31,7 +31,7 @@ function WeekCard({ week }: { week: PlannerWeek }) {
                 {week.doubles.map((d) => (
                   <li key={d.team.id} className="flex flex-wrap items-center gap-x-2">
                     <TeamBadge team={d.team} size={18} />
-                    <span className="font-medium text-gray-900 dark:text-white">{d.team.name}</span>
+                    <ClubLink team={d.team} className="font-medium text-gray-900 hover:underline dark:text-white" />
                     <span className="text-gray-600 dark:text-gray-300">{d.fixtures.map(fixtureText).join(", ")}</span>
                   </li>
                 ))}
@@ -49,7 +49,7 @@ function WeekCard({ week }: { week: PlannerWeek }) {
                 {week.blanks.map((t) => (
                   <li key={t.id} className="flex items-center gap-1.5 text-gray-900 dark:text-white">
                     <TeamBadge team={t} size={18} />
-                    {t.name}
+                    <ClubLink team={t} className="hover:underline" />
                   </li>
                 ))}
               </ul>
@@ -122,9 +122,11 @@ export function PlannerGrid({ planner }: { planner: SchedulePlanner }) {
             {planner.rows.map((row) => (
               <tr key={row.team.id}>
                 <th scope="row" className="sticky left-0 z-10 bg-white px-2 py-1 text-left font-semibold whitespace-nowrap text-gray-900 dark:bg-gray-800 dark:text-white">
-                  <abbr title={row.team.name} className="no-underline">
-                    {row.team.short}
-                  </abbr>
+                  <ClubLink team={row.team} className="hover:underline">
+                    <abbr title={row.team.name} className="no-underline">
+                      {row.team.short}
+                    </abbr>
+                  </ClubLink>
                 </th>
                 {row.weeks.map((week, i) => (
                   <td

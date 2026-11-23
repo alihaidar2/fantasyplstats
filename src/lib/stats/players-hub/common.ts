@@ -5,6 +5,7 @@
 import { availabilityOf, type Availability } from "../../fpl/transforms";
 import type { Bootstrap, Element } from "../../fpl/schemas";
 import { PATHS } from "../../site";
+import { buildClubs } from "../teams";
 
 /** The hub's pages, as site paths ending in "/" (trailingSlash: true). */
 export const PLAYERS_HUB_PATHS = {
@@ -27,6 +28,8 @@ export interface HubPlayer {
   /** Club short name ("ARS"). */
   team: string;
   teamId: number;
+  /** The club's page (/teams/arsenal/); "" for a club FPL no longer lists. */
+  teamPath: string;
   /** "GKP", "DEF", "MID" or "FWD". */
   position: string;
   positionId: number;
@@ -52,6 +55,7 @@ const fullNameOf = (e: Element) => `${e.first_name} ${e.second_name}`.trim() || 
 /** Builds HubPlayers from bootstrap elements, sharing the team and position lookups. */
 export function hubPlayers(bootstrap: Pick<HubBootstrap, "teams" | "element_types">) {
   const teams = new Map(bootstrap.teams.map((t) => [t.id, t.short_name]));
+  const clubPaths = new Map(buildClubs(bootstrap.teams).map((c) => [c.id, c.path]));
   const positions = new Map(bootstrap.element_types.map((p) => [p.id, p.singular_name_short]));
   return (e: Element): HubPlayer => ({
     id: e.id,
@@ -59,6 +63,7 @@ export function hubPlayers(bootstrap: Pick<HubBootstrap, "teams" | "element_type
     fullName: fullNameOf(e),
     team: teams.get(e.team) ?? "—",
     teamId: e.team,
+    teamPath: clubPaths.get(e.team) ?? "",
     position: positions.get(e.element_type) ?? "—",
     positionId: e.element_type,
     price: toMillions(e.now_cost),

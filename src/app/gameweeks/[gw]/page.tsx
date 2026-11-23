@@ -7,6 +7,7 @@ import GameweekNumbers from "@/components/features/matches/gameweek-numbers";
 import ResultsList from "@/components/features/matches/results-list";
 import TeamOfTheWeek from "@/components/features/matches/team-of-the-week";
 import { getSnapshot } from "@/lib/data";
+import { PATHS } from "@/lib/site";
 import {
   buildGameweekPage,
   gameweekMetadata,
@@ -76,6 +77,13 @@ export default async function GameweekPage({ params }: PageProps<"/gameweeks/[gw
         </div>
         {summary.deadline && (
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Deadline {summary.deadline}</p>
+        )}
+        {getSnapshot().live?.gameweek === summary.gameweek && summary.state !== "settled" && (
+          <p className="mt-1 text-sm">
+            <Link href={PATHS.live} className={linkClass}>
+              Live points for this gameweek
+            </Link>
+          </p>
         )}
       </header>
 

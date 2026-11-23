@@ -8,6 +8,7 @@ import {
   PlayerName,
   Section,
   STRONG,
+  TeamName,
 } from "@/components/features/players-hub/hub-ui";
 import { getSnapshot } from "@/lib/data";
 import { pageMetadata } from "@/lib/metadata";
@@ -86,7 +87,9 @@ function PositionList({
                 <td className="py-1.5">
                   <div className="flex min-w-0 flex-col">
                     <PlayerName player={p} />
-                    <span className="text-xs">{p.team}</span>
+                    <span className="text-xs">
+                      <TeamName player={p} />
+                    </span>
                   </div>
                 </td>
                 <td className="py-1.5 text-right">{formatPrice(p.price)}</td>

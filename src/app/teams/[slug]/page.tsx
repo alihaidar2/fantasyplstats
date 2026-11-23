@@ -17,7 +17,7 @@ import {
 import { getFormColor, getPositionColor } from "@/hooks/use-player-utils";
 import { getSnapshot } from "@/lib/data";
 import { pageMetadata } from "@/lib/metadata";
-import { playerPath } from "@/lib/site";
+import { gameweekPath, matchPath, playerPath } from "@/lib/site";
 import {
   buildClubPage,
   buildClubs,
@@ -141,7 +141,15 @@ function Results({ page }: { page: ClubPage }) {
           <tbody>
             {page.results.map((r) => (
               <tr key={r.fixtureId} className={tr}>
-                <td className={cn(td, "text-left")}>{r.gameweek ?? "—"}</td>
+                <td className={cn(td, "text-left")}>
+                  {r.gameweek ? (
+                    <a href={gameweekPath(r.gameweek)} className="hover:underline">
+                      {r.gameweek}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
+                </td>
                 <td className={cn(td, "text-left text-gray-600 dark:text-gray-400")}>{formatMatchDate(r.kickoff)}</td>
                 <td className="px-2 py-2 whitespace-nowrap">
                   <ClubLink club={r.opponent} className="font-medium text-gray-900 dark:text-white">
@@ -150,7 +158,14 @@ function Results({ page }: { page: ClubPage }) {
                   <span className="text-xs text-gray-500 dark:text-gray-400">({r.home ? "H" : "A"})</span>
                 </td>
                 <td className={cn(td, "text-center font-semibold")}>
-                  {r.goalsFor}–{r.goalsAgainst}
+                  <a
+                    href={matchPath(r.fixtureId)}
+                    className="text-emerald-700 hover:underline dark:text-emerald-300"
+                    title="Match stats"
+                  >
+                    {r.goalsFor}–{r.goalsAgainst}
+                    <span className="sr-only"> (match stats)</span>
+                  </a>
                   {r.provisional && (
                     <span title="Full time; FPL hasn't confirmed the result yet" className="text-gray-400">
                       *
@@ -304,7 +319,10 @@ export default async function ClubPageView({ params }: PageProps<"/teams/[slug]"
               <span key={m.fixtureId} className="block">
                 In progress at the last update: {m.home ? "home to" : "away at"} {m.opponent.name}
                 {m.goalsFor !== null && m.goalsAgainst !== null ? `, ${m.goalsFor}–${m.goalsAgainst}` : ""}. Not
-                counted until full time.
+                counted until full time.{" "}
+                <a href={matchPath(m.fixtureId)} className="font-medium text-emerald-700 hover:underline dark:text-emerald-300">
+                  Live match stats
+                </a>
               </span>
             ))}
           </span>

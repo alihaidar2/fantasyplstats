@@ -1,6 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Trophy, Users } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  Calculator,
+  CalendarDays,
+  CalendarRange,
+  ClipboardList,
+  ListOrdered,
+  PiggyBank,
+  Radio,
+  Scale,
+  Stethoscope,
+  TrendingUp,
+  Trophy,
+  Users,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import ThisWeek from "@/components/features/home/this-week";
 import GameweekStatsBox from "@/components/features/recap/gameweek-stats-box";
@@ -12,6 +27,87 @@ import { PATHS } from "@/lib/site";
 export const metadata: Metadata = homeMetadata;
 
 const sectionTitle = "mb-3 text-lg font-bold text-gray-900 dark:text-white";
+
+/** The home page's tool cards, most used first. A card without `href` isn't built yet. */
+const TOOLS: { title: string; description: string; icon: LucideIcon; href?: string }[] = [
+  {
+    title: "Live points",
+    icon: Radio,
+    href: PATHS.live,
+    description: "This gameweek's points as the matches happen, with provisional bonus from BPS.",
+  },
+  {
+    title: "Squad planner",
+    icon: ClipboardList,
+    href: PATHS.planner,
+    description: "Build a squad within FPL's rules, pick your XI and captain, and plan transfers and hits.",
+  },
+  {
+    title: "Fixture difficulty",
+    icon: CalendarDays,
+    href: PATHS.fixtures,
+    description: "Every club's fixtures gameweek by gameweek, to plan transfers and spot easy runs.",
+  },
+  {
+    title: "Doubles and blanks",
+    icon: CalendarRange,
+    href: PATHS.schedule,
+    description: "Which clubs play twice, or not at all, in the gameweeks still to come.",
+  },
+  {
+    title: "Compare players",
+    icon: Scale,
+    href: PATHS.compare,
+    description: "Two to four players side by side: points, xGI, per-90 numbers and fixtures.",
+  },
+  {
+    title: "Players",
+    icon: Users,
+    href: PATHS.players,
+    description: "Prices, points, form, ownership, expected goals and defensive stats for every player.",
+  },
+  {
+    title: "Injuries",
+    icon: Stethoscope,
+    href: PATHS.availability,
+    description: "Injured, doubtful and suspended players, most-owned first, with FPL's news.",
+  },
+  {
+    title: "Price changes",
+    icon: TrendingUp,
+    href: PATHS.prices,
+    description: "This gameweek's risers and fallers, the season's biggest moves and net transfers.",
+  },
+  {
+    title: "Value",
+    icon: PiggyBank,
+    href: PATHS.value,
+    description: "Points, xGI and form per £m, ranked by position.",
+  },
+  {
+    title: "League table",
+    icon: ListOrdered,
+    href: PATHS.teams,
+    description: "The Premier League table with form, clean sheets and xGC, and a page for every club.",
+  },
+  {
+    title: "Gameweeks",
+    icon: BarChart3,
+    href: PATHS.gameweeks,
+    description: "Average and top scores, captains, chips, results and the team of the week.",
+  },
+  {
+    title: "How points work",
+    icon: Calculator,
+    href: PATHS.points,
+    description: "FPL's scoring rules by position, worked out from the points FPL actually awarded.",
+  },
+  {
+    title: "Mini-league",
+    icon: Trophy,
+    description: "Your mini-league's week in one place, with its own recap.",
+  },
+];
 
 function LatestRecap({ latest }: { latest: HomeRecap }) {
   const { recap, seasonLabel, firstParagraph, stats } = latest;
@@ -71,7 +167,7 @@ function ToolCard({
       <span className="mt-1 block text-sm text-gray-600 dark:text-gray-400">{description}</span>
     </>
   );
-  const base = "block rounded-xl border p-4 shadow-sm";
+  const base = "block w-full rounded-xl border p-4 shadow-sm";
   return href ? (
     <Link
       href={href}
@@ -116,25 +212,13 @@ export default function Home() {
         <h2 id="tools" className={sectionTitle}>
           Tools
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <ToolCard
-            title="Fixtures"
-            icon={CalendarDays}
-            href={PATHS.fixtures}
-            description="Fixture difficulty for every team, gameweek by gameweek, to plan transfers and spot easy runs."
-          />
-          <ToolCard
-            title="Players"
-            icon={Users}
-            href={PATHS.players}
-            description="Prices, points, form, ownership, expected goals, defensive stats and transfers for every player."
-          />
-          <ToolCard
-            title="Mini-league"
-            icon={Trophy}
-            description="Your mini-league's week in one place, with its own recap."
-          />
-        </div>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {TOOLS.map((tool) => (
+            <li key={tool.title} className="flex">
+              <ToolCard {...tool} />
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   );

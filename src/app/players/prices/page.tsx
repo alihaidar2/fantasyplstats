@@ -13,6 +13,7 @@ import {
   Section,
   STRONG,
   type Column,
+  TeamName,
 } from "@/components/features/players-hub/hub-ui";
 import { formatOwnership } from "@/components/features/players-hub/hub-format";
 import { getSnapshot } from "@/lib/data";
@@ -41,7 +42,7 @@ function Signed({ value, text }: Readonly<{ value: number; text: string }>) {
 }
 
 const player: Column<PriceRow> = { header: "Player", cell: (p) => <PlayerName player={p} /> };
-const team: Column<PriceRow> = { header: "Team", cell: (p) => p.team };
+const team: Column<PriceRow> = { header: "Team", cell: (p) => <TeamName player={p} /> };
 const price: Column<PriceRow> = {
   header: "Price",
   numeric: true,

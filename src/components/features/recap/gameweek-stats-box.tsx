@@ -3,6 +3,7 @@ import { BarChart2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatNumber } from "@/components/features/players/player-format";
 import type { GameweekStats, PlayerRef } from "@/lib/recap-pages";
+import { gameweekPath } from "@/lib/site";
 
 function PlayerLink({ player }: { player: PlayerRef }) {
   return (
@@ -69,6 +70,14 @@ export default function GameweekStatsBox({ stats, className }: { stats: Gameweek
             </div>
           )}
         </dl>
+        {/* Stats only exist for a played gameweek of the snapshot's season, which always has a page. */}
+        <Link
+          href={gameweekPath(stats.gameweek)}
+          prefetch={false}
+          className="mt-2 inline-block text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+        >
+          Results and team of the week
+        </Link>
       </CardContent>
     </Card>
   );

@@ -56,7 +56,13 @@ function TeamName({ side, align }: { side: MatchSide; align: "left" | "right" })
     <div className={`flex min-w-0 flex-1 flex-col ${right ? "items-end text-right" : "items-start"}`}>
       <div className={`flex items-center gap-2 ${right ? "flex-row-reverse" : ""}`}>
         <TeamBadge team={side.team} size={40} />
-        <span className="text-lg font-bold sm:text-xl">{side.team.name}</span>
+        {side.team.path ? (
+          <a href={side.team.path} className="text-lg font-bold sm:text-xl">
+            {side.team.name}
+          </a>
+        ) : (
+          <span className="text-lg font-bold sm:text-xl">{side.team.name}</span>
+        )}
       </div>
       <Scorers goals={side.goals} />
     </div>

@@ -45,6 +45,18 @@ export function PlayerLink({ id, name, className = "" }: { id: number; name: str
   );
 }
 
+/** A club's name linking to its page (plain text for a club FPL no longer lists). */
+export function ClubLink({ team, children, className }: { team: TeamRef; children?: React.ReactNode; className?: string }) {
+  const text = children ?? team.name;
+  return team.path ? (
+    <a href={team.path} className={className}>
+      {text}
+    </a>
+  ) : (
+    <span className={className}>{text}</span>
+  );
+}
+
 /** A club badge. Decorative: the club's name is always next to it. */
 export function TeamBadge({ team, size = 24 }: { team: TeamRef; size?: number }) {
   if (!team.code) return null;

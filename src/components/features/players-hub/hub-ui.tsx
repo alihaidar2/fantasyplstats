@@ -97,6 +97,17 @@ export function Section({
   );
 }
 
+/** The club's short name linking to its page. */
+export function TeamName({ player }: Readonly<{ player: Pick<HubPlayer, "team" | "teamPath"> }>) {
+  return player.teamPath ? (
+    <a href={player.teamPath} className="hover:underline">
+      {player.team}
+    </a>
+  ) : (
+    player.team
+  );
+}
+
 export function PositionBadge({ player }: Readonly<{ player: Pick<HubPlayer, "position" | "positionId"> }>) {
   return (
     <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium", getPositionColor(player.positionId))}>
