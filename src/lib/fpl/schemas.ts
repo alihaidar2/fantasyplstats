@@ -27,6 +27,12 @@ export const eventSchema = z.object({
   highest_score: z.number().int().nullable(),
   most_captained: z.number().int().nullable(),
   most_transferred_in: z.number().int().nullable(),
+  // For the gameweek pages (step 6d). Optional, so events built without them
+  // (older snapshots, tests) still parse; FPL sends them for every gameweek.
+  most_selected: z.number().int().nullable().optional(),
+  most_vice_captained: z.number().int().nullable().optional(),
+  /** Transfers made before this gameweek's deadline (0 for gameweek 1). */
+  transfers_made: z.number().int().optional(),
   top_element_info: z
     .object({ id: z.number().int().positive(), points: z.number().int() })
     .nullable(),
