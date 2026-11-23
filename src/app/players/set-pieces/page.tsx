@@ -15,6 +15,10 @@ export const metadata: Metadata = pageMetadata({
   path: PATH,
 });
 
+const CHIP = "rounded px-1 text-[11px] font-semibold tabular-nums";
+const FIRST = cn(CHIP, "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200");
+const NEXT = cn(CHIP, "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200");
+
 function ClubCard({ club }: Readonly<{ club: ClubSetPieces }>) {
   const headingId = `club-${club.shortName.toLowerCase()}`;
   return (
@@ -41,18 +45,9 @@ function ClubCard({ club }: Readonly<{ club: ClubSetPieces }>) {
               ) : (
                 <ol className="flex flex-wrap gap-x-3 gap-y-1">
                   {d.takers.map((t) => (
-                    <li key={t.id} className="inline-flex min-w-0 items-center gap-1">
-                      <span
-                        className={cn(
-                          "rounded px-1 text-[11px] font-semibold tabular-nums",
-                          t.order === 1
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200"
-                            : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200",
-                        )}
-                        title={`${ordinal(t.order)} choice`}
-                      >
-                        <span aria-hidden>{t.order}</span>
-                        <span className="sr-only">{ordinal(t.order)} choice:</span>
+                    <li key={t.id} className="inline-flex items-center gap-1">
+                      <span className={t.order === 1 ? FIRST : NEXT} title={`${ordinal(t.order)} choice`}>
+                        {t.order}
                       </span>
                       <PlayerName player={t} />
                     </li>

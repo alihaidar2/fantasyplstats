@@ -55,7 +55,7 @@ function PositionList({
       {players.length === 0 ? (
         <p className={cn("px-1 text-sm", MUTED)}>No players qualify yet.</p>
       ) : (
-        <table className="w-full table-fixed text-sm tabular-nums" aria-labelledby={headingId}>
+        <table className={cn("w-full table-fixed text-sm tabular-nums", MUTED)} aria-labelledby={headingId}>
           <colgroup>
             <col className="w-6" />
             <col />
@@ -64,7 +64,7 @@ function PositionList({
             <col className="w-12" />
           </colgroup>
           <thead>
-            <tr className={cn("border-b text-xs", MUTED)}>
+            <tr className="border-b text-xs">
               <th scope="col" className="py-1 text-left font-medium">
                 <span className="sr-only">Rank</span>
                 <span aria-hidden>#</span>
@@ -82,15 +82,15 @@ function PositionList({
           <tbody>
             {players.map((p, i) => (
               <tr key={p.id} className="border-b last:border-0">
-                <td className={cn("py-1.5", MUTED)}>{i + 1}</td>
+                <td className="py-1.5">{i + 1}</td>
                 <td className="py-1.5">
                   <div className="flex min-w-0 flex-col">
                     <PlayerName player={p} />
-                    <span className={cn("text-xs", MUTED)}>{p.team}</span>
+                    <span className="text-xs">{p.team}</span>
                   </div>
                 </td>
-                <td className={cn("py-1.5 text-right", MUTED)}>{formatPrice(p.price)}</td>
-                <td className={cn("py-1.5 text-right", MUTED)}>{baseFormat[metric.id](p.base)}</td>
+                <td className="py-1.5 text-right">{formatPrice(p.price)}</td>
+                <td className="py-1.5 text-right">{baseFormat[metric.id](p.base)}</td>
                 <td className={cn("py-1.5 text-right font-semibold", STRONG)}>{formatNumber(p.value, 2)}</td>
               </tr>
             ))}

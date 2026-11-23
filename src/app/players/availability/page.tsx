@@ -65,6 +65,9 @@ export default function AvailabilityPage() {
   const { bootstrap, generatedAt } = getSnapshot();
   const groups = buildAvailability(bootstrap);
   const total = groups.reduce((n, g) => n + g.players.length, 0);
+  // Older snapshots have no news dates; drop the column rather than show a column of dashes.
+  const hasDates = groups.some((g) => g.players.some((p) => p.newsAdded));
+  const columns = hasDates ? COLUMNS : COLUMNS.filter((c) => c.header !== "Added");
 
   return (
     <HubPage
@@ -104,7 +107,7 @@ export default function AvailabilityPage() {
           </nav>
           {groups.map((g) => (
             <Section key={g.status} id={g.status} title={`${g.label} (${g.players.length})`}>
-              <HubTable label={`${g.label} players`} columns={COLUMNS} rows={g.players} />
+              <HubTable label={`${g.label} players`} columns={columns} rows={g.players} />
             </Section>
           ))}
         </>

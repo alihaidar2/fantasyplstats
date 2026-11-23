@@ -117,7 +117,7 @@ export function PlayerName({
         href={playerPath(player.id)}
         prefetch={false}
         title={player.fullName}
-        className={cn("truncate font-medium hover:text-blue-600 hover:underline dark:hover:text-blue-400", STRONG)}
+        className={cn("truncate font-medium hover:underline", STRONG)}
       >
         {player.name}
       </Link>
@@ -148,14 +148,15 @@ export function HubTable<T extends { id: number }>({
 }: Readonly<{ label: string; columns: Column<T>[]; rows: T[] }>) {
   return (
     <div className={cn(CARD, "px-1 py-1")}>
-      <Table aria-label={label} className="tabular-nums">
+      {/* Colours are set once here and inherited, which keeps the page payload small. */}
+      <Table aria-label={label} className={cn("tabular-nums", MUTED)}>
         <TableHeader>
           <TableRow>
             {columns.map((c) => (
               <TableHead
                 key={c.header}
                 scope="col"
-                className={cn(MUTED, c.numeric ? "text-right" : "text-left")}
+                className={cn("text-inherit", c.numeric ? "text-right" : "text-left")}
               >
                 {c.title ? (
                   <abbr title={c.title} className="no-underline">
@@ -172,7 +173,7 @@ export function HubTable<T extends { id: number }>({
           {rows.map((row) => (
             <TableRow key={row.id}>
               {columns.map((c) => (
-                <TableCell key={c.header} className={cn(c.numeric ? "text-right" : "text-left", MUTED, c.className)}>
+                <TableCell key={c.header} className={cn(c.numeric && "text-right", c.className)}>
                   {c.cell(row)}
                 </TableCell>
               ))}
