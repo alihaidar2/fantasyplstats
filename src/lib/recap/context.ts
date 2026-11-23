@@ -10,16 +10,58 @@
 
 import type {
   DreamTeam,
+  Element,
+  ElementType,
   EventLive,
   EventStatus,
+  Fixture,
+  FplEvent,
   FplGameweekClient,
   GameweekFixture,
-  Snapshot,
+  HistoryEntry,
+  Team,
 } from "../fpl";
+
+/**
+ * The parts of a snapshot the context reads. A full `Snapshot` fits, and so
+ * does a slimmer recording of a season (the eval fixtures keep only players'
+ * identity fields, since everything else in bootstrap-static is "today").
+ */
+export interface SeasonData {
+  generatedAt?: string;
+  bootstrap: {
+    events: Pick<
+      FplEvent,
+      | "id"
+      | "name"
+      | "deadline_time"
+      | "finished"
+      | "is_current"
+      | "data_checked"
+      | "average_entry_score"
+      | "highest_score"
+      | "most_captained"
+      | "most_transferred_in"
+      | "top_element_info"
+      | "chip_plays"
+      | "ranked_count"
+    >[];
+    teams: Pick<Team, "id" | "name" | "short_name">[];
+    element_types: Pick<ElementType, "id" | "singular_name_short">[];
+    elements: (Pick<Element, "id" | "first_name" | "second_name" | "web_name" | "team" | "element_type"> &
+      Partial<Pick<Element, "known_name" | "status" | "news" | "chance_of_playing_next_round">>)[];
+  };
+  fixtures: Pick<
+    Fixture,
+    "id" | "event" | "kickoff_time" | "started" | "finished" | "team_h" | "team_a" | "team_h_score" | "team_a_score"
+  >[];
+  summaries: Record<string, { history: HistoryEntry[] }>;
+}
 
 /** What buildGameweekContext is built from. */
 export interface GameweekSources {
-  snapshot: Snapshot;
+  /** The season: a snapshot, or the same parts of one. */
+  snapshot: SeasonData;
   /** event/{gw}/live/ */
   live: EventLive;
   /** fixtures/?event={gw} */
@@ -243,14 +285,16 @@ export async function fetchGameweekSources(
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /** "2026-27", from the first deadline of the season. */
-export function seasonOf(snapshot: Snapshot): string {
+export function seasonOf(snapshot: Pick<SeasonData, "bootstrap" | "generatedAt">): string {
   const first = snapshot.bootstrap.events.find((e) => e.id === 1)?.deadline_time;
   let start: number;
   if (first) {
     start = new Date(first).getUTCFullYear();
-  } else {
+  } else if (snapshot.generatedAt) {
     const at = new Date(snapshot.generatedAt);
     start = at.getUTCMonth() >= 6 ? at.getUTCFullYear() : at.getUTCFullYear() - 1;
+  } else {
+    throw new GameweekContextError("Can't tell which season this is: gameweek 1 has no deadline.");
   }
   return `${start}-${String((start + 1) % 100).padStart(2, "0")}`;
 }
@@ -511,12 +555,11 @@ export function buildGameweekContext(gameweek: number, sources: GameweekSources)
     pointsStatus,
     availability: isLatest
       ? new Map(
-          bootstrap.elements
-            .filter((e) => playerById.has(e.id))
-            .map((e) => [
-              e.id,
-              { status: e.status, news: e.news, chanceOfPlayingNextRound: e.chance_of_playing_next_round },
-            ]),
+          bootstrap.elements.flatMap((e): [number, Availability][] =>
+            playerById.has(e.id) && e.status !== undefined
+              ? [[e.id, { status: e.status, news: e.news ?? "", chanceOfPlayingNextRound: e.chance_of_playing_next_round ?? null }]]
+              : [],
+          ),
         )
       : null,
     names: [
@@ -527,7 +570,7 @@ export function buildGameweekContext(gameweek: number, sources: GameweekSources)
           webName: e.web_name,
           firstName: e.first_name,
           secondName: e.second_name,
-          knownName: e.known_name,
+          knownName: e.known_name ?? "",
         }),
       ),
       ...bootstrap.teams.map((t): NameEntry => ({ kind: "team", id: t.id, name: t.name, shortName: t.short_name })),

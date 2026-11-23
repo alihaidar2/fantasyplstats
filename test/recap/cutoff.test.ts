@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildGameweekContext, type GameweekSources } from "../../src/lib/recap/context";
+import type { SnapshotSources } from "./helpers";
 import { createRecapSession } from "../../src/lib/recap/session";
 import { loadSources } from "./helpers";
 
@@ -40,7 +41,7 @@ function run(gameweek: number, sources: GameweekSources) {
 }
 
 /** The same sources as they would have looked straight after `gameweek`, with today's values scrambled. */
-function withoutTheFuture(sources: GameweekSources, gameweek: number): GameweekSources {
+function withoutTheFuture(sources: SnapshotSources, gameweek: number): SnapshotSources {
   const past = structuredClone(sources);
   const { snapshot } = past;
   for (const summary of Object.values(snapshot.summaries)) {

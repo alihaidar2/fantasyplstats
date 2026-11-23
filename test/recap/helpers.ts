@@ -6,8 +6,14 @@ import {
   eventStatusSchema,
   gameweekFixturesSchema,
   parseSnapshot,
+  type Snapshot,
 } from "../../src/lib/fpl";
 import { buildGameweekContext, type GameweekContext, type GameweekSources } from "../../src/lib/recap/context";
+
+/** Sources whose season data is a full snapshot, so tests can edit any of its fields. */
+export interface SnapshotSources extends GameweekSources {
+  snapshot: Snapshot;
+}
 
 /** The gameweeks recorded in test/fixtures/recap/. */
 export type RecordedGameweek = 3 | 4;
@@ -23,7 +29,7 @@ export function loadRecapRaw(name: string): unknown {
  * building. The recorded event-status describes a later gameweek, as it would
  * when replaying a past one.
  */
-export function loadSources(gameweek: RecordedGameweek = 3): GameweekSources {
+export function loadSources(gameweek: RecordedGameweek = 3): SnapshotSources {
   return {
     snapshot: parseSnapshot(loadRecapRaw("snapshot.json")),
     live: eventLiveSchema.parse(loadRecapRaw(`live-${gameweek}.json`)),
@@ -36,7 +42,7 @@ export function loadSources(gameweek: RecordedGameweek = 3): GameweekSources {
 /** A context for a recorded gameweek, optionally from edited sources. */
 export function loadContext(
   gameweek: RecordedGameweek = 3,
-  edit?: (sources: GameweekSources) => void,
+  edit?: (sources: SnapshotSources) => void,
 ): GameweekContext {
   const sources = loadSources(gameweek);
   edit?.(sources);
@@ -50,7 +56,7 @@ const LIVE_DECIMALS = ["expected_goals", "expected_assists", "expected_goal_invo
  * same match twice. Every source is edited consistently (fixtures, history
  * rows, live totals and points breakdowns). Returns the new fixture's id.
  */
-export function makeDouble(sources: GameweekSources, fixtureId: number): number {
+export function makeDouble(sources: SnapshotSources, fixtureId: number): number {
   const newId = 9000 + fixtureId;
   const fixture = sources.fixtures.find((f) => f.id === fixtureId);
   const inSnapshot = sources.snapshot.fixtures.find((f) => f.id === fixtureId);
@@ -79,7 +85,7 @@ export function makeDouble(sources: GameweekSources, fixtureId: number): number 
  * Postpones one of the gameweek's fixtures, so both clubs have a blank
  * gameweek: no fixture, no history row, and an empty line in the live data.
  */
-export function makeBlank(sources: GameweekSources, fixtureId: number): void {
+export function makeBlank(sources: SnapshotSources, fixtureId: number): void {
   if (!sources.fixtures.some((f) => f.id === fixtureId)) {
     throw new Error(`Fixture ${fixtureId} is not in the recorded gameweek.`);
   }
