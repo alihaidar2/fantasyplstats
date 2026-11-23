@@ -525,7 +525,7 @@ export interface PointsPage {
   season: SeasonCheck;
   /** Breakdown lines read from the live gameweek. */
   liveLines: number;
-  /** Whether any points have been awarded at all (false before the season). */
+  /** Whether the data shows any rule at all (false before the season's first breakdown). */
   hasData: boolean;
 }
 
@@ -561,10 +561,13 @@ export function describeRule(action: PointAction, rule: Rule): { text: string; d
         : { text: "Unclear", detail: "Several rules fit the data so far." };
     }
     case "none-yet":
-      return {
-        text: "0",
-        detail: `No points seen so far, for up to ${action.unit(rule.maxValue)}.`,
-      };
+      // A threshold no one has reached yet is not the same as "worth nothing".
+      return action.shape === "step"
+        ? {
+            text: "None yet",
+            detail: `No one has earned points for this yet; the most seen is ${action.unit(rule.maxValue)}.`,
+          }
+        : { text: "0", detail: `No points seen so far, for up to ${action.unit(rule.maxValue)}.` };
     case "step": {
       const parts: string[] = [];
       const details: string[] = [];
@@ -732,6 +735,6 @@ export function buildPointsPage(snapshot: PointsSnapshot): PointsPage {
     examples: pickExamples(snapshot),
     season,
     liveLines,
-    hasData: liveLines > 0 || season.rows > 0,
+    hasData: rows.some((r) => POSITION_IDS.some((p) => r.cells[p].rule.kind !== "unseen")),
   };
 }

@@ -168,8 +168,6 @@ export interface LiveMatch {
   bonus: (LiveMatchPlayer & { bps: number })[];
   goals: LiveMatchPlayer[];
   assists: LiveMatchPlayer[];
-  /** Top five BPS so far, for context beside the bonus. */
-  topBps: LiveMatchPlayer[];
 }
 
 export interface LiveDay {
@@ -306,7 +304,6 @@ export function buildLivePage(snapshot: LiveSnapshot): LivePage | null {
       bonus: awards.map((a) => ({ id: a.element, name: nameOf(a.element), side: a.side, value: a.bonus, bps: a.bps })),
       goals: named(matchStatRows(f, "goals_scored")),
       assists: named(matchStatRows(f, "assists")),
-      topBps: named(matchStatRows(f, "bps").slice(0, 5)),
     };
   });
 

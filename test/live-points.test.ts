@@ -54,7 +54,11 @@ describe("fitting a rule", () => {
     const dc = deriveRule("step", obs([[3, 0], [10, 0], [16, 2]]));
     expect(describeRule(pointAction("defensive_contribution"), dc).text).toBe("+2 from 11–16");
     expect(deriveRule("step", obs([[5, 2], [10, 0]]))).toEqual({ kind: "conflict" });
-    expect(deriveRule("step", obs([[5, 0], [9, 0]]))).toEqual({ kind: "none-yet", maxValue: 9 });
+    const unreached = deriveRule("step", obs([[5, 0], [9, 0]]));
+    expect(unreached).toEqual({ kind: "none-yet", maxValue: 9 });
+    // A threshold nobody has reached isn't "worth nothing".
+    expect(describeRule(pointAction("defensive_contribution"), unreached).text).toBe("None yet");
+    expect(describeRule(pointAction("goals_conceded"), { kind: "none-yet", maxValue: 4 }).text).toBe("0");
   });
 
   it("predicts only what the data supports", () => {
@@ -167,6 +171,11 @@ describe("the points page", () => {
       expect(sum, ex.name).toBe(ex.total);
     }
     expect(page.examples[0].reason).toBe("Top scorer this gameweek");
+  });
+
+  it("needs a breakdown to start from", () => {
+    // Season rows alone never have just one unknown part, so they can't seed the rules.
+    expect(buildPointsPage({ ...snapshot, live: null }).hasData).toBe(false);
   });
 
   it("has nothing to say before the season", () => {

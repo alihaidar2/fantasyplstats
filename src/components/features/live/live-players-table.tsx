@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getPositionColor } from "@/hooks/use-player-utils";
 import { matchesPlayerSearch } from "@/lib/fpl/transforms";
 import { playerPath } from "@/lib/site";
-import type { LivePlayerRow } from "@/lib/stats/live";
+import { unpackLiveRows, type PackedLiveRow } from "./live-table-data";
 import { cn } from "@/lib/utils";
 
 type SortKey = "projected" | "points" | "bonus" | "minutes" | "goals" | "assists" | "cleanSheets" | "bps";
@@ -21,14 +21,16 @@ interface Column {
   title: string;
 }
 
-const PAGE = 50;
+const PAGE = 25;
+const POSITIONS: Record<number, string> = { 1: "GKP", 2: "DEF", 3: "MID", 4: "FWD" };
 
 export function LivePlayersTable({
-  players,
+  rows: packed,
   matches,
   hasProvisional,
 }: {
-  players: LivePlayerRow[];
+  /** Packed by packLiveRows, highest projected points first. */
+  rows: PackedLiveRow[];
   matches: { id: number; label: string }[];
   /** Whether any bonus is still provisional; shows the projected column. */
   hasProvisional: boolean;
@@ -46,6 +48,7 @@ export function LivePlayersTable({
     { key: "bps", label: "BPS", title: "Bonus points system score" },
   ];
 
+  const players = React.useMemo(() => unpackLiveRows(packed), [packed]);
   const [query, setQuery] = React.useState("");
   const [match, setMatch] = React.useState("all");
   const [position, setPosition] = React.useState("all");
@@ -114,7 +117,7 @@ export function LivePlayersTable({
         <Table className="min-w-[36rem]">
           <TableHeader>
             <TableRow>
-              <TableHead className="sticky left-0 z-10 w-44 bg-white dark:bg-gray-900">Player</TableHead>
+              <TableHead className="sticky left-0 z-10 w-44 bg-white dark:bg-gray-800">Player</TableHead>
               {columns.map((c) => {
                 const active = sort.key === c.key;
                 return (
@@ -155,12 +158,12 @@ export function LivePlayersTable({
             ) : (
               shown.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="sticky left-0 z-10 max-w-44 bg-white dark:bg-gray-900">
+                  <TableCell className="sticky left-0 z-10 max-w-44 bg-white dark:bg-gray-800">
                     <div className="flex min-w-0 items-center gap-2">
                       <span
                         className={cn("shrink-0 rounded px-1 text-[10px] font-semibold", getPositionColor(p.positionId))}
                       >
-                        {p.position}
+                        {POSITIONS[p.positionId] ?? "—"}
                       </span>
                       <Link
                         href={playerPath(p.id)}

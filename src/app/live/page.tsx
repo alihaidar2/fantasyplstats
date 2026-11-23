@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarClock, Info, Trophy } from "lucide-react";
 import { LivePlayersTable } from "@/components/features/live/live-players-table";
+import { packLiveRows } from "@/components/features/live/live-table-data";
 import { MatchCard } from "@/components/features/live/match-card";
 import {
   cardClass,
@@ -187,7 +188,7 @@ export default function LivePointsPage() {
                   Every player who has played
                 </h2>
                 <LivePlayersTable
-                  players={page.players}
+                  rows={packLiveRows(page.players)}
                   matches={page.matches.filter((m) => m.state !== "upcoming").map((m) => ({ id: m.id, label: m.label }))}
                   hasProvisional={hasProvisional}
                 />

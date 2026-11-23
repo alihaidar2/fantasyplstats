@@ -15,7 +15,7 @@ function cellColor(cell: RuleCell): string {
     case "every-ambiguous":
       return "text-gray-400 dark:text-gray-500";
     case "none-yet":
-      return "text-gray-600 dark:text-gray-400";
+      return "text-gray-500 dark:text-gray-400";
     case "per":
     case "every":
       return cell.rule.points > 0
@@ -27,6 +27,9 @@ function cellColor(cell: RuleCell): string {
       return "text-green-700 dark:text-green-400";
   }
 }
+
+/** Rules whose short text needs the longer explanation read out too. */
+const EXPLAINED = new Set<RuleCell["rule"]["kind"]>(["every", "every-ambiguous", "none-yet", "step", "conflict"]);
 
 function seenText(cell: RuleCell): string | null {
   if (cell.seen === 0) return null;
@@ -73,7 +76,7 @@ export function PointsTable({ rows }: { rows: RuleRow[] }) {
                   <td key={p} className="px-3 py-2 text-center align-top" title={cell.detail}>
                     <span className={cn("block font-semibold tabular-nums", cellColor(cell))}>{cell.text}</span>
                     {seen && <span className="block text-[11px] text-gray-500 dark:text-gray-400">{seen}</span>}
-                    <span className="sr-only">{cell.detail}</span>
+                    {EXPLAINED.has(cell.rule.kind) && <span className="sr-only">{cell.detail}</span>}
                   </td>
                 );
               })}

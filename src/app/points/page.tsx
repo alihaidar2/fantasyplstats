@@ -55,9 +55,9 @@ function cleanSheetText({ from, to }: PointsPage["cleanSheetMinutes"]): string {
 function NoData() {
   return (
     <div className={`${cardClass} p-6 text-center`}>
-      <p className="font-medium text-gray-900 dark:text-white">No points have been awarded yet this season.</p>
+      <p className="font-medium text-gray-900 dark:text-white">No points to learn from yet.</p>
       <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-        This page is built from the points FPL awards, so it fills in once the first gameweek kicks off.
+        This page is built from the points FPL awards, using its points breakdown for the current gameweek, so it fills in once the first gameweek kicks off.
       </p>
     </div>
   );
@@ -164,7 +164,8 @@ export default function PointsPageRoute() {
                 <strong className="text-gray-800 dark:text-gray-200">0</strong> means it was seen and earned nothing
                 (a forward&apos;s clean sheet, say). <strong className="text-gray-800 dark:text-gray-200">Not seen</strong>{" "}
                 means no player in that position has done it in the data yet, so there&apos;s no evidence of what it&apos;s
-                worth.
+                worth; <strong className="text-gray-800 dark:text-gray-200">None yet</strong> means no one has reached
+                the threshold yet. Hover over a cell for the evidence behind it.
               </li>
               <li>
                 &ldquo;Inferred&rdquo; values come only from earlier matches: when every other part of a player&apos;s
