@@ -61,6 +61,8 @@ export const elementSchema = z.object({
   element_type: z.number().int().positive(),
   status: z.string(),
   news: z.string(),
+  /** When FPL last updated `news` (ISO time); null without news. Optional: older snapshots and trimmed test recordings lack it. */
+  news_added: z.string().nullable().optional(),
   /** Percent; null when FPL has no injury or availability news. */
   chance_of_playing_next_round: z.number().int().min(0).max(100).nullable(),
   now_cost: z.number().int(),
