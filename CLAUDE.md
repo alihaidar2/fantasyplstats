@@ -32,5 +32,5 @@ Update this list as later steps in `PLAN.md` add scripts.
 
 - Before calling a change done, run lint, typecheck, tests and build, and fix any failures.
 - The FPL API is unofficial: validate its responses, keep requests throttled (about 5 at once at most), and never call it from the browser.
-- Keep `src/lib/fpl/` free of Next.js, React and `@/` imports (ESLint enforces it), so a future Azure Function can reuse it.
+- Keep `src/lib/fpl/` and `src/lib/recap/` free of Next.js, React and `@/` imports (ESLint enforces it), so a future Azure Function can reuse them.
 - Don't add Co-Authored-By trailers or any other AI attribution to commits or pull requests.

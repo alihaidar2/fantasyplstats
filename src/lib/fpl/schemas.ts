@@ -6,7 +6,7 @@
 import { z } from "zod";
 
 /** FPL sends many decimals as strings ("6.0", "47.8"). */
-const decimalString = z
+export const decimalString = z
   .string()
   .regex(/^-?\d+(\.\d+)?$/, "expected a decimal string");
 
@@ -14,7 +14,7 @@ const decimalString = z
 const setPieceOrder = z.number().int().positive().nullable();
 
 /** Bump when the snapshot shape changes, so an older cached snapshot is refetched in full. */
-export const SNAPSHOT_VERSION = 2;
+export const SNAPSHOT_VERSION = 3;
 
 export const eventSchema = z.object({
   id: z.number().int().positive(),
@@ -34,6 +34,8 @@ export const eventSchema = z.object({
     .object({ id: z.number().int().positive(), points: z.number().int() })
     .nullable(),
   chip_plays: z.array(z.object({ chip_name: z.string(), num_played: z.number().int() })),
+  /** Managers ranked that gameweek (0 until it starts): the base for a past gameweek's ownership percentages. */
+  ranked_count: z.number().int(),
 });
 
 export const teamSchema = z.object({
@@ -55,6 +57,8 @@ export const elementSchema = z.object({
   first_name: z.string(),
   second_name: z.string(),
   web_name: z.string(),
+  /** The name the player is usually known by ("Bruno Guimarães"); empty for most players. */
+  known_name: z.string(),
   team: z.number().int().positive(),
   team_code: z.number().int(),
   element_type: z.number().int().positive(),
@@ -125,6 +129,9 @@ export const fixtureSchema = z.object({
   finished: z.boolean(),
   team_h: z.number().int().positive(),
   team_a: z.number().int().positive(),
+  // Null until kickoff.
+  team_h_score: z.number().int().nullable(),
+  team_a_score: z.number().int().nullable(),
   team_h_difficulty: z.number().int(),
   team_a_difficulty: z.number().int(),
 });

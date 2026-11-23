@@ -29,6 +29,7 @@ const event = (id: number, flags: Partial<FplEvent> = {}): FplEvent => ({
   most_transferred_in: null,
   top_element_info: null,
   chip_plays: [],
+  ranked_count: 0,
   ...flags,
 });
 

@@ -44,11 +44,11 @@ Anything marked *unverified* comes from client libraries or older guides and has
 | Endpoint | Returns | Used by this site |
 | --- | --- | --- |
 | `bootstrap-static/` | Everything static: players, clubs, gameweeks, positions, chips, rules | Yes |
-| `fixtures/` | All 380 fixtures with scores, difficulty and per-fixture stats. `?event=N` for one gameweek, `?future=1` for unplayed only. | Yes |
+| `fixtures/` | All 380 fixtures with scores, difficulty and per-fixture stats. `?event=N` for one gameweek, `?future=1` for unplayed only. | Yes (`?event=N` by the recap tools) |
 | `element-summary/{player_id}/` | One player's remaining fixtures, this season's per-gameweek history, and past seasons | Yes |
-| `event/{gw}/live/` | Every player's stats and points for one gameweek, with a points breakdown per fixture | Not yet (Step 5) |
-| `event-status/` | Whether the latest points are provisional and whether bonus has been added | Not yet (Step 5) |
-| `dream-team/{gw}/` | The gameweek's top-scoring XI and its best player | Not yet |
+| `event/{gw}/live/` | Every player's stats and points for one gameweek, with a points breakdown per fixture | Recap tools (`src/lib/recap/`) |
+| `event-status/` | Whether the latest points are provisional and whether bonus has been added | Recap tools |
+| `dream-team/{gw}/` | The gameweek's top-scoring XI and its best player | Recap tools |
 | `team/set-piece-notes/` | Set-piece notes per club (note: under `team/`, not the root) | No |
 | `stats/best-classic-private-leagues/` | The best-performing private leagues (*unverified*) | No |
 | `regions/` | Country/region list used for manager profiles (*unverified*) | No |
@@ -93,6 +93,11 @@ The recorded fixture in `test/fixtures/` keeps only `events`, `teams`, `element_
 
 A gameweek is fully settled when `finished` and `data_checked` are both true.
 
+Two things to know when looking back at a past gameweek:
+
+- `most_transferred_in` is filled in for gameweek 1 even though nobody can make a transfer before it. Treat transfer facts as missing for gameweek 1.
+- `ranked_count` (managers ranked that gameweek) is the base for past ownership: a history row's `selected` divided by that gameweek's `ranked_count` is within about 0.5% of the `selected_by_percent` FPL showed at the time. `selected_by_percent` itself is only ever today's figure.
+
 ### teams
 
 `id`, `code`, `name`, `short_name`, `strength`, `strength_overall_home/away`, `strength_attack_home/away`, `strength_defence_home/away`, `form`, `position`, `played`, `win`, `draw`, `loss`, `points`, `pulse_id`, `team_division`, `unavailable`, `link_url`.
@@ -132,18 +137,22 @@ Each fixture: `id`, `code`, `event`, `kickoff_time`, `provisional_start_time`, `
 
 A double gameweek gives a player two `history` rows with the same `round`.
 
+`bootstrap-static/` gives a player's club today. For a past gameweek, take the club from the history row: its `fixture` and `was_home` give `team_h` or `team_a` of that fixture. They differ after a mid-season transfer.
+
 ## event/{gw}/live/
 
 `{ "elements": [ { "id", "stats", "explain" } ] }` with one entry per player:
 
-- `stats`: that gameweek's totals: `minutes`, `goals_scored`, `assists`, `clean_sheets`, `goals_conceded`, `own_goals`, `penalties_saved`, `penalties_missed`, `yellow_cards`, `red_cards`, `saves`, `bonus`, `bps`, `influence`, `creativity`, `threat`, `ict_index`, `total_points`, `in_dreamteam` (and, in recent seasons, the expected and defensive stats; check a real response).
-- `explain`: the points breakdown per fixture: `[{ fixture, stats: [{ identifier, points, value }] }]`, e.g. `{identifier: "goals_scored", value: 1, points: 4}`.
+- `stats`: that gameweek's totals: `minutes`, `goals_scored`, `assists`, `clean_sheets`, `goals_conceded`, `own_goals`, `penalties_saved`, `penalties_missed`, `yellow_cards`, `red_cards`, `saves`, `bonus`, `bps`, `influence`, `creativity`, `threat`, `ict_index`, `total_points`, `in_dreamteam`, `starts`, the four `expected_*` stats (strings) and the defensive stats (`clearances_blocks_interceptions`, `recoveries`, `tackles`, `defensive_contribution`). Verified against GW3 and GW4 of 2026/27.
+- `explain`: the points breakdown per fixture: `[{ fixture, stats: [{ identifier, points, value }] }]`, e.g. `{identifier: "goals_scored", value: 1, points: 4}`. One entry per fixture the player's team had, so two in a double gameweek. A player who didn't play still has an entry (`minutes`, value 0).
+
+It lists only the players who existed that gameweek (654 for GW3 against 674 in `bootstrap-static/` in November), and nothing about price or ownership: those come from `element-summary/` history rows (`value`, `selected`).
 
 One call covers every player for the gameweek, so it's the right source for anything gameweek-wide (the recap) instead of ~700 `element-summary` calls.
 
 ## event-status/
 
-Whether the current gameweek's points are final, per day: `status: [{ date, event, points, bonus_added }]` plus `leagues` (league table update state). `points` is `"p"` while provisional (*`"r"` once confirmed, unverified*). Use it to decide when a gameweek's numbers are safe to write about.
+Whether the current gameweek's points are final, per day: `status: [{ date, event, points, bonus_added }]` plus `leagues` (league table update state). `points` is `""` before a day's matches and `"p"` while provisional (*`"r"` once confirmed, unverified*). `leagues` is a string. It only describes the current gameweek, so it says nothing when replaying a past one. Use it to decide when a gameweek's numbers are safe to write about.
 
 ## Managers and leagues
 
