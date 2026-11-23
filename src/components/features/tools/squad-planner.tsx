@@ -392,6 +392,13 @@ function Planner({ data }: Readonly<{ data: ToolsData }>) {
         </p>
       )}
 
+      {data.gameweeks.length === 0 && (
+        <p className="rounded-lg border border-gray-200 bg-white/90 p-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300">
+          The season is over, so there are no fixtures left to plan for. The planner still checks squads against
+          FPL&apos;s rules at this season&apos;s final prices.
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div
           role="group"
@@ -452,7 +459,7 @@ function Planner({ data }: Readonly<{ data: ToolsData }>) {
         </p>
       )}
 
-      <Summary plan={plan} check={check} summary={summary} onChange={update} data={data} />
+      <Summary plan={plan} check={check} summary={summary} onChange={update} />
 
       <Issues issues={check.issues} complete={check.complete} />
 
@@ -640,13 +647,11 @@ function Summary({
   check,
   summary,
   onChange,
-  data,
 }: Readonly<{
   plan: PlannerState;
   check: ReturnType<typeof checkSquad>;
   summary: ReturnType<typeof transferSummary>;
   onChange: (next: PlannerState) => void;
-  data: ToolsData;
 }>) {
   const [bankText, setBankText] = React.useState((plan.bank / 10).toFixed(1));
   const [bankFor, setBankFor] = React.useState(plan.bank);
@@ -743,7 +748,6 @@ function Summary({
           `${summary.extra} transfer${summary.extra === 1 ? "" : "s"} over your free ones at -4 each. `}
         Players are sold at today&apos;s price: FPL only pays half of any rise since you bought a player (rounded down
         to £0.1m), so check your selling prices in FPL and adjust the bank if needed.
-        {data.gameweeks.length === 0 && " The season is over: there are no more deadlines."}
       </div>
     </dl>
   );
