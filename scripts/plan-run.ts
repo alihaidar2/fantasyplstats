@@ -11,17 +11,21 @@ import { parseArgs } from "node:util";
 import { z } from "zod";
 import {
   DEFAULT_SNAPSHOT_FILE,
-  fixturesSchema,
+  fixtureSchema,
   planScheduledRun,
-  type Fixture,
   type RunDecision,
+  type ScheduleFixture,
 } from "../src/lib/fpl";
 
-function readFixtures(file: string): Fixture[] | null {
+// Only the fields the schedule needs, so a previous snapshot of an older
+// version (such as one cached before a SNAPSHOT_VERSION bump) still counts.
+const scheduleFixtures = z.array(fixtureSchema.pick({ kickoff_time: true, team_h: true, team_a: true }));
+
+function readFixtures(file: string): ScheduleFixture[] | null {
   if (!existsSync(file)) return null;
   try {
     const json = JSON.parse(readFileSync(file, "utf8"));
-    return z.object({ fixtures: fixturesSchema }).parse(json).fixtures;
+    return z.object({ fixtures: scheduleFixtures }).parse(json).fixtures;
   } catch {
     return null;
   }

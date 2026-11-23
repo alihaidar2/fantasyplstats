@@ -51,9 +51,14 @@ describe("buildHomePage", () => {
     expect(without.latest).toBeNull();
     expect(without.thisWeek.deadline?.gameweek).toBe(4);
 
-    // GW4's top scorer and most-captained player aren't among the 6 recorded players.
+    // The CI snapshot includes every player the recorded match stats name, so
+    // GW4's top scorer and most-captained player are in it.
     const withRecap = buildHomePage(snapshot, [toPublishedRecap(sample())]);
-    expect(withRecap.latest?.stats).toMatchObject({ gameweek: 4, mostCaptained: null, topScorer: null });
+    expect(withRecap.latest?.stats).toMatchObject({
+      gameweek: 4,
+      mostCaptained: { id: 411, name: "Haaland" },
+      topScorer: { id: 124, points: 17 },
+    });
   });
 });
 

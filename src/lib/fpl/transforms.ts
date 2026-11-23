@@ -7,8 +7,8 @@ import type {
   ElementSummary,
   FplEvent,
   Fixture,
-  Snapshot,
 } from "./schemas";
+import type { Snapshot } from "./snapshot-schema";
 
 // ─── Gameweeks ──────────────────────────────────────────────────────────────
 

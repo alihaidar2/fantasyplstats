@@ -10,7 +10,8 @@ describe("sitemap", () => {
   it("lists the home, fixtures and players pages and every player once", async () => {
     const { snapshot } = await buildFixtureSnapshot(NOW);
     const urls = buildSitemap(snapshot).map((e) => e.url);
-    const players = loadBootstrap().elements;
+    const players = snapshot.bootstrap.elements;
+    expect(players.length).toBeGreaterThan(loadBootstrap().elements.length);
 
     expect(urls.slice(0, 3)).toEqual([`${SITE}/`, `${SITE}/fixtures/`, `${SITE}/players/`]);
     expect(urls).toHaveLength(3 + players.length);

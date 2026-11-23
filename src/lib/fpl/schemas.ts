@@ -13,9 +13,6 @@ export const decimalString = z
 /** Set-piece order (1 = first choice), or null when the player has no duty. */
 const setPieceOrder = z.number().int().positive().nullable();
 
-/** Bump when the snapshot shape changes, so an older cached snapshot is refetched in full. */
-export const SNAPSHOT_VERSION = 3;
-
 export const eventSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
@@ -120,13 +117,53 @@ export const bootstrapSchema = z.object({
   elements: z.array(elementSchema).min(1),
 });
 
+/**
+ * The per-player stat identifiers FPL sent in every recorded fixture's
+ * `stats` (2026/27). Others are kept, not rejected, so a stat FPL adds later
+ * doesn't break the build; `buildSnapshot` logs a warning for them.
+ */
+export const MATCH_STAT_IDENTIFIERS = [
+  "goals_scored",
+  "assists",
+  "own_goals",
+  "penalties_saved",
+  "penalties_missed",
+  "yellow_cards",
+  "red_cards",
+  "saves",
+  "bonus",
+  "bps",
+  "defensive_contribution",
+] as const;
+export type MatchStatIdentifier = (typeof MATCH_STAT_IDENTIFIERS)[number];
+
+/** One player's value for one stat in one fixture. */
+export const fixtureStatValueSchema = z.object({
+  value: z.number().int(),
+  element: z.number().int().positive(),
+});
+
+/**
+ * One stat of a fixture, split by side: `{identifier: "goals_scored", h: [...], a: [...]}`.
+ * Every identifier is listed even when nobody has it (empty `h` and `a`).
+ */
+export const fixtureStatSchema = z.object({
+  identifier: z.string().min(1),
+  h: z.array(fixtureStatValueSchema),
+  a: z.array(fixtureStatValueSchema),
+});
+
 export const fixtureSchema = z.object({
   id: z.number().int().positive(),
   // Postponed fixtures have no gameweek or kickoff until they are rescheduled.
   event: z.number().int().positive().nullable(),
   kickoff_time: z.string().nullable(),
   started: z.boolean().nullable(),
+  /** True at the final whistle; `finished` follows once FPL confirms the result and bonus. */
+  finished_provisional: z.boolean(),
   finished: z.boolean(),
+  /** Minutes played so far (0 before kickoff, 90 at full time). */
+  minutes: z.number().int(),
   team_h: z.number().int().positive(),
   team_a: z.number().int().positive(),
   // Null until kickoff.
@@ -134,6 +171,8 @@ export const fixtureSchema = z.object({
   team_a_score: z.number().int().nullable(),
   team_h_difficulty: z.number().int(),
   team_a_difficulty: z.number().int(),
+  /** Per-player stats (goals, assists, cards, saves, bonus, BPS, ...); empty lists before kickoff. */
+  stats: z.array(fixtureStatSchema),
 });
 
 export const fixturesSchema = z.array(fixtureSchema);
@@ -164,17 +203,6 @@ export const elementSummarySchema = z.object({
   history: z.array(historyEntrySchema),
 });
 
-export const snapshotSchema = z.object({
-  version: z.literal(SNAPSHOT_VERSION),
-  generatedAt: z.iso.datetime(),
-  /** How this snapshot's element summaries were produced. */
-  mode: z.enum(["full", "incremental"]),
-  bootstrap: bootstrapSchema,
-  fixtures: fixturesSchema,
-  /** element-summary per player id (as a string key, since this is JSON). */
-  summaries: z.record(z.string().regex(/^\d+$/), elementSummarySchema),
-});
-
 export type FplEvent = z.infer<typeof eventSchema>;
 export type Team = z.infer<typeof teamSchema>;
 export type ElementType = z.infer<typeof elementTypeSchema>;
@@ -183,4 +211,5 @@ export type Bootstrap = z.infer<typeof bootstrapSchema>;
 export type Fixture = z.infer<typeof fixtureSchema>;
 export type HistoryEntry = z.infer<typeof historyEntrySchema>;
 export type ElementSummary = z.infer<typeof elementSummarySchema>;
-export type Snapshot = z.infer<typeof snapshotSchema>;
+export type FixtureStat = z.infer<typeof fixtureStatSchema>;
+export type FixtureStatValue = z.infer<typeof fixtureStatValueSchema>;
