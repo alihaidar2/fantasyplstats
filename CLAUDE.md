@@ -17,6 +17,7 @@ Steps 1–4 of `PLAN.md` (production readiness) are done. Step 5 (features: more
 - `npm run lint`: lint (`eslint .`)
 - `npm run typecheck`: generate Next.js route types, then `tsc --noEmit`
 - `npm test`: Vitest unit tests (no network; they use `test/fixtures/`)
+- `npm run recap:eval`: run the recap agent over the recorded gameweeks and score it (`-- --fake` uses scripted models and no network; `--model`, `--judge-model`, `--gameweeks 3,5`). A real run calls the Claude API with whatever credentials the Anthropic SDK finds. Reports go to `evals/results/` (gitignored).
 
 Use Node 22 (`.nvmrc`).
 
