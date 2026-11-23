@@ -3,6 +3,16 @@
 
 import type { z } from "zod";
 import {
+  dreamTeamSchema,
+  eventLiveSchema,
+  eventStatusSchema,
+  gameweekFixturesSchema,
+  type DreamTeam,
+  type EventLive,
+  type EventStatus,
+  type GameweekFixture,
+} from "./gameweek";
+import {
   bootstrapSchema,
   elementSummarySchema,
   fixturesSchema,
@@ -31,6 +41,18 @@ export interface FplClient {
   getBootstrap(): Promise<Bootstrap>;
   getFixtures(): Promise<Fixture[]>;
   getElementSummary(id: number): Promise<ElementSummary>;
+}
+
+/** The per-gameweek endpoints the recap reads (see docs/fpl-api.md). */
+export interface FplGameweekClient {
+  /** Every player's stats and points breakdown for one gameweek. */
+  getEventLive(gameweek: number): Promise<EventLive>;
+  /** Whether the current gameweek's points and bonus are final. Says nothing about past gameweeks. */
+  getEventStatus(): Promise<EventStatus>;
+  /** The gameweek's top-scoring XI. FPL answers 404 until the gameweek has been played. */
+  getDreamTeam(gameweek: number): Promise<DreamTeam>;
+  /** One gameweek's fixtures, with scores and per-player stats. */
+  getGameweekFixtures(gameweek: number): Promise<GameweekFixture[]>;
 }
 
 export class FplRequestError extends Error {
@@ -104,7 +126,13 @@ function formatIssues(error: z.ZodError): string {
 const defaultSleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-export function createFplClient(options: FplClientOptions = {}): FplClient {
+function checkGameweek(gameweek: number): void {
+  if (!Number.isInteger(gameweek) || gameweek < 1 || gameweek > 38) {
+    throw new Error(`Invalid gameweek: ${gameweek}`);
+  }
+}
+
+export function createFplClient(options: FplClientOptions = {}): FplClient & FplGameweekClient {
   const {
     baseUrl = DEFAULT_FPL_BASE_URL,
     concurrency = 5,
@@ -179,6 +207,19 @@ export function createFplClient(options: FplClientOptions = {}): FplClient {
         return Promise.reject(new Error(`Invalid player id: ${id}`));
       }
       return getJson(`element-summary/${id}/`, elementSummarySchema);
+    },
+    getEventLive: async (gameweek) => {
+      checkGameweek(gameweek);
+      return getJson(`event/${gameweek}/live/`, eventLiveSchema);
+    },
+    getEventStatus: () => getJson("event-status/", eventStatusSchema),
+    getDreamTeam: async (gameweek) => {
+      checkGameweek(gameweek);
+      return getJson(`dream-team/${gameweek}/`, dreamTeamSchema);
+    },
+    getGameweekFixtures: async (gameweek) => {
+      checkGameweek(gameweek);
+      return getJson(`fixtures/?event=${gameweek}`, gameweekFixturesSchema);
     },
   };
 }

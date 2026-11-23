@@ -122,10 +122,10 @@ describe("parseSnapshot", () => {
     expect(parseSnapshot(JSON.parse(JSON.stringify(snapshot)))).toEqual(snapshot);
   });
 
-  it("rejects a version 1 snapshot, so fetch refetches every player", async () => {
+  it("rejects an older snapshot version, so fetch refetches every player", async () => {
     const snapshot = await previousSnapshot(MORNING);
-    expect(snapshot.version).toBe(2);
-    expect(() => parseSnapshot({ ...snapshot, version: 1 })).toThrow();
+    expect(snapshot.version).toBe(3);
+    expect(() => parseSnapshot({ ...snapshot, version: 2 })).toThrow();
   });
 
   it("rejects a reused summary that lacks the per-gameweek fields added in version 2", async () => {
