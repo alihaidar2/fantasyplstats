@@ -83,7 +83,7 @@ export const transferStory = defineTool({
       ),
       ...(gameweek > 2 && biggestInBefore && biggestOutBefore
         ? {
-            seasonHighsBeforeThisGameweek: {
+            previousHighs: {
               biggestNetTransfersIn: { ...label(context, biggestInBefore.player), gameweek: biggestInBefore.gameweek, netTransfersIn: biggestInBefore.balance },
               ...(biggestOutBefore.balance < 0
                 ? { biggestNetTransfersOut: { ...label(context, biggestOutBefore.player), gameweek: biggestOutBefore.gameweek, netTransfersOut: -biggestOutBefore.balance } }

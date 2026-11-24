@@ -688,6 +688,36 @@ describe("captaincy and transfer results", () => {
     expect(codes(add("Haaland and João Pedro were the most-owned players, and all seventeen started.", ["r8"]))).toContain("number-not-cited");
   });
 
+  it("reads chip names in the plural, as chips and as ordinary words", () => {
+    expect(add("A record 323,226 Triple Captains were played on the week Haaland scored 9 points.", ["r8"]).issues).toEqual([]);
+    expect(codes(add("A record 323,227 Triple Captains were played on the week Haaland scored 9 points.", ["r8"]))).not.toEqual([]);
+    const index = nameIndexOf(context);
+    expect(index.scan("Managers played their Free Hits, Bench Boosts and Wildcards early, and few Chips remain.").unknown).toEqual([]);
+  });
+
+  it("accepts an earlier gameweek's high only when the sentence names that gameweek", () => {
+    const previous = (transfers.result as { previousHighs: { biggestNetTransfersIn: { player: string; gameweek: number; netTransfersIn: number } } })
+      .previousHighs.biggestNetTransfersIn;
+    const n = previous.netTransfersIn.toLocaleString("en-GB");
+    expect(add(`${previous.player} was bought by a net ${n} managers in Gameweek ${previous.gameweek}.`, ["r9"]).issues).toEqual([]);
+    expect(codes(add(`${previous.player} was bought by a net ${n} managers.`, ["r9"]))).toEqual(["wrong-period"]);
+  });
+
+  it("reads a high set this gameweek as this gameweek's figure", () => {
+    // GW3 of the recorded season set the Triple Captain high: the count needs no "this season" to be used.
+    const gw3 = loadContext(3);
+    const session = createRecapSession(gw3);
+    const shortlist = session.call("story_candidates", {});
+    const high = (shortlist.result as { highsSetThisGameweek: { high: string; played?: number }[] }).highsSetThisGameweek.find((h) => h.played);
+    expect(high).toBeDefined();
+    const sentence = `The Triple Captain chip was played ${high!.played!.toLocaleString("en-GB")} times.`;
+    const report = checkRecap(
+      { headline: "Triple Captain week", paragraphs: [sentence], claims: [{ text: sentence, evidence: [shortlist.id] }] },
+      { season: gw3.season, gameweek: 3, evidence: session.evidence, names: nameIndexOf(gw3), nameEntries: gw3.names, limits: { minWords: 1, minClaims: 1, minParagraphs: 1 } },
+    );
+    expect(report.issues).toEqual([]);
+  });
+
   it("counts chips for the gameweek, and an earlier gameweek's count only when the sentence names it", () => {
     expect(add("The Triple Captain chip was played by 323,226 managers, down from 1,787,071 in Gameweek 3.", ["r8"]).issues).toEqual([]);
     expect(codes(add("The Triple Captain chip was played by 1,787,071 managers.", ["r8"]))).toEqual(["wrong-period"]);

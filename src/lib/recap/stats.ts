@@ -208,7 +208,7 @@ const COUNTED = /^(?:players|defenders|midfielders|forwards|strikers|goalkeepers
 /** "seven players": the number counts players in general (not defenders or clubs, which a list can't prove). */
 export const countsPlayers = (after: string) => /^\s+(?:(?:different|other|more)\s+)?players(?![\p{L}])/iu.test(after);
 
-const CHIP = /\b(?:triple captain|bench boost|free hit|wildcards?|chips?)\b/i;
+const CHIP = /\b(?:triple captain(?:s|ed|cy)?|bench boosts?|free hits?|wildcards?|chips?)\b/i;
 
 /** A stat named just before the number: "an xG of 0.82", "owned by 7.3 million". */
 const BEFORE: [RegExp, string][] = [

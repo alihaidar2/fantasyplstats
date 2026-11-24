@@ -99,8 +99,8 @@ const NICKNAME_SUFFIXES = new Set(["City", "United"]);
 /** Capitalised words a recap may use that are not names. */
 export const ALLOWED_CAPITALISED = new Set(
   [
-    "gameweek gameweeks fpl fantasy premier league double blank triple captain captains bench boost free hit",
-    "wildcard wildcards dream team i",
+    "gameweek gameweeks fpl fantasy premier league double blank triple captain captains bench boost boosts free hit hits",
+    "wildcard wildcards chip chips dream team i",
     "monday tuesday wednesday thursday friday saturday sunday",
     "january february march april may june july august september october november december",
     "christmas boxing day new year easter",

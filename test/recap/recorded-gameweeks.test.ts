@@ -265,17 +265,17 @@ describe("captaincy, transfers and runs across the recorded gameweeks", () => {
 
   it("story_candidates: lists a season high when one is set, and not otherwise", () => {
     const highs = (gameweek: number) =>
-      (call(gameweek, "story_candidates") as { seasonHighs?: { seasonHigh: string }[] }).seasonHighs ?? [];
+      (call(gameweek, "story_candidates") as { highsSetThisGameweek?: { high: string }[] }).highsSetThisGameweek ?? [];
     expect(highs(3)).toContainEqual(
-      expect.objectContaining({ seasonHigh: "most Triple Captain chips played in a gameweek so far", played: 1787071 }),
+      expect.objectContaining({ high: "most Triple Captain chips played in a gameweek so far", played: 1787071 }),
     );
-    expect(highs(4).filter((h) => h.seasonHigh.includes("Triple Captain"))).toEqual([]);
+    expect(highs(4).filter((h) => h.high.includes("Triple Captain"))).toEqual([]);
     // Gameweek 1 has nothing earlier to beat.
     expect(highs(1)).toEqual([]);
     // Each one agrees with season_records' own flag.
     for (const gameweek of RECORDED) {
       const records = call(gameweek, "season_records") as { thisGameweekHasTheMostGoalsSoFar?: boolean };
-      expect(highs(gameweek).some((h) => h.seasonHigh === "most goals in a gameweek so far"), `GW${gameweek}`).toBe(
+      expect(highs(gameweek).some((h) => h.high === "most goals in a gameweek so far"), `GW${gameweek}`).toBe(
         records.thisGameweekHasTheMostGoalsSoFar ?? false,
       );
     }

@@ -181,16 +181,16 @@ export const storyCandidates = defineTool({
     }
 
     // Season highs are listed on their own, so the shortlist of players can't crowd them out.
-    const seasonHighs: Record<string, unknown>[] = [];
+    const highs: Record<string, unknown>[] = [];
     for (const chip of chipRows(context)) {
-      if (chip.mostPlayedInAGameweekSoFar) seasonHighs.push({ seasonHigh: `most ${chip.chip} chips played in a gameweek so far`, ...chip });
+      if (chip.mostPlayedInAGameweekSoFar) highs.push({ high: `most ${chip.chip} chips played in a gameweek so far`, ...chip });
     }
     const transfers = transfersMadeFact(context);
-    if (transfers?.mostTransfersInAGameweekSoFar) seasonHighs.push({ seasonHigh: "most transfers made before a gameweek so far", ...transfers });
+    if (transfers?.mostTransfersInAGameweekSoFar) highs.push({ high: "most transfers made before a gameweek so far", ...transfers });
     const goals = goalsByGameweek(context);
     if (goals.mostSoFar) {
-      seasonHighs.push({
-        seasonHigh: "most goals in a gameweek so far",
+      highs.push({
+        high: "most goals in a gameweek so far",
         goals: goals.now,
         matchCount: context.matches.length,
         previousHigh: { gameweek: goals.previousHigh!.gameweek, goals: goals.previousHigh!.goals },
@@ -198,23 +198,23 @@ export const storyCandidates = defineTool({
     }
     const earlierAverages = context.gameweekScores.filter((g) => g.gameweek < gameweek).map((g) => g.averageScore);
     if (earlierAverages.length > 0 && context.event.averageScore > Math.max(...earlierAverages)) {
-      seasonHighs.push({ seasonHigh: "highest average manager score in a gameweek so far", averageScore: context.event.averageScore });
+      highs.push({ high: "highest average manager score in a gameweek so far", averageScore: context.event.averageScore });
     }
     if (earlierAverages.length > 0 && context.event.averageScore < Math.min(...earlierAverages)) {
-      seasonHighs.push({ seasonHigh: "lowest average manager score in a gameweek so far", averageScore: context.event.averageScore });
+      highs.push({ high: "lowest average manager score in a gameweek so far", averageScore: context.event.averageScore });
     }
     const defence = defensiveRecords(context);
     if (defence.bestIndividualSoFar && defence.bestNow) {
-      seasonHighs.push({
-        seasonHigh: "most defensive contributions by one player in a gameweek so far",
+      highs.push({
+        high: "most defensive contributions by one player in a gameweek so far",
         ...label(context, defence.bestNow.player),
         defensiveContribution: defence.bestNow.defensiveContribution,
         points: defence.bestNow.player.gw.points,
       });
     }
     if (defence.mostSoFar) {
-      seasonHighs.push({
-        seasonHigh: "most defensive contributions by all players in a gameweek so far",
+      highs.push({
+        high: "most defensive contributions by all players in a gameweek so far",
         defensiveContribution: defence.totalNow,
         previousHigh: defence.previousHigh,
       });
@@ -263,7 +263,8 @@ export const storyCandidates = defineTool({
           : {}),
         ...c.facts,
       })),
-      ...(seasonHighs.length ? { seasonHighs } : several ? { seasonHighsNote: "No season high was set this gameweek." } : {}),
+      // Named so the checker reads these as this gameweek's figures, not season totals.
+      ...(highs.length ? { highsSetThisGameweek: highs } : several ? { highsNote: "No season high was set this gameweek." } : {}),
     };
   },
 });
