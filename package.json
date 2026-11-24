@@ -27,7 +27,8 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "recap:eval": "tsx scripts/eval-recaps.ts"
+    "recap:eval": "tsx scripts/eval-recaps.ts",
+    "recap:publish": "tsx scripts/publish-recap.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0",
