@@ -354,3 +354,46 @@ describe("a club's run on a card", () => {
     expect(check("Brighton made it 6 wins in a row.").passed).toBe(false);
   });
 });
+
+describe("club and match figures next to a player (false rejections in the card eval)", () => {
+  const setup = async (gameweek: number, team: string) => {
+    const { loadRecording } = await import("../../scripts/recorded-gameweeks");
+    const context = loadRecording().context(gameweek);
+    const session = createRecapSession(context);
+    const ids = [
+      session.call("gameweek_summary", {}).id,
+      session.call("story_candidates", {}).id,
+      session.call("team_story", { team }).id,
+      session.call("top_performers", {}).id,
+    ];
+    const check = (line: string, match: { home: string; away: string; score: string }) =>
+      checkRecap(
+        { headline: "A match worth a card of its own", cards: [{ type: "matches", matches: [match], text: line, evidence: ids }] },
+        { season: context.season, gameweek, evidence: session.evidence, names: nameIndexOf(context), nameEntries: context.names, limits: { minCards: 1 } },
+      );
+    return check;
+  };
+
+  it("accepts a club's run straight after the club, in a sentence that goes on to name players (GW7)", async () => {
+    const check = await setup(7, "Brighton");
+    const match = { home: "Brighton", away: "Crystal Palace", score: "5-0" };
+    expect(check("Brighton made it 4 wins in a row, with Kostoulas (12 points) and Vuskovic (11 points) among their hauls.", match).issues).toEqual([]);
+    // Adversarial: the club's figure must be the club's own, and a player's must still be the player's.
+    expect(check("Brighton made it 6 wins in a row, with Kostoulas (12 points) among their hauls.", match).passed).toBe(false);
+    expect(check("Brighton made it 4 wins in a row, with Kostoulas (4 points) among their hauls.", match).passed).toBe(false);
+    // The club's 4 is not a player's because the club is somewhere in the sentence: here Kostoulas comes between.
+    expect(check("Brighton's Kostoulas made it 4 wins in a row.", match).passed).toBe(false);
+    expect(check("Kostoulas scored 4 goals as Brighton won.", match).passed).toBe(false);
+  });
+
+  it('accepts "the eight-goal thriller" as the match\'s goals, not the players\' (GW5)', async () => {
+    const check = await setup(5, "Man City");
+    const match = { home: "Man City", away: "Sunderland", score: "5-3" };
+    expect(check("Semenyo (17 points) and Brobbey (17 points) starred in the eight-goal thriller.", match).issues).toEqual([]);
+    // Adversarial: no match had nine goals; and a possessive makes the goals the player's own.
+    expect(check("Semenyo (17 points) and Brobbey (17 points) starred in the nine-goal thriller.", match).passed).toBe(false);
+    expect(check("Brobbey's eight-goal game was the story of the week.", match).passed).toBe(false);
+    expect(check("Brobbey scored eight goals in the thriller.", match).passed).toBe(false);
+  });
+});
+

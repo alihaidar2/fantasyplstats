@@ -219,6 +219,9 @@ const LINK =
 /** A quoted passage of a few words or more: nobody in the data said anything. */
 const QUOTE = /["“][^"“”]{12,}["”]/g;
 
+/** "eight-goal thriller", "8-goal game": the number is the goals in a match, not a player's. */
+const MATCH_GOALS_AFTER = /^-goal\s+(?:thriller|game|match|draw|contest|classic|win|victory|defeat)(?![\p{L}])/iu;
+
 interface Sentence {
   start: number;
   end: number;
@@ -522,7 +525,38 @@ function textChecker(options: CheckOptions, recapText: string, citer = "claim"):
       // words make the number a gameweek-wide one ("the average manager
       // scored", "there were", a chip).
       const tied = subjects.length > 0;
-      const rightOwner = (n: Fact) => !tied || theirs(n) || (written.gameweekWide && gameweekWide(n));
+      // Two more figures are not a named player's, by the way they are written:
+      // - A club's own figure straight after the club: "Brighton made it 4
+      //   wins in a row, with Kostoulas (12 points) ...". The club must come
+      //   before the number with no player named in between, the words must
+      //   name the stat, and the figure must be that club's in the evidence.
+      // - A match's goals as an adjective: "in the eight-goal thriller". It
+      //   needs an article before it (so "Brobbey's three-goal game" is still
+      //   Brobbey's goals), and a figure for goals that is no player's.
+      const clubsBefore = new Set(
+        tight || written.stats === null
+          ? []
+          : here
+              .filter(
+                (m) =>
+                  m.mention.kind === "team" &&
+                  m.mention.end <= token.start &&
+                  !players.some((p) => p.mention.start >= m.mention.end && p.mention.start < token.start),
+              )
+              .flatMap((m) => m.ids),
+      );
+      const theirClubs = (n: Fact) => n.owners === null && n.team !== null && clubsBefore.has(n.team);
+      const matchGoals =
+        !tight &&
+        token.kind === "plain" &&
+        /\b(?:the|an?|that|this)\s+$/i.test(text.slice(sentence.start, token.start)) &&
+        MATCH_GOALS_AFTER.test(text.slice(token.end, sentence.end));
+      const rightOwner = (n: Fact) =>
+        !tied ||
+        theirs(n) ||
+        (written.gameweekWide && gameweekWide(n)) ||
+        theirClubs(n) ||
+        (matchGoals && gameweekWide(n) && n.stats.includes("goals"));
 
       // And when? A season total or another gameweek's figure only counts
       // when the sentence says that is what it means.

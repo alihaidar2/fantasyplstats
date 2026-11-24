@@ -1,6 +1,7 @@
 // A recap as plain text: one block per card (or per paragraph, for a version 1
-// recap). The eval judge reads it, the recap pull request shows it, and the
-// recap page's description and Open Graph text come from it.
+// recap). The recap pull request shows it, and the recap page's description
+// and Open Graph text come from it. The eval judge reads cards field by field
+// instead (recapJudgeView).
 
 import {
   cardTitle,
@@ -81,6 +82,59 @@ export function cardToText(card: RecapCard): string {
       return `${title}: ${items.join(" ")}`;
     }
   }
+}
+
+/**
+ * One card as the eval judge sees it: its type and title, then one line per
+ * thing the card displays (each figure with its label), then its short text.
+ * Nothing is turned into sentences, so the judge reads a card, not prose.
+ */
+export function cardToJudgeView(card: RecapCard, number: number): string {
+  const lines: string[] = [];
+  const own = (ownership: number | undefined) => (ownership !== undefined ? `, owned by ${formatPercent(ownership)}` : "");
+  switch (card.type) {
+    case "numbers":
+      for (const i of card.items) lines.push(`figure: ${formatNumbersInText(i.value)} | ${i.label.trim()}`);
+      break;
+    case "captaincy":
+      lines.push(`big figure: ${card.player} | ${pts(card.points)}${own(card.ownership)}`);
+      for (const t of card.tiles ?? []) lines.push(`tile: ${t.player ? `${t.player} ` : ""}${formatNumbersInText(t.value)} | ${t.label.trim()}`);
+      if (card.badge?.trim()) lines.push(`badge: ${card.badge.trim()}`);
+      break;
+    case "players":
+      for (const p of card.players) {
+        lines.push(`row: ${p.player} | ${pts(p.points)}${p.detail?.trim() ? ` | ${formatNumbersInText(p.detail.trim())}` : ""}${p.ownership !== undefined ? ` | ownership bar ${formatPercent(p.ownership)}` : ""}`);
+      }
+      break;
+    case "matches":
+      for (const m of card.matches) lines.push(`result: ${m.home} ${m.score} ${m.away}`);
+      break;
+    case "transfers":
+      for (const m of card.moves) {
+        lines.push(
+          `row: ${m.player} | ${formatCount(m.netTransfers)} net transfers ${m.direction}` +
+            (m.points !== undefined ? ` | ${pts(m.points)}` : "") +
+            (m.minutes !== undefined ? ` | ${formatCount(m.minutes)} minutes` : "") +
+            (m.run ? ` | run blocks: ${runCaption(m.run.kind, m.run.gameweeks)}` : "") +
+            (m.detail?.trim() ? ` | ${formatNumbersInText(m.detail.trim())}` : ""),
+        );
+      }
+      break;
+    case "notes":
+      for (const n of card.items) {
+        lines.push(`note: ${n.player ? `${n.player} | ` : ""}${formatNumbersInText(n.text.trim())}${n.points !== undefined ? ` | ${pts(n.points)}` : ""}`);
+      }
+      break;
+  }
+  if ("text" in card && card.text?.trim()) lines.push(`text: ${formatNumbersInText(card.text.trim())}`);
+  return [`<card number="${number}" type="${card.type}">`, `title: ${cardTitle(card)}`, ...lines, "</card>"].join("\n");
+}
+
+/** A recap as the eval judge is shown it: cards field by field, or a version 1 recap's paragraphs. */
+export function recapJudgeView(recap: RecapContent): { headline: string; cards: string[] } | { headline: string; paragraphs: string[] } {
+  return "cards" in recap
+    ? { headline: recap.headline, cards: recap.cards.map((c, i) => cardToJudgeView(c, i + 1)) }
+    : { headline: recap.headline, paragraphs: recap.paragraphs.map(formatNumbersInText) };
 }
 
 /** The recap's body as blocks of plain text: one per card, or the paragraphs of a version 1 recap. */
