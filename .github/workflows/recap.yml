@@ -1,0 +1,260 @@
+name: Recap
+
+# Writes the AI recap of the latest settled gameweek and opens a pull request
+# with it (npm run recap:publish, PLAN.md step 5b item 4). Merging the PR
+# publishes the recap; recap PRs never merge themselves.
+#
+# Runs on a schedule after each gameweek and exits quietly when nothing new is
+# settled (finished and data_checked, points and bonus final in event-status),
+# when the gameweek already has a recap on master, or when its recap branch
+# or pull request already exists. Run it by hand (from master) to pick the
+# gameweek or the writer model.
+#
+# No API key is stored anywhere: it signs in to the Claude API with Workload
+# Identity Federation exactly like recap-eval.yml (see the notes there), with
+# the IDs in repository variables. The federation rule only trusts master, so
+# a run from any other branch stops before asking for a token. Spend is capped
+# by the organization's prepaid credits; the PR shows what each recap cost.
+#
+# After opening the PR the workflow starts ci.yml on the recap branch: a PR
+# opened with GITHUB_TOKEN triggers no pull_request workflows, and master
+# requires the "Lint, Test and Build" check, which a dispatched run reports on
+# the branch's head commit under the same name. It never starts the deploy
+# workflow; for an Azure preview, close and reopen the PR from the app.
+
+on:
+  workflow_dispatch:
+    inputs:
+      gameweek:
+        description: Gameweek to recap (empty = the latest settled one, if it has no recap yet)
+        type: string
+        default: ""
+      model:
+        description: Writer model
+        type: string
+        default: claude-opus-5-5
+  # GitHub cron is UTC, and schedules only run on master. Gameweeks usually
+  # end on Sunday or Monday and FPL marks them data_checked within a day.
+  schedule:
+    - cron: "37 1,7,13,19 * * 1-3" # Mondays to Wednesdays, every 6 hours
+
+permissions:
+  contents: read
+
+# One recap run at a time; a second waits instead of cancelling the first.
+concurrency:
+  group: recap
+  cancel-in-progress: false
+
+jobs:
+  recap:
+    runs-on: ubuntu-latest
+    name: Write recap
+    timeout-minutes: 30
+    permissions:
+      # Push the recap branch.
+      contents: write
+      # Open the recap PR.
+      pull-requests: write
+      # Lets the job request a GitHub OIDC token for the Anthropic exchange.
+      id-token: write
+      # Start ci.yml on the recap branch.
+      actions: write
+    env:
+      ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+      ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+      ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+      # Optional: only needed when the federation rule covers more than one
+      # workspace. Empty counts as unset in the SDK.
+      ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
+      # The `aud` the federation rule expects (see recap-eval.yml).
+      OIDC_AUDIENCE: ${{ vars.ANTHROPIC_OIDC_AUDIENCE || 'https://api.anthropic.com' }}
+    steps:
+      - name: 🛑 Check the branch
+        env:
+          RUN_REF: ${{ github.ref }}
+        run: |
+          if [ "$RUN_REF" != "refs/heads/master" ]; then
+            echo "::error::Run the recap workflow from master (this one is $RUN_REF): the federation rule only trusts master, and recaps are proposed against master."
+            exit 1
+          fi
+
+      - name: 📥 Checkout code
+        uses: actions/checkout@v7
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      # Two FPL requests (bootstrap-static and event-status) and no model:
+      # which gameweek is due, if any. An explicit gameweek that isn't settled
+      # or already has a recap fails here, with the reason.
+      - name: 🗓️ Choose the gameweek
+        id: select
+        env:
+          GAMEWEEK: ${{ inputs.gameweek }}
+        run: |
+          set -euo pipefail
+          args=(--select-only)
+          GAMEWEEK="${GAMEWEEK// /}"
+          if [ -n "$GAMEWEEK" ]; then
+            if [[ ! "$GAMEWEEK" =~ ^[0-9]+$ ]]; then
+              echo "::error::gameweek must be a number, like 11 (got \"$GAMEWEEK\")."
+              exit 1
+            fi
+            args+=(--gameweek "$GAMEWEEK")
+          fi
+          npm run -s recap:publish -- "${args[@]}"
+
+      # Never a second PR for the same gameweek: an open recap PR, or a branch
+      # left from an earlier run, means a person has it in hand.
+      - name: 🔎 Look for an existing recap branch or PR
+        id: existing
+        if: ${{ steps.select.outputs.status == 'selected' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SEASON: ${{ steps.select.outputs.season }}
+          GAMEWEEK: ${{ steps.select.outputs.gameweek }}
+        run: |
+          set -euo pipefail
+          branch="recap/${SEASON}-gw$(printf '%02d' "$GAMEWEEK")"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+            echo "::notice::The branch $branch already exists, so gameweek $GAMEWEEK's recap is already proposed. Merge or close its PR (and delete the branch) to write another."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          open="$(gh pr list --state open --search "\"Recap: Gameweek $GAMEWEEK\" in:title" --json number,title \
+            --jq "[.[] | select(.title == \"Recap: Gameweek $GAMEWEEK\")] | .[0].number // empty")"
+          if [ -n "$open" ]; then
+            echo "::notice::PR #$open already proposes gameweek $GAMEWEEK's recap."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      # As in recap-eval.yml: checks the repository variables, fetches the
+      # first token and saves the fetch function for the next step, which
+      # refreshes the file while the agent runs.
+      - name: 🔑 Get GitHub OIDC token
+        if: ${{ steps.existing.outputs.skip == 'false' }}
+        env:
+          ANTHROPIC_IDENTITY_TOKEN_FILE: ${{ runner.temp }}/anthropic-oidc/token
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in ANTHROPIC_FEDERATION_RULE_ID ANTHROPIC_ORGANIZATION_ID ANTHROPIC_SERVICE_ACCOUNT_ID; do
+            [ -n "${!name:-}" ] || missing+=("$name")
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing repository variables: ${missing[*]}. Add them under Settings → Secrets and variables → Actions → Variables."
+            exit 1
+          fi
+
+          token_dir="$(dirname "$ANTHROPIC_IDENTITY_TOKEN_FILE")"
+          mkdir -p "$token_dir"
+          chmod 700 "$token_dir"
+          # Never echoes the token except as a mask command, so the log shows
+          # *** wherever it might appear. Writes to a temp file and renames, so
+          # the SDK never reads a half-written token.
+          cat > "$token_dir/fetch-token.sh" <<'EOF'
+          fetch_token() {
+            local token
+            token="$(curl -sSf --retry 3 -G \
+              -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+              --data-urlencode "audience=$OIDC_AUDIENCE" \
+              "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r '.value // empty')" || return 1
+            [ -n "$token" ] || return 1
+            echo "::add-mask::$token"
+            (umask 077 && printf '%s' "$token" > "$ANTHROPIC_IDENTITY_TOKEN_FILE.tmp")
+            mv -f "$ANTHROPIC_IDENTITY_TOKEN_FILE.tmp" "$ANTHROPIC_IDENTITY_TOKEN_FILE"
+          }
+          EOF
+          source "$token_dir/fetch-token.sh"
+          fetch_token || { echo "::error::Could not get a GitHub OIDC token."; exit 1; }
+          echo "Got a GitHub OIDC token for audience $OIDC_AUDIENCE."
+
+      # Fetches a full FPL snapshot and the gameweek's data, runs the agent and
+      # writes content/recaps/<season>/gw<NN>.json only if the checker passed
+      # the model's recap (a template fallback fails this step instead).
+      - name: 🤖 Write the recap
+        id: publish
+        if: ${{ steps.existing.outputs.skip == 'false' }}
+        env:
+          GAMEWEEK: ${{ steps.select.outputs.gameweek }}
+          MODEL: ${{ inputs.model || 'claude-opus-5-5' }}
+          # Outside the checkout, so it can never be committed.
+          ANTHROPIC_IDENTITY_TOKEN_FILE: ${{ runner.temp }}/anthropic-oidc/token
+          PR_BODY: ${{ runner.temp }}/recap-pr-body.md
+        run: |
+          set -euo pipefail
+          source "$(dirname "$ANTHROPIC_IDENTITY_TOKEN_FILE")/fetch-token.sh"
+          # Keep the token file fresh for the whole run.
+          ( while sleep 120; do fetch_token || echo "::warning::Could not refresh the GitHub OIDC token."; done ) &
+          refresher=$!
+          trap 'kill "$refresher" 2>/dev/null || true' EXIT
+          npm run -s recap:publish -- --gameweek "$GAMEWEEK" --model "$MODEL" --pr-body "$PR_BODY" | tee "$RUNNER_TEMP/recap.txt"
+
+      - name: 🧹 Delete OIDC token
+        if: ${{ always() }}
+        run: rm -rf "$RUNNER_TEMP/anthropic-oidc"
+
+      # Committed as the site's owner, with no AI attribution, on its own
+      # branch. Never pushed to master, never forced.
+      - name: 📬 Open the recap PR
+        id: pr
+        if: ${{ steps.publish.outputs.status == 'published' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.existing.outputs.branch }}
+          FILE: ${{ steps.publish.outputs.file }}
+          GAMEWEEK: ${{ steps.publish.outputs.gameweek }}
+          PR_BODY: ${{ runner.temp }}/recap-pr-body.md
+        run: |
+          set -euo pipefail
+          git switch -c "$BRANCH"
+          git add -- "$FILE"
+          git -c user.name="Ali Haidar" -c user.email="ahaidar97@outlook.com" commit -m "Recap: Gameweek $GAMEWEEK"
+          git push origin "$BRANCH"
+          if ! url="$(gh pr create --base master --head "$BRANCH" --title "Recap: Gameweek $GAMEWEEK" --body-file "$PR_BODY")"; then
+            echo "::error::Pushed $BRANCH but couldn't open the PR. Check Settings → Actions → General → \"Allow GitHub Actions to create and approve pull requests\", then open it by hand: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/master...${BRANCH}"
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Opened $url"
+
+      # The required "Lint, Test and Build" check, on the recap branch's head
+      # commit. Only ci.yml: the deploy workflow is never started from here.
+      - name: ✅ Start CI on the recap branch
+        if: ${{ steps.pr.outputs.url != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.existing.outputs.branch }}
+        run: gh workflow run ci.yml --ref "$BRANCH"
+
+      - name: 📝 Write job summary
+        if: ${{ always() }}
+        env:
+          STATUS: ${{ steps.select.outputs.status }}
+          SKIP: ${{ steps.existing.outputs.skip }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+          PR_BODY: ${{ runner.temp }}/recap-pr-body.md
+        run: |
+          {
+            if [ "$STATUS" = "nothing-to-do" ]; then
+              echo "Nothing to publish. See the **Choose the gameweek** step for why."
+            elif [ "$SKIP" = "true" ]; then
+              echo "This gameweek's recap is already proposed. See the **Look for an existing recap branch or PR** step."
+            elif [ -n "$PR_URL" ]; then
+              echo "Opened $PR_URL"
+              echo
+              cat "$PR_BODY"
+            else
+              echo "No recap PR was opened. See the failed step's log."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
