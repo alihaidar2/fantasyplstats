@@ -355,6 +355,22 @@ describe("a club's run on a card", () => {
   });
 });
 
+describe("a player's name on a card", () => {
+  it("must be spelt as the tools spell it (the GW4 eval's judge mentioned a misspelt Groß)", () => {
+    const names = nameIndexOf(context);
+    const gross = names.lookupPlayer("Groß");
+    expect(gross).toHaveLength(1);
+    for (const bad of ["Groş", "Gros", "Groz"]) {
+      expect(names.lookupPlayer(bad)).toEqual([]);
+      const report = broken((d) => {
+        const card = cardOf(d, "players");
+        card.players[0] = { ...card.players[0], player: bad, ref: `p${gross[0]}` };
+      });
+      expect(codes(report)).toContain("player-ref");
+    }
+  });
+});
+
 describe("club and match figures next to a player (false rejections in the card eval)", () => {
   const setup = async (gameweek: number, team: string) => {
     const { loadRecording } = await import("../../scripts/recorded-gameweeks");
