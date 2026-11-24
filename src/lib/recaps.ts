@@ -9,7 +9,9 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import { formatNumbersInText, type RecapCard } from "./recap/cards";
 import { recapSchema, type Recap } from "./recap/recap";
+import { recapSummary } from "./recap/text";
 import { recapPath } from "./site";
 
 /** Where published recaps live, relative to the project root. */
@@ -31,6 +33,14 @@ export function recapContentDir(
   return path.resolve(cwd, configured || DEFAULT_RECAP_DIR);
 }
 
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+
+/** A story card as the site shows it: without the result ids it cites. */
+export type PublishedCard = DistributiveOmit<RecapCard, "evidence">;
+
+/** A recap's body: story cards (version 2), or paragraphs (version 1, until it is regenerated). */
+export type PublishedBody = { kind: "cards"; cards: PublishedCard[] } | { kind: "paragraphs"; paragraphs: string[] };
+
 /** What the site needs from a recap. The evidence log stays out, so it never reaches a page. */
 export interface PublishedRecap {
   season: string;
@@ -38,7 +48,9 @@ export interface PublishedRecap {
   /** "/recap/2026-27/gw4/" */
   path: string;
   headline: string;
-  paragraphs: string[];
+  body: PublishedBody;
+  /** A plain-text summary (recapSummary) for the page description and share previews. */
+  summary: string;
   /** The model that wrote it, or "hand-written". */
   model: string;
   generatedAt: string;
@@ -110,13 +122,24 @@ export function compareNewestFirst(
   return b.season.localeCompare(a.season) || b.gameweek - a.gameweek;
 }
 
+/** A card without the result ids it cites, which the site doesn't show. */
+function withoutEvidence(card: RecapCard): PublishedCard {
+  const copy: Partial<RecapCard> = { ...card };
+  delete copy.evidence;
+  return copy as PublishedCard;
+}
+
 export function toPublishedRecap(recap: Recap): PublishedRecap {
   return {
     season: recap.season,
     gameweek: recap.gameweek,
     path: recapPath(recap.season, recap.gameweek),
     headline: recap.headline,
-    paragraphs: recap.paragraphs,
+    body:
+      recap.version === 2
+        ? { kind: "cards", cards: recap.cards.map(withoutEvidence) }
+        : { kind: "paragraphs", paragraphs: recap.paragraphs.map(formatNumbersInText) },
+    summary: recapSummary(recap),
     model: recap.model,
     generatedAt: recap.generatedAt,
   };

@@ -16,9 +16,10 @@ afterAll(() => rmSync(resultsDir, { recursive: true, force: true }));
 describe("the recap eval harness", () => {
   it("runs two recorded gameweeks in fake mode and writes a report", async () => {
     const log: string[] = [];
+    const judge = fakeJudgeModel();
     const { report, summary, dir } = await runEval({
       writer: fakeWriterModel(),
-      judge: fakeJudgeModel(),
+      judge,
       gameweeks: [3, 5],
       resultsDir,
       log: (line) => log.push(line),
@@ -56,6 +57,10 @@ describe("the recap eval harness", () => {
     // GW5's first reference story is Man City 5-3 Sunderland; the template lists that result.
     expect(report.gameweeks[1].headline).toBe("Brobbey tops Gameweek 5 with 17 points");
     expect(report.gameweeks[1].judge!.coverage[0]).toMatchObject({ story: 1, covered: "yes" });
+    // The judge reads the cards as plain text: the headline, then a block per card.
+    const prompt = judge.requests[1].messages[0].content[0];
+    expect(prompt).toMatchObject({ type: "text", text: expect.stringContaining("<headline>Brobbey tops Gameweek 5 with 17 points</headline>\nIn numbers: 48 average score") });
+    expect(prompt).toMatchObject({ text: expect.stringContaining("The most goals: Man City 5-3 Sunderland;") });
 
     expect(report.totals).toMatchObject({
       gameweeks: 2,

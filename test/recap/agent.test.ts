@@ -14,22 +14,19 @@ import {
 } from "../../src/lib/recap/model";
 import { costOfRequest, pricesFor } from "../../src/lib/recap/pricing";
 import { RETRY_INSTRUCTION } from "../../src/lib/recap/prompt";
-import { recapSchema, type Recap, type RecapDraft } from "../../src/lib/recap/recap";
+import { cardRecapSchema, recapSchema, type CardRecap, type RecapDraft } from "../../src/lib/recap/recap";
+import { recapToText } from "../../src/lib/recap/text";
 import { toolDefinitions } from "../../src/lib/recap/session";
 import { loadContext } from "./helpers";
 
 // The agent, driven by scripted models: no network. The script is the
 // hand-written sample recap of GW4 (test/fixtures/recap/sample-recap.json):
-// replaying its seven tool calls and submitting its text passes the checker.
+// replaying its seven tool calls and submitting its cards passes the checker.
 
-const sample: Recap = recapSchema.parse(
+const sample: CardRecap = cardRecapSchema.parse(
   JSON.parse(readFileSync(path.join(__dirname, "..", "fixtures", "recap", "sample-recap.json"), "utf8")),
 );
-const goodDraft = (): RecapDraft => ({
-  headline: sample.headline,
-  paragraphs: [...sample.paragraphs],
-  claims: sample.claims.map((c) => ({ text: c.text, evidence: [...c.evidence] })),
-});
+const goodDraft = (): RecapDraft => structuredClone({ headline: sample.headline, cards: sample.cards });
 /** The sample with Groß's 17 points written as 19 everywhere: no tool returned a 19 for him. */
 const badDraft = (): RecapDraft => JSON.parse(JSON.stringify(goodDraft()).replaceAll("17 points", "19 points"));
 
@@ -46,12 +43,11 @@ describe("the recap agent", () => {
     const recap = await runRecapAgent({ context: context(), model });
 
     expect(recap).toMatchObject({
-      version: 1,
+      version: 2,
       season: "2026-27",
       gameweek: 4,
       headline: sample.headline,
-      paragraphs: sample.paragraphs,
-      claims: sample.claims,
+      cards: sample.cards,
       model: "scripted",
       checks: { passed: true, issues: [] },
       run: {
@@ -146,10 +142,10 @@ describe("the recap agent", () => {
 
     expect(recap.checks).toMatchObject({ passed: true, issues: [] });
     expect(recap.headline).toBe("Groß tops Gameweek 4 with 17 points");
-    expect(recap.paragraphs.join(" ")).not.toMatch(/19 points/);
+    expect(recapToText(recap)).not.toMatch(/19 points/);
     // The template made its own two calls after the model's nine, and cites only those.
     expect(recap.evidence.map((e) => e.tool).slice(-2)).toEqual(["gameweek_summary", "top_performers"]);
-    expect(new Set(recap.claims.flatMap((c) => c.evidence))).toEqual(new Set(["r10", "r11"]));
+    expect(new Set(recap.cards.flatMap((c) => c.evidence))).toEqual(new Set(["r10", "r11"]));
     expect(() => recapSchema.parse(recap)).not.toThrow();
   });
 
@@ -255,7 +251,7 @@ describe("the recap agent", () => {
           { name: "top_performers", input: { limit: "plenty" } },
           { name: "league_table", input: {} },
           { name: "player_story", input: { player: "Zinedine Zidane" } },
-          { name: "submit_recap", input: { headline: "No paragraphs or claims" } },
+          { name: "submit_recap", input: { headline: "No cards" } },
         ],
       },
       investigate,
@@ -279,7 +275,7 @@ describe("the recap agent", () => {
 
   it("rejects a recap that cites a failed call", async () => {
     const draft = goodDraft();
-    draft.claims[0].evidence = ["r1"];
+    draft.cards[0].evidence = ["r1"];
     const model = scriptedModel("scripted", [
       { calls: [{ name: "top_performers", input: { limit: 0 } }] }, // r1 fails
       submit(draft),

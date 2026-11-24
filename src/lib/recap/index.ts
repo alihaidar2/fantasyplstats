@@ -11,6 +11,8 @@
 
 export * from "./context";
 export * from "./recap";
+export * from "./cards";
+export * from "./text";
 export * from "./names";
 export * from "./numbers";
 export * from "./checker";

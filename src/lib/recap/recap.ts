@@ -1,10 +1,24 @@
 // The shape of a recap: what the agent submits (a draft) and what gets saved
 // to content/recaps/<season>/gw<N>.json once it has passed the checker.
+//
+// Version 2 (current): a headline and story cards (cards.ts). Version 1: a
+// headline and paragraphs with claims, as the first published recaps were
+// written. Both still load, so a version 1 recap keeps rendering until it is
+// regenerated.
 
 import { z } from "zod";
+import { CARD_LIMITS, recapCardSchema, type CardLimits } from "./cards";
 
-/** Length limits. The checker enforces them and reports each breach in words. */
-export const RECAP_LIMITS = {
+/** Limits on the headline, shared by both versions. */
+export const HEADLINE_LIMITS = { headlineMinChars: 10, headlineMaxChars: 90 } as const;
+
+/** Length limits of a version 2 (cards) recap. The checker enforces them and reports each breach in words. */
+export const RECAP_LIMITS = { ...HEADLINE_LIMITS, ...CARD_LIMITS } as const;
+
+export type RecapLimits = { headlineMinChars: number; headlineMaxChars: number } & CardLimits;
+
+/** Length limits of a version 1 (paragraphs) recap. */
+export const PARAGRAPH_RECAP_LIMITS = {
   headlineMinChars: 10,
   headlineMaxChars: 90,
   minParagraphs: 2,
@@ -18,7 +32,7 @@ export const RECAP_LIMITS = {
   maxEvidencePerClaim: 5,
 } as const;
 
-export type RecapLimits = { [Limit in keyof typeof RECAP_LIMITS]: number };
+export type ParagraphRecapLimits = { [Limit in keyof typeof PARAGRAPH_RECAP_LIMITS]: number };
 
 /** One checkable statement from the recap, with the tool results that back it up. */
 export const claimSchema = z.object({
@@ -31,6 +45,14 @@ export const claimSchema = z.object({
 
 /** What the agent hands to submit_recap. Limits are the checker's job, so its messages can say what to fix. */
 export const recapDraftSchema = z.object({
+  headline: z.string().describe("A headline in sentence case, without a full stop."),
+  cards: z
+    .array(recapCardSchema)
+    .describe("4 to 7 story cards, biggest story first. Every figure and name on a card must be in the results it cites."),
+});
+
+/** A version 1 draft: paragraphs, and claims that back up each number in them. */
+export const paragraphDraftSchema = z.object({
   headline: z.string().describe("A headline in sentence case, without a full stop."),
   paragraphs: z.array(z.string()).describe("The recap, as plain-text paragraphs."),
   claims: z
@@ -99,17 +121,14 @@ export const recapRunSchema = z.object({
   }),
 });
 
-export const RECAP_VERSION = 1;
+export const RECAP_VERSION = 2;
 
-/** A saved recap. */
-export const recapSchema = z.object({
-  version: z.literal(RECAP_VERSION),
+/** What every saved recap has, whatever its version. */
+const savedRecapBase = {
   /** "2026-27" */
   season: z.string().regex(/^\d{4}-\d{2}$/),
   gameweek: z.number().int().min(1).max(38),
   headline: z.string().min(1),
-  paragraphs: z.array(z.string().min(1)).min(1),
-  claims: z.array(claimSchema),
   /** Every tool call the agent made, in order. */
   evidence: z.array(evidenceEntrySchema),
   checks: checkReportSchema,
@@ -133,13 +152,34 @@ export const recapSchema = z.object({
   generatedAt: z.iso.datetime(),
   /** Attempts, and whether the template fallback was used. Optional: older recaps don't have it. */
   run: recapRunSchema.optional(),
+};
+
+/** A saved version 1 recap: paragraphs and claims. Still read, never written. */
+export const paragraphRecapSchema = z.object({
+  version: z.literal(1),
+  ...savedRecapBase,
+  paragraphs: z.array(z.string().min(1)).min(1),
+  claims: z.array(claimSchema),
 });
+
+/** A saved version 2 recap: story cards, each citing the results it was built from. */
+export const cardRecapSchema = z.object({
+  version: z.literal(RECAP_VERSION),
+  ...savedRecapBase,
+  cards: z.array(recapCardSchema).min(1),
+});
+
+/** A saved recap of either version. */
+export const recapSchema = z.discriminatedUnion("version", [paragraphRecapSchema, cardRecapSchema]);
 
 export type Claim = z.infer<typeof claimSchema>;
 export type RecapDraft = z.infer<typeof recapDraftSchema>;
+export type ParagraphDraft = z.infer<typeof paragraphDraftSchema>;
 export type EvidenceEntry = z.infer<typeof evidenceEntrySchema>;
 export type CheckIssue = z.infer<typeof checkIssueSchema>;
 export type CheckReport = z.infer<typeof checkReportSchema>;
 export type RecapAttempt = z.infer<typeof recapAttemptSchema>;
 export type RecapRun = z.infer<typeof recapRunSchema>;
 export type Recap = z.infer<typeof recapSchema>;
+export type ParagraphRecap = z.infer<typeof paragraphRecapSchema>;
+export type CardRecap = z.infer<typeof cardRecapSchema>;

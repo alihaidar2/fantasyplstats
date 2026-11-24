@@ -6,11 +6,11 @@ import { defineTool } from "./tool";
 export const submitRecap = defineTool({
   name: "submit_recap",
   description:
-    "Submit the finished recap: a headline, the paragraphs, and a list of claims. A claim is one factual statement " +
-    "from the recap plus the ids of the tool results it relies on. A checker then verifies the recap against " +
-    "everything the tools returned. Every number and every player or club name must come from a tool result, " +
-    "and each claim's numbers and names must be in the results it cites. It returns either accepted: true, or a " +
-    "list of specific problems to fix before submitting again.",
+    "Submit the finished recap: a headline and 4 to 7 story cards. Each card has a type (numbers, captaincy, " +
+    "players, matches, transfers, notes), its figures and names in their own fields, at most a short line of " +
+    "text, and the ids of the tool results it was built from. A checker then verifies every figure and name on " +
+    "each card against the results that card cites, and each player's figures against that player. It returns " +
+    "either accepted: true, or a list of specific problems to fix before submitting again.",
   input: recapDraftSchema,
   run(context, draft, evidence) {
     const report = checkRecap(draft, {

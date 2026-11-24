@@ -1,11 +1,12 @@
-// The fallback recap: a plain, deterministic write-up built from two tool
-// results (gameweek_summary and top_performers), for when the model's recap
-// fails the checker twice or the run hits a limit. It is dull on purpose:
-// every sentence is a figure copied from a result, phrased the way the
-// checker reads it, so it passes for any gameweek.
+// The fallback recap: plain, deterministic cards built from two tool results
+// (gameweek_summary and top_performers), for when the model's recap fails the
+// checker twice or the run hits a limit. It is dull on purpose: every figure
+// is copied from a result into the card field made for it, so it passes for
+// any gameweek.
 
 import { z } from "zod";
-import { RECAP_LIMITS, type Claim, type EvidenceEntry, type RecapDraft } from "./recap";
+import type { RecapCard } from "./cards";
+import { RECAP_LIMITS, type EvidenceEntry, type RecapDraft } from "./recap";
 
 /** The tool calls the template is built from, in order. */
 export const TEMPLATE_CALLS = [
@@ -13,12 +14,20 @@ export const TEMPLATE_CALLS = [
   { tool: "top_performers", input: { limit: 5 } },
 ] as const;
 
-const scored = z.object({ player: z.string(), team: z.string(), points: z.number() });
+const scored = z.object({ player: z.string(), ref: z.string().regex(/^p\d+$/), team: z.string(), points: z.number() });
 
 const summarySchema = z.object({
   gameweek: z.number(),
   managers: z.object({ averageScore: z.number(), highestScore: z.number().optional() }),
-  matches: z.array(z.object({ home: z.string(), away: z.string(), score: z.string().optional() })),
+  matches: z.array(
+    z.object({
+      home: z.string(),
+      away: z.string(),
+      score: z.string().optional(),
+      scorers: z.array(z.object({ goals: z.number() })).optional(),
+    }),
+  ),
+  matchCount: z.number().optional(),
   goals: z.number(),
   topScorer: scored.optional(),
   mostCaptained: scored.optional(),
@@ -29,9 +38,9 @@ const performersSchema = z.object({ players: z.array(scored) });
 
 const points = (n: number) => `${n} ${Math.abs(n) === 1 ? "point" : "points"}`;
 
-/** How many results one claim lists, so it stays under the claim length limit. */
-const RESULTS_PER_CLAIM = 3;
-const MAX_RESULTS = 12;
+/** The matches card's results: the most goals first. */
+const MAX_MATCHES = 3;
+/** Players on the "close behind" card, after the top scorer. */
 const MAX_OTHER_SCORERS = 3;
 
 /**
@@ -49,65 +58,84 @@ export function buildTemplateRecap(evidence: readonly EvidenceEntry[]): RecapDra
   if (!summary.success || !performers.success) return null;
 
   const s = summary.data;
-  const paragraphs: string[] = [];
-  const claims: Claim[] = [];
-  /** Adds a paragraph whose sentences are each a claim citing one result. */
-  const paragraph = (sentences: { text: string; from: EvidenceEntry }[]) => {
-    if (sentences.length === 0) return;
-    paragraphs.push(sentences.map((x) => x.text).join(" "));
-    for (const x of sentences) claims.push({ text: x.text, evidence: [x.from.id] });
-  };
+  const fromSummary = [summaryEntry.id];
+  const fromPerformers = [performersEntry.id];
+  const cards: RecapCard[] = [];
 
-  // 1. The top scores.
-  const top = s.topScorer ?? performers.data.players[0];
-  const scorers: { text: string; from: EvidenceEntry }[] = [];
-  if (top) {
-    const from = s.topScorer ? summaryEntry : performersEntry;
-    scorers.push({ text: `${top.player} of ${top.team} was the top scorer of Gameweek ${s.gameweek} with ${points(top.points)}.`, from });
-  }
-  for (const p of performers.data.players.filter((p) => p.player !== top?.player).slice(0, MAX_OTHER_SCORERS)) {
-    scorers.push({ text: `${p.player} of ${p.team} returned ${points(p.points)}.`, from: performersEntry });
-  }
-  paragraph(scorers);
+  // 1. The gameweek in numbers.
+  cards.push({
+    type: "numbers",
+    items: [
+      { value: String(s.managers.averageScore), label: "average score" },
+      { value: String(s.goals), label: "goals" },
+      ...(s.matchCount !== undefined ? [{ value: String(s.matchCount), label: "matches" }] : []),
+    ],
+    evidence: fromSummary,
+  });
 
-  // 2. Managers, the captain and the big transfer.
-  const managers: { text: string; from: EvidenceEntry }[] = [
-    { text: `The average manager scored ${points(s.managers.averageScore)}.`, from: summaryEntry },
-  ];
-  if (s.managers.highestScore !== undefined) {
-    managers.push({ text: `The highest manager score of the gameweek was ${points(s.managers.highestScore)}.`, from: summaryEntry });
-  }
+  // 2. The captain.
   if (s.mostCaptained) {
-    managers.push({
-      text: `${s.mostCaptained.player} was the most-captained player and returned ${points(s.mostCaptained.points)}.`,
-      from: summaryEntry,
-    });
+    cards.push({ type: "captaincy", player: s.mostCaptained.player, ref: s.mostCaptained.ref, points: s.mostCaptained.points, evidence: fromSummary });
   }
-  if (s.mostTransferredIn) {
-    managers.push({
-      text: `${s.mostTransferredIn.player} was the most-transferred-in player and returned ${points(s.mostTransferredIn.points)}.`,
-      from: summaryEntry,
-    });
-  }
-  paragraph(managers);
 
-  // 3. The results.
-  const results = s.matches.filter((m) => m.score !== undefined).slice(0, MAX_RESULTS);
-  // The summary gives no count of matches, so the sentence doesn't either.
-  const matches: { text: string; from: EvidenceEntry }[] = [
-    { text: `There were ${s.goals} ${s.goals === 1 ? "goal" : "goals"} scored in the gameweek.`, from: summaryEntry },
-  ];
-  for (let i = 0; i < results.length; i += RESULTS_PER_CLAIM) {
-    const group = results.slice(i, i + RESULTS_PER_CLAIM).map((m) => `${m.home} ${m.score} ${m.away}`);
-    matches.push({ text: `${i === 0 ? "The results included" : "There was also"} ${list(group)}.`, from: summaryEntry });
+  // 3. The top scorer, then the next best.
+  const top = s.topScorer ?? performers.data.players[0];
+  if (top) {
+    cards.push({
+      type: "players",
+      title: "The top scorer",
+      players: [{ player: top.player, ref: top.ref, points: top.points }],
+      evidence: s.topScorer ? fromSummary : fromPerformers,
+    });
   }
-  paragraph(matches);
+  const others = performers.data.players.filter((p) => p.ref !== top?.ref).slice(0, MAX_OTHER_SCORERS);
+  if (others.length > 0) {
+    cards.push({
+      type: "players",
+      title: "Close behind",
+      players: others.map((p) => ({ player: p.player, ref: p.ref, points: p.points })),
+      evidence: fromPerformers,
+    });
+  }
+
+  // 4. The results with the most goals.
+  const goalsIn = (m: (typeof s.matches)[number]) => (m.score ?? "").split("-").reduce((sum, g) => sum + (Number(g) || 0), 0);
+  const results = s.matches
+    .filter((m) => m.score !== undefined && /^\d{1,2}-\d{1,2}$/.test(m.score))
+    .map((m, i) => ({ m, i }))
+    .sort((a, b) => goalsIn(b.m) - goalsIn(a.m) || a.i - b.i)
+    .slice(0, MAX_MATCHES)
+    .map(({ m }) => ({ home: m.home, away: m.away, score: m.score! }));
+  if (results.length > 0) {
+    cards.push({ type: "matches", title: "The most goals", matches: results, evidence: fromSummary });
+  }
+
+  // 5. The transfer market's favourite. gameweek_summary has no net transfers,
+  // so it is a note rather than a transfers card.
+  if (s.mostTransferredIn) {
+    cards.push({
+      type: "notes",
+      title: "Also worth knowing",
+      items: [
+        {
+          player: s.mostTransferredIn.player,
+          ref: s.mostTransferredIn.ref,
+          text: "was the most-transferred-in player",
+          points: s.mostTransferredIn.points,
+        },
+        ...(s.managers.highestScore !== undefined
+          ? [{ text: `The highest manager score of the gameweek was ${points(s.managers.highestScore)}.` }]
+          : []),
+      ],
+      evidence: fromSummary,
+    });
+    // A notes card needs two lines.
+    const notes = cards.at(-1);
+    if (notes?.type === "notes" && notes.items.length < RECAP_LIMITS.notesMin) cards.pop();
+  }
 
   const headline = top
     ? `${top.player} tops Gameweek ${s.gameweek} with ${points(top.points)}`
     : `Gameweek ${s.gameweek} in numbers`;
-  return { headline: headline.slice(0, RECAP_LIMITS.headlineMaxChars), paragraphs, claims };
+  return { headline: headline.slice(0, RECAP_LIMITS.headlineMaxChars), cards: cards.slice(0, RECAP_LIMITS.maxCards) };
 }
-
-const list = (items: string[]) =>
-  items.length <= 1 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;

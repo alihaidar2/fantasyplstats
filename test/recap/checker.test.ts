@@ -1,16 +1,23 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkRecap, type CheckOptions } from "../../src/lib/recap/checker";
-import { recapSchema, type CheckReport, type Recap, type RecapDraft } from "../../src/lib/recap/recap";
+import { checkParagraphRecap, type CheckOptions } from "../../src/lib/recap/checker";
+import {
+  paragraphRecapSchema,
+  type CheckReport,
+  type ParagraphDraft,
+  type ParagraphRecap,
+} from "../../src/lib/recap/recap";
 import { createRecapSession } from "../../src/lib/recap/session";
 import { nameIndexOf } from "../../src/lib/recap/tools/shared";
 import { loadContext } from "./helpers";
 
-const SAMPLE_FILE = path.join(__dirname, "..", "fixtures", "recap", "sample-recap.json");
-const loadSample = (): Recap => recapSchema.parse(JSON.parse(readFileSync(SAMPLE_FILE, "utf8")));
+const SAMPLE_FILE = path.join(__dirname, "..", "fixtures", "recap", "sample-recap-v1.json");
+const loadSample = (): ParagraphRecap => paragraphRecapSchema.parse(JSON.parse(readFileSync(SAMPLE_FILE, "utf8")));
 
-// The sample is a hand-written recap of the recorded GW4, with the evidence
+// The version 1 checks (paragraphs and claims): the text checker underneath
+// both versions. The sample is a hand-written version 1 recap of the recorded
+// GW4 (cards.test.ts checks the version 2 one), with the evidence
 // log of the tool calls it was written from.
 const context = loadContext(4);
 const sample = loadSample();
@@ -22,21 +29,21 @@ const options: CheckOptions = {
   nameEntries: context.names,
 };
 
-const draftOf = (recap: Recap): RecapDraft => ({
+const draftOf = (recap: ParagraphRecap): ParagraphDraft => ({
   headline: recap.headline,
   paragraphs: [...recap.paragraphs],
   claims: recap.claims.map((c) => ({ text: c.text, evidence: [...c.evidence] })),
 });
 
 /** The sample with one thing changed. */
-function broken(edit: (draft: RecapDraft) => void, extra: Partial<CheckOptions> = {}): CheckReport {
+function broken(edit: (draft: ParagraphDraft) => void, extra: Partial<CheckOptions> = {}): CheckReport {
   const draft = draftOf(sample);
   edit(draft);
-  return checkRecap(draft, { ...options, ...extra });
+  return checkParagraphRecap(draft, { ...options, ...extra });
 }
 
 /** Replaces text everywhere it appears: paragraphs and claims. */
-function replaceAll(draft: RecapDraft, from: string, to: string): void {
+function replaceAll(draft: ParagraphDraft, from: string, to: string): void {
   const count = [draft.headline, ...draft.paragraphs, ...draft.claims.map((c) => c.text)].filter((t) => t.includes(from)).length;
   if (count === 0) throw new Error(`The sample does not contain "${from}".`);
   draft.headline = draft.headline.replaceAll(from, to);
@@ -50,7 +57,7 @@ const messages = (report: CheckReport, code: string) =>
 
 describe("the sample recap", () => {
   it("is a valid saved recap that passes the checker", () => {
-    const report = checkRecap(draftOf(sample), options);
+    const report = checkParagraphRecap(draftOf(sample), options);
     expect(report.issues).toEqual([]);
     expect(report.passed).toBe(true);
     expect(report.numbersChecked).toBeGreaterThan(40);
@@ -66,8 +73,8 @@ describe("the sample recap", () => {
     const session = createRecapSession(context);
     for (const entry of sample.evidence) session.call(entry.tool, entry.input);
     if (process.env.UPDATE_SAMPLE_RECAP) {
-      const updated = { ...sample, evidence: session.evidence, checks: session.check(draftOf(sample)) };
-      writeFileSync(SAMPLE_FILE, `${JSON.stringify(recapSchema.parse(updated), null, 2)}\n`);
+      const updated = { ...sample, evidence: session.evidence, checks: checkParagraphRecap(draftOf(sample), { ...options, evidence: session.evidence }) };
+      writeFileSync(SAMPLE_FILE, `${JSON.stringify(paragraphRecapSchema.parse(updated), null, 2)}\n`);
     }
     expect(session.evidence).toEqual(loadSample().evidence);
     expect(sample.usage.toolCalls).toBe(sample.evidence.length);
@@ -407,7 +414,7 @@ describe("claims", () => {
     session.call("submit_recap", draftOf(sample)); // r9
     const draft = draftOf(sample);
     draft.claims[2].evidence = ["r1", "r8", "r9", "r99"];
-    const report = session.check(draft);
+    const report = checkParagraphRecap(draft, { ...options, evidence: session.evidence });
     expect(messages(report, "unknown-result")).toEqual([
       "claim 3: It cites r8, a call that failed and returned no data.",
       "claim 3: It cites r9, a submit_recap call. Cite the tool results the facts came from.",
@@ -431,10 +438,10 @@ describe("claims", () => {
     draft.paragraphs[3] += " The best team scored 999 points.";
     draft.claims.push({ text: "The best team scored 999 points.", evidence: ["r1"] });
     const first = session.call("submit_recap", draft);
-    expect(first.result).toMatchObject({ accepted: false });
+    expect(first.tool).toBe("submit_recap");
     // 999 is now in the log (as submit_recap's input), but that is not evidence.
     draft.claims.at(-1)!.evidence = [first.id];
-    const report = session.check(draft);
+    const report = checkParagraphRecap(draft, { ...options, evidence: session.evidence });
     expect(codes(report)).toEqual(["number-not-cited", "number-not-in-evidence", "unknown-result"]);
   });
 });
@@ -516,7 +523,7 @@ describe("club nicknames", () => {
 
   /** A short recap of its own, so the test controls which clubs it names in full. */
   const short = (paragraphs: string[], claims: { text: string; evidence: string[] }[]) =>
-    checkRecap(
+    checkParagraphRecap(
       { headline: "Haaland wins it for the champions", paragraphs, claims },
       { ...options, limits: { minWords: 1, minClaims: 1, minParagraphs: 1 } },
     );
@@ -711,7 +718,7 @@ describe("captaincy and transfer results", () => {
     const high = (shortlist.result as { highsSetThisGameweek: { high: string; played?: number }[] }).highsSetThisGameweek.find((h) => h.played);
     expect(high).toBeDefined();
     const sentence = `The Triple Captain chip was played ${high!.played!.toLocaleString("en-GB")} times.`;
-    const report = checkRecap(
+    const report = checkParagraphRecap(
       { headline: "Triple Captain week", paragraphs: [sentence], claims: [{ text: sentence, evidence: [shortlist.id] }] },
       { season: gw3.season, gameweek: 3, evidence: session.evidence, names: nameIndexOf(gw3), nameEntries: gw3.names, limits: { minWords: 1, minClaims: 1, minParagraphs: 1 } },
     );

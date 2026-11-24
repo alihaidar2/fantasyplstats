@@ -15,6 +15,7 @@ import {
 import type { RecapModel } from "../src/lib/recap/model";
 import { roundUsd } from "../src/lib/recap/pricing";
 import type { Recap, RecapRun } from "../src/lib/recap/recap";
+import { recapTextBlocks } from "../src/lib/recap/text";
 import { loadRecording, type Recording } from "./recorded-gameweeks";
 
 export const DEFAULT_REFERENCES_DIR = path.join(__dirname, "..", "evals", "references");
@@ -161,7 +162,7 @@ export async function runEval(options: EvalOptions): Promise<EvalRun> {
         .filter((a) => a.outcome === "failed")
         .map((a) => ({ attempt: a.attempt, issues: a.issues.map((i) => `${i.where}: ${i.message}`) })),
       headline: recap.headline,
-      words: recap.paragraphs.join(" ").split(/\s+/).filter(Boolean).length,
+      words: recapTextBlocks(recap).join(" ").split(/\s+/).filter(Boolean).length,
       toolCalls: recap.usage.toolCalls,
       modelCalls: run.modelCalls,
       inputTokens: recap.usage.inputTokens,
@@ -188,7 +189,9 @@ export async function runEval(options: EvalOptions): Promise<EvalRun> {
       continue;
     }
     try {
-      const judged = await judgeRecap({ model: judge, gameweek, references, recap });
+      // The judge reads the cards as plain text (recapToText), one block per card.
+      const text = { headline: recap.headline, paragraphs: recapTextBlocks(recap) };
+      const judged = await judgeRecap({ model: judge, gameweek, references, recap: text });
       if (!judged.priced) priced = false;
       const { coverage, rubric } = judged.judgement;
       result.judge = {

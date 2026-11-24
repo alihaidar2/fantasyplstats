@@ -137,12 +137,12 @@ export function truncateDescription(text: string, max = 160): string {
   return `${(space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:.\-–—]+$/, "")}…`;
 }
 
-/** Metadata for /recap/<season>/gw<N>/: the headline as the title, the opening as the description. */
+/** Metadata for /recap/<season>/gw<N>/: the headline as the title, the opening (recapSummary) as the description and share text. */
 export function recapMetadata(recap: PublishedRecap): Metadata {
   return pageMetadata({
     title: `GW${recap.gameweek} recap: ${recap.headline}`,
     description: truncateDescription(
-      `Fantasy Premier League ${formatSeason(recap.season)} Gameweek ${recap.gameweek} recap. ${recap.paragraphs[0]}`,
+      `Fantasy Premier League ${formatSeason(recap.season)} Gameweek ${recap.gameweek} recap. ${recap.summary}`,
     ),
     path: recap.path,
     openGraph: { type: "article", publishedTime: recap.generatedAt },

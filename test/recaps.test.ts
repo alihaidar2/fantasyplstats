@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { recapSchema, type Recap } from "../src/lib/recap/recap";
+import { recapSchema, type CardRecap, type ParagraphRecap, type Recap } from "../src/lib/recap/recap";
 import {
   adjacentRecaps,
   compareNewestFirst,
@@ -21,9 +21,14 @@ import { loadRecapRaw } from "./recap/helpers";
 
 const FIXTURE_DIR = path.join(__dirname, "fixtures", "recaps");
 
-/** A fresh copy of the hand-written GW4 sample, edited by `changes`. */
-function sampleRecap(changes: Partial<Recap> = {}): Recap {
-  return { ...(loadRecapRaw("sample-recap.json") as Recap), ...changes };
+/** A fresh copy of the hand-written GW4 sample (cards, version 2), edited by `changes`. */
+function sampleRecap(changes: Partial<CardRecap> = {}): CardRecap {
+  return { ...(loadRecapRaw("sample-recap.json") as CardRecap), ...changes };
+}
+
+/** The same gameweek as a version 1 recap (paragraphs), as the first published recaps were written. */
+function sampleV1(changes: Partial<ParagraphRecap> = {}): ParagraphRecap {
+  return { ...(loadRecapRaw("sample-recap-v1.json") as ParagraphRecap), ...changes };
 }
 
 /** A published recap for ordering tests; only season and gameweek matter. */
@@ -90,12 +95,28 @@ describe("loadRecaps", () => {
         gameweek: 4,
         path: "/recap/2026-27/gw4/",
         headline: sample.headline,
-        paragraphs: sample.paragraphs,
+        body: { kind: "cards", cards: sample.cards.map(({ evidence, ...card }) => (void evidence, card)) },
+        summary: expect.stringMatching(/^A steady return from the armband/),
         model: "hand-written",
         generatedAt: sample.generatedAt,
       },
     ]);
     expect(recaps[0]).not.toHaveProperty("evidence");
+    expect(JSON.stringify(recaps)).not.toMatch(/"evidence"/);
+  });
+
+  it("still loads a version 1 recap, with its paragraphs and long numbers formatted", () => {
+    const v1 = sampleV1();
+    v1.paragraphs[2] += " B.Fernandes lost 615807 net transfers.";
+    write("2026-27/gw04.json", v1);
+    write("2026-27/gw05.json", sampleRecap({ gameweek: 5 }));
+    const [five, four] = loadRecaps(dir);
+    expect(five.body.kind).toBe("cards");
+    expect(four.body).toEqual({
+      kind: "paragraphs",
+      paragraphs: [...v1.paragraphs.slice(0, 2), v1.paragraphs[2].replace("615807", "615,807"), v1.paragraphs[3]],
+    });
+    expect(four.summary).toBe(v1.paragraphs[0]);
   });
 
   it("keeps the CI fixture an exact copy of the sample recap", () => {
@@ -120,7 +141,7 @@ describe("loadRecaps", () => {
     const withoutHeadline: Partial<Recap> = sampleRecap();
     delete withoutHeadline.headline;
     write("2026-27/gw04.json", withoutHeadline);
-    write("2026-27/gw05.json", sampleRecap({ gameweek: 5, version: 2 as 1 }));
+    write("2026-27/gw05.json", sampleRecap({ gameweek: 5, version: 3 as 2 }));
     const message = loadError().message;
     expect(message).toMatch(/2026-27\/gw04\.json: does not match the recap schema/);
     expect(message).toMatch(/headline/);

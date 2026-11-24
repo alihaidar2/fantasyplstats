@@ -11,7 +11,9 @@ import {
   buildSnapshot,
   createFplClient,
   type EventStatus,
+  type Fixture,
   type FplEvent,
+  type Team,
   type FplGameweekClient,
   type SnapshotClient,
 } from "../src/lib/fpl";
@@ -25,6 +27,7 @@ import {
 } from "../src/lib/recap/context";
 import type { RecapModel } from "../src/lib/recap/model";
 import type { Recap } from "../src/lib/recap/recap";
+import { recapToText, type RecapContent } from "../src/lib/recap/text";
 import { loadRecaps } from "../src/lib/recaps";
 import type { Recording } from "./recorded-gameweeks";
 
@@ -38,23 +41,91 @@ export class PublishError extends Error {
   }
 }
 
+/** What the unsettled message needs from a fixture (FPL's fixtures/). */
+export type EventFixture = Pick<Fixture, "event" | "kickoff_time" | "started" | "finished" | "team_h" | "team_a"> &
+  Partial<Pick<Fixture, "finished_provisional" | "minutes">>;
+
+/** Full time, whether or not FPL has confirmed the result (a recording keeps only `finished`). */
+const fullTime = (f: EventFixture) => f.finished_provisional ?? f.finished;
+
+/** The season's fixtures and clubs, so an unsettled message can name the matches holding a gameweek up. */
+export interface SettlementDetails {
+  fixtures: readonly EventFixture[];
+  teams: readonly Pick<Team, "id" | "name">[];
+}
+
+const ukDay = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short" });
+const ukTime = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit" });
+
+/** "Sat 22 Nov" for event-status's "2026-11-22". */
+function matchDay(date: string): string {
+  const day = new Date(`${date}T12:00:00Z`);
+  return Number.isNaN(day.getTime()) ? date : ukDay.format(day).replace(",", "");
+}
+
+/** "Arsenal v Chelsea (in play, 67 min)" */
+function describeFixture(f: EventFixture, teams: SettlementDetails["teams"]): string {
+  const name = (id: number) => teams.find((t) => t.id === id)?.name ?? `team ${id}`;
+  let state: string;
+  if (!f.started) {
+    const kickoff = f.kickoff_time ? new Date(f.kickoff_time) : null;
+    state =
+      kickoff && !Number.isNaN(kickoff.getTime())
+        ? `kicks off ${ukDay.format(kickoff).replace(",", "")} ${ukTime.format(kickoff)} UK time`
+        : "no kick-off time yet";
+  } else if (!fullTime(f)) {
+    state = f.minutes !== undefined ? `in play, ${f.minutes} min` : "in play";
+  } else {
+    state = "full time, result and bonus not yet confirmed";
+  }
+  return `${name(f.team_h)} v ${name(f.team_a)} (${state})`;
+}
+
+const POINTS_STATE: Record<string, string> = { r: "confirmed", p: "provisional", "": "not started" };
+
 /**
  * Why a gameweek's points aren't final yet, or null once they are: it is
  * `finished` and `data_checked`, and when event-status still describes it
  * (it only ever describes the current gameweek), every match day's points are
  * confirmed ("r") with bonus added. Once event-status has moved on to a later
  * gameweek, `data_checked` is the word that counts.
+ *
+ * With the season's fixtures it says which matches are holding the gameweek
+ * up (not started, in play, or awaiting confirmation), and with event-status
+ * which match days lack confirmed points or bonus.
  */
-export function unsettledReason(event: EventFields, eventStatus: EventStatus | null): string | null {
-  if (!event.finished) return `gameweek ${event.id} hasn't finished`;
-  if (!event.data_checked) return `FPL hasn't checked gameweek ${event.id}'s data yet (data_checked is false)`;
+export function unsettledReason(
+  event: EventFields,
+  eventStatus: EventStatus | null,
+  details?: SettlementDetails,
+): string | null {
+  const fixtures = details?.fixtures.filter((f) => f.event === event.id) ?? [];
+  const teams = details?.teams ?? [];
   const days = eventStatus?.status.filter((s) => s.event === event.id) ?? [];
   const pending = days.filter((d) => d.points !== "r" || !d.bonus_added);
-  if (pending.length) {
+  const pendingDays = pending
+    .map((d) => `${matchDay(d.date)} (points ${POINTS_STATE[d.points] ?? `"${d.points}"`}, bonus ${d.bonus_added ? "added" : "not added"})`)
+    .join(", ");
+
+  if (!event.finished) {
+    const unfinished = fixtures.filter((f) => !fullTime(f));
     return (
-      `event-status hasn't confirmed gameweek ${event.id}'s points and bonus for ` +
-      pending.map((d) => `${d.date} (points "${d.points}", bonus ${d.bonus_added ? "added" : "not added"})`).join(", ")
+      `gameweek ${event.id} hasn't finished` +
+      (unfinished.length
+        ? `: ${unfinished.length} of ${fixtures.length} matches still to finish: ${unfinished.map((f) => describeFixture(f, teams)).join("; ")}`
+        : "")
     );
+  }
+  if (!event.data_checked) {
+    const unconfirmed = fixtures.filter((f) => !f.finished);
+    return (
+      `FPL hasn't checked gameweek ${event.id}'s data yet (data_checked is false)` +
+      (unconfirmed.length ? `; not yet confirmed: ${unconfirmed.map((f) => describeFixture(f, teams)).join("; ")}` : "") +
+      (pending.length ? `; match days without confirmed points or bonus: ${pendingDays}` : "")
+    );
+  }
+  if (pending.length) {
+    return `event-status hasn't confirmed gameweek ${event.id}'s points and bonus for ${pendingDays}`;
   }
   return null;
 }
@@ -68,6 +139,8 @@ export interface SelectOptions {
   published: readonly number[];
   /** An explicit gameweek (--gameweek). */
   requested?: number;
+  /** Fixtures and clubs, to name the matches a gameweek is waiting on. */
+  details?: SettlementDetails;
 }
 
 /**
@@ -80,11 +153,11 @@ export interface SelectOptions {
  * default, so a scheduled run can't backfill the season.
  */
 export function selectGameweek(options: SelectOptions): Selection {
-  const { events, eventStatus, published, requested } = options;
+  const { events, eventStatus, published, requested, details } = options;
   if (requested !== undefined) {
     const event = events.find((e) => e.id === requested);
     if (!event) throw new PublishError(`Gameweek ${requested} is not in FPL's events.`);
-    const reason = unsettledReason(event, eventStatus);
+    const reason = unsettledReason(event, eventStatus, details);
     if (reason) throw new PublishError(`Gameweek ${requested} isn't settled: ${reason}.`);
     if (published.includes(requested)) {
       throw new PublishError(
@@ -96,10 +169,14 @@ export function selectGameweek(options: SelectOptions): Selection {
 
   const latest = events.filter((e) => e.finished).sort((a, b) => b.id - a.id)[0];
   if (!latest) return { gameweek: null, reason: "no gameweek has finished yet" };
-  const reason = unsettledReason(latest, eventStatus);
+  const reason = unsettledReason(latest, eventStatus, details);
   if (reason) return { gameweek: null, reason: `waiting: ${reason}` };
   if (published.some((gw) => gw >= latest.id)) {
-    return { gameweek: null, reason: `gameweek ${latest.id} already has a recap` };
+    // Say what the next one is waiting on, if it has started.
+    const next = events.filter((e) => e.id > latest.id).sort((a, b) => a.id - b.id)[0];
+    const started = next && details?.fixtures.some((f) => f.event === next.id && f.started);
+    const nextReason = next && started ? unsettledReason(next, eventStatus, details) : null;
+    return { gameweek: null, reason: `gameweek ${latest.id} already has a recap${nextReason ? `, and ${nextReason}` : ""}` };
   }
   return { gameweek: latest.id };
 }
@@ -111,8 +188,13 @@ export function recapFile(contentDir: string, season: string, gameweek: number):
 
 /** Where the publisher gets FPL data from: live FPL, or a recording for offline runs. */
 export interface PublishSource {
-  /** The events and event-status the gameweek is chosen from: two light requests. */
-  overview(): Promise<{ season: string; events: EventFields[]; eventStatus: EventStatus | null }>;
+  /** The events and event-status the gameweek is chosen from, and the fixtures and clubs that say what an unsettled one waits on. */
+  overview(): Promise<{
+    season: string;
+    events: EventFields[];
+    eventStatus: EventStatus | null;
+    details?: SettlementDetails;
+  }>;
   /** Everything a gameweek's context is built from. */
   sources(gameweek: number): Promise<GameweekSources>;
 }
@@ -133,8 +215,17 @@ export function liveSource(options: {
   const log = options.log ?? (() => {});
   return {
     async overview() {
-      const [bootstrap, eventStatus] = await Promise.all([client.getBootstrap(), client.getEventStatus()]);
-      return { season: seasonOf({ bootstrap }), events: bootstrap.events, eventStatus };
+      const [bootstrap, eventStatus, fixtures] = await Promise.all([
+        client.getBootstrap(),
+        client.getEventStatus(),
+        client.getFixtures(),
+      ]);
+      return {
+        season: seasonOf({ bootstrap }),
+        events: bootstrap.events,
+        eventStatus,
+        details: { fixtures, teams: bootstrap.teams },
+      };
     },
     async sources(gameweek) {
       let snapshot = options.snapshot;
@@ -154,7 +245,12 @@ export function recordedSource(recording: Recording): PublishSource {
   return {
     async overview() {
       const { snapshot } = recording.sources(last);
-      return { season: seasonOf(snapshot), events: snapshot.bootstrap.events, eventStatus: null };
+      return {
+        season: seasonOf(snapshot),
+        events: snapshot.bootstrap.events,
+        eventStatus: null,
+        details: { fixtures: snapshot.fixtures, teams: snapshot.bootstrap.teams },
+      };
     },
     async sources(gameweek) {
       return recording.sources(gameweek);
@@ -188,12 +284,12 @@ export async function publishRecap(options: PublishOptions): Promise<PublishResu
   const { source, model, contentDir } = options;
   const log = options.log ?? (() => {});
 
-  const { season, events, eventStatus } = await source.overview();
+  const { season, events, eventStatus, details } = await source.overview();
   // Also validates what is already published: a broken recap folder stops the run here.
   const published = loadRecaps(contentDir)
     .filter((r) => r.season === season)
     .map((r) => r.gameweek);
-  const selection = selectGameweek({ events, eventStatus, published, requested: options.gameweek });
+  const selection = selectGameweek({ events, eventStatus, published, requested: options.gameweek, details });
   if (selection.gameweek === null) return { status: "nothing-to-do", season, reason: selection.reason };
   const { gameweek } = selection;
   const file = recapFile(contentDir, season, gameweek);
@@ -234,9 +330,9 @@ const OUTCOME: Record<NonNullable<Recap["run"]>["outcome"], string> = {
   fallback: "fell back to the template",
 };
 
-/** The recap as plain text: headline, then paragraphs. */
-export function recapText(recap: Pick<Recap, "headline" | "paragraphs">): string {
-  return [`# ${recap.headline}`, "", ...recap.paragraphs.flatMap((p) => [p, ""])].join("\n").trimEnd();
+/** The recap as plain text: "# headline", then a block per card (or paragraph, for a version 1 recap). */
+export function recapText(recap: RecapContent): string {
+  return recapToText(recap);
 }
 
 /** One line on model, cost, checker, tool calls and time. */
@@ -264,7 +360,7 @@ export function recapPullRequestBody(recap: Recap, file: string): string {
     "",
     recapStats(recap) + ".",
     "",
-    `Every number and name above was checked against the tool results in \`${file}\` (its \`evidence\` and \`claims\`).`,
+    `Every number and name above was checked against the tool results in \`${file}\`: each card cites the results in its \`evidence\` list, and the page shows the cards as graphics.`,
     "",
     "**To publish:** read it, and merge if it's right. Hand edits to the file aren't re-checked, so for a different recap close this PR, delete its branch and run the Recap workflow again.",
     "",

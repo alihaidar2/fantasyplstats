@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { EventStatus, SnapshotClient, FplGameweekClient } from "../../src/lib/fpl";
 import { fakeWriterModel } from "../../src/lib/recap/fakes";
 import { scriptedModel } from "../../src/lib/recap/model";
-import { recapSchema } from "../../src/lib/recap/recap";
+import { cardRecapSchema } from "../../src/lib/recap/recap";
+import { recapTextBlocks } from "../../src/lib/recap/text";
 import { loadRecaps } from "../../src/lib/recaps";
 import { loadRecording } from "../../scripts/recorded-gameweeks";
 import {
@@ -16,6 +17,7 @@ import {
   recordedSource,
   selectGameweek,
   unsettledReason,
+  type EventFixture,
 } from "../../scripts/recap-publisher";
 import { loadSources, type SnapshotSources } from "./helpers";
 
@@ -36,14 +38,70 @@ describe("unsettledReason", () => {
     expect(unsettledReason(settled(11), null)).toBeNull();
   });
 
-  it("needs confirmed points and bonus while event-status describes the gameweek", () => {
-    expect(unsettledReason(settled(11), status(11, "p", false))).toMatch(/2026-11-22 \(points "p", bonus not added\)/);
-    expect(unsettledReason(settled(11), status(11, "r", false))).toMatch(/bonus not added/);
+  it("needs confirmed points and bonus while event-status describes the gameweek, naming the match days", () => {
+    expect(unsettledReason(settled(11), status(11, "p", false))).toBe(
+      "event-status hasn't confirmed gameweek 11's points and bonus for Sun 22 Nov (points provisional, bonus not added)",
+    );
+    expect(unsettledReason(settled(11), status(11, "r", false))).toMatch(/Sun 22 Nov \(points confirmed, bonus not added\)$/);
     expect(unsettledReason(settled(11), status(11, "r", true))).toBeNull();
   });
 
   it("goes by data_checked once event-status has moved on to a later gameweek", () => {
     expect(unsettledReason(settled(11), status(12, "", false))).toBeNull();
+  });
+
+  describe("with the fixtures", () => {
+    const teams = [
+      { id: 1, name: "Arsenal" },
+      { id: 2, name: "Chelsea" },
+      { id: 3, name: "Spurs" },
+      { id: 4, name: "Leeds" },
+      { id: 5, name: "Everton" },
+      { id: 6, name: "Fulham" },
+    ];
+    const fixture = (team_h: number, team_a: number, state: Partial<EventFixture> = {}): EventFixture => ({
+      event: 12,
+      kickoff_time: "2026-11-29T16:30:00Z",
+      started: true,
+      finished_provisional: true,
+      finished: true,
+      minutes: 90,
+      team_h,
+      team_a,
+      ...state,
+    });
+    const fixtures = [
+      fixture(1, 2),
+      fixture(3, 4, { finished_provisional: false, finished: false, minutes: 67 }),
+      fixture(5, 6, { started: false, finished_provisional: false, finished: false, minutes: 0 }),
+      { ...fixture(1, 3), event: 11 },
+    ];
+
+    it("names the matches still to finish", () => {
+      expect(unsettledReason({ id: 12, finished: false, data_checked: false }, null, { fixtures, teams })).toBe(
+        "gameweek 12 hasn't finished: 2 of 3 matches still to finish: Spurs v Leeds (in play, 67 min); " +
+          "Everton v Fulham (kicks off Sun 29 Nov 16:30 UK time)",
+      );
+    });
+
+    it("names the matches whose results and bonus FPL hasn't confirmed, and the match days without confirmed points", () => {
+      const awaiting = [fixture(1, 2), fixture(3, 4, { finished: false })];
+      expect(
+        unsettledReason({ id: 12, finished: true, data_checked: false }, status(12, "p", false, "2026-11-29"), { fixtures: awaiting, teams }),
+      ).toBe(
+        "FPL hasn't checked gameweek 12's data yet (data_checked is false); not yet confirmed: " +
+          "Spurs v Leeds (full time, result and bonus not yet confirmed); " +
+          "match days without confirmed points or bonus: Sun 29 Nov (points provisional, bonus not added)",
+      );
+    });
+
+    it("says what the next gameweek is waiting on once the latest has a recap", () => {
+      const events = [settled(11), { id: 12, finished: false, data_checked: false }];
+      expect(selectGameweek({ events, eventStatus: null, published: [11], details: { fixtures, teams } })).toEqual({
+        gameweek: null,
+        reason: expect.stringMatching(/^gameweek 11 already has a recap, and gameweek 12 hasn't finished: 2 of 3 matches still to finish: Spurs v Leeds/),
+      });
+    });
   });
 });
 
@@ -104,6 +162,7 @@ function fakeLive(edit?: (sources: SnapshotSources) => void) {
   const client = {
     getBootstrap: async () => (requests.push("bootstrap"), sources.snapshot.bootstrap),
     getEventStatus: async () => (requests.push("event-status"), sources.eventStatus!),
+    getFixtures: async () => (requests.push("fixtures"), sources.snapshot.fixtures),
     getEventLive: async (gw: number) => (requests.push(`live ${gw}`), sources.live),
     getGameweekFixtures: async (gw: number) => (requests.push(`fixtures ${gw}`), sources.fixtures),
     getDreamTeam: async (gw: number) => (requests.push(`dream-team ${gw}`), sources.dreamTeam),
@@ -119,14 +178,11 @@ const inventingModel = () =>
         name: "submit_recap",
         input: {
           headline: "Somebody scored 999 points in Gameweek 4",
-          paragraphs: [
-            "Somebody scored 999 points in Gameweek 4, which nobody did. ".repeat(4),
-            "The average manager scored 999 points as well, which is also made up. ".repeat(4),
-          ],
-          claims: [
-            { text: "Somebody scored 999 points.", evidence: ["r1"] },
-            { text: "The average was 999 points.", evidence: ["r1"] },
-            { text: "That was Gameweek 4.", evidence: ["r1"] },
+          cards: [
+            { type: "numbers", items: [{ value: "999", label: "average score" }, { value: "29", label: "goals" }], evidence: ["r1"] },
+            { type: "captaincy", player: "Haaland", ref: "p411", points: 999, evidence: ["r1"] },
+            { type: "matches", matches: [{ home: "Leeds", away: "Newcastle", score: "9-9" }], evidence: ["r1"] },
+            { type: "notes", items: [{ text: "Nobody scored 999 points." }, { text: "That was Gameweek 4." }], evidence: ["r1"] },
           ],
         },
       },
@@ -146,14 +202,16 @@ describe("publishRecap", () => {
 
     const file = path.join(dir, "2026-27", "gw04.json");
     expect(result).toMatchObject({ status: "published", season: "2026-27", gameweek: 4, file, written: true });
-    const saved = recapSchema.parse(JSON.parse(readFileSync(file, "utf8")));
+    const saved = cardRecapSchema.parse(JSON.parse(readFileSync(file, "utf8")));
     expect(saved).toMatchObject({ gameweek: 4, model: "fake-writer", checks: { passed: true }, run: { fallback: false } });
     expect(loadRecaps(dir).map((r) => r.gameweek)).toEqual([4]);
-    expect(requests.sort()).toEqual(["bootstrap", "dream-team 4", "event-status", "event-status", "fixtures 4", "live 4"]);
+    expect(requests.sort()).toEqual(["bootstrap", "dream-team 4", "event-status", "event-status", "fixtures", "fixtures 4", "live 4"]);
 
     const body = recapPullRequestBody(saved, "content/recaps/2026-27/gw04.json");
     expect(body).toContain(`## ${saved.headline}`);
-    for (const paragraph of saved.paragraphs) expect(body).toContain(paragraph);
+    for (const block of recapTextBlocks(saved)) expect(body).toContain(block);
+    expect(body).toContain("In numbers: 69 average score");
+    expect(body).not.toContain("paragraph");
     expect(body).toMatch(/checker passed on the first try/);
     expect(body).toMatch(/close and reopen this PR/);
   });
@@ -175,7 +233,7 @@ describe("publishRecap", () => {
     await expect(publishRecap({ source, model, contentDir: dir, gameweek: 4 })).rejects.toThrow(
       /Gameweek 4 isn't settled: FPL hasn't checked/,
     );
-    expect(requests.sort()).toEqual(["bootstrap", "event-status"]);
+    expect(requests.sort()).toEqual(["bootstrap", "event-status", "fixtures"]);
     expect(model.requests).toHaveLength(0);
   });
 
