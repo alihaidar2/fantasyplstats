@@ -333,3 +333,24 @@ describe("number formatting", () => {
     expect(formatNumbersInText("£12.0m, 16.3%, 0.12345, 3-1, Gameweek 10")).toBe("£12.0m, 16.3%, 0.12345, 3-1, Gameweek 10");
   });
 });
+
+describe("a club's run on a card", () => {
+  it('reads "4 wins in a row" as a run, not a count of wins (GW7: Brighton)', async () => {
+    const { loadRecording } = await import("../../scripts/recorded-gameweeks");
+    const gw7 = loadRecording().context(7);
+    const session = createRecapSession(gw7);
+    const summary = session.call("gameweek_summary", {});
+    const team = session.call("team_story", { team: "Brighton" });
+    const runs = (team.result as { currentRun?: { winsInARow?: number } }).currentRun?.winsInARow;
+    const card = (line: string): RecapDraft => ({
+      headline: "Brighton keep on winning",
+      cards: [{ type: "matches", matches: [{ home: "Brighton", away: "Crystal Palace", score: "5-0" }], text: line, evidence: [summary.id, team.id] }],
+    });
+    const check = (line: string) =>
+      checkRecap(card(line), { season: gw7.season, gameweek: 7, evidence: session.evidence, names: nameIndexOf(gw7), nameEntries: gw7.names, limits: { minCards: 1 } });
+    expect(runs).toBe(4);
+    expect(check("Brighton made it 4 wins in a row.").issues).toEqual([]);
+    // (5 would pass: they are unbeaten in 5, and the checker reads every run as one stat.)
+    expect(check("Brighton made it 6 wins in a row.").passed).toBe(false);
+  });
+});
