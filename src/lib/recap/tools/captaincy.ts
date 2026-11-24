@@ -1,11 +1,9 @@
 import { z } from "zod";
 import type { ContextPlayer, GameweekContext, SeasonEvent } from "../context";
 import { defineTool } from "./tool";
-import { CHIP_NAMES, formatPercent, gameweekOutcome, label, limitInput, ownershipRatio, topBy } from "./shared";
+import { CHIP_NAMES, chipRows, gameweekOutcome, label, limitInput, ownershipRatio, topBy } from "./shared";
 
 const TRIPLE_CAPTAIN = "3xc";
-
-const chipPlays = (event: SeasonEvent, chip: string) => event.chipPlays.find((c) => c.chip === chip)?.played ?? 0;
 
 /** How many gameweeks in a row, ending with this one, the same player has been `pick`. */
 function runAs(context: GameweekContext, pick: (event: SeasonEvent) => number | null): number {
@@ -30,9 +28,7 @@ export const captaincy = defineTool({
   input: z.object({ limit: limitInput(5, 10) }),
   run(context, input) {
     const { gameweek } = context;
-    const managers = context.managers.get(gameweek);
     const thisEvent = context.seasonEvents.find((e) => e.gameweek === gameweek);
-    const several = context.seasonEvents.length > 1;
 
     const captainId = context.event.mostCaptainedId;
     const captain = captainId === null ? undefined : context.playerById.get(captainId);
@@ -45,23 +41,7 @@ export const captaincy = defineTool({
     const mostOwned = topBy(owned, (o) => o.ratio, input.limit, (o) => o.player.id).map((o) => o.player);
     const bestOfThem = topBy(mostOwned, (p) => p.gw.points, 1, (p) => p.id)[0];
 
-    const chips = (thisEvent?.chipPlays ?? []).map((c) => {
-      const before = context.seasonEvents
-        .filter((e) => e.gameweek < gameweek)
-        .map((e) => ({ gameweek: e.gameweek, played: chipPlays(e, c.chip) }));
-      const previousHigh = topBy(before, (b) => b.played, 1, (b) => b.gameweek)[0];
-      return {
-        chip: CHIP_NAMES[c.chip] ?? c.chip,
-        played: c.played,
-        ...(managers ? { shareOfManagers: formatPercent(c.played / managers) } : {}),
-        ...(several && previousHigh
-          ? {
-              mostPlayedInAGameweekSoFar: c.played > previousHigh.played,
-              previousHigh: { chip: CHIP_NAMES[c.chip] ?? c.chip, gameweek: previousHigh.gameweek, played: previousHigh.played },
-            }
-          : {}),
-      };
-    });
+    const chips = chipRows(context);
     const tripleCaptain = chips.find((c) => c.chip === CHIP_NAMES[TRIPLE_CAPTAIN]);
 
     return {

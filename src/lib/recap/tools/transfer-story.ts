@@ -10,6 +10,7 @@ import {
   limitInput,
   roundOf,
   topBy,
+  transfersMadeFact,
 } from "./shared";
 
 export const transferStory = defineTool({
@@ -65,28 +66,12 @@ export const transferStory = defineTool({
     };
 
     const fplPick = context.event.mostTransferredInId === null ? undefined : context.playerById.get(context.event.mostTransferredInId);
-    const transfersMade = context.seasonEvents.find((e) => e.gameweek === gameweek)?.transfersMade;
-    const madeBefore = context.seasonEvents
-      .filter((e) => e.gameweek > 1 && e.gameweek < gameweek && e.transfersMade !== null)
-      .map((e) => ({ gameweek: e.gameweek, transfersMade: e.transfersMade! }));
-    const previousHigh = topBy(madeBefore, (e) => e.transfersMade, 1, (e) => e.gameweek)[0];
+    const allManagers = transfersMadeFact(context);
 
     return {
       gameweek,
       ...(managersNow ? {} : { note: "FPL has no manager count for this gameweek, so there are no ownership percentages." }),
-      ...(transfersMade != null
-        ? {
-            allManagers: {
-              transfersMade,
-              ...(previousHigh
-                ? {
-                    mostTransfersInAGameweekSoFar: transfersMade > previousHigh.transfersMade,
-                    previousHigh: { gameweek: previousHigh.gameweek, transfersMade: previousHigh.transfersMade },
-                  }
-                : {}),
-            },
-          }
-        : {}),
+      ...(allManagers ? { allManagers } : {}),
       ...(fplPick
         ? { mostTransferredIn: row(fplPick, roundOf(fplPick, gameweek)?.transfersBalance ?? 0) }
         : {}),

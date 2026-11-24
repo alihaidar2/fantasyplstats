@@ -1533,7 +1533,55 @@
             "goals": 29
           }
         ],
-        "thisGameweekHasTheMostGoalsSoFar": false
+        "thisGameweekHasTheMostGoalsSoFar": false,
+        "chipsThisGameweek": [
+          {
+            "chip": "Bench Boost",
+            "played": 170070,
+            "mostPlayedInAGameweekSoFar": false
+          },
+          {
+            "chip": "Free Hit",
+            "played": 328740,
+            "mostPlayedInAGameweekSoFar": false
+          },
+          {
+            "chip": "Wildcard",
+            "played": 760682,
+            "mostPlayedInAGameweekSoFar": true
+          },
+          {
+            "chip": "Triple Captain",
+            "played": 323226,
+            "mostPlayedInAGameweekSoFar": false
+          }
+        ],
+        "defensiveContributions": {
+          "thisGameweek": {
+            "defensiveContribution": 1484
+          },
+          "mostInAGameweekSoFar": true,
+          "previousHigh": {
+            "gameweek": 2,
+            "defensiveContribution": 1468
+          },
+          "bestIndividualThisGameweek": {
+            "player": "Janelt",
+            "ref": "p98",
+            "team": "Brentford",
+            "position": "MID",
+            "defensiveContribution": 20
+          },
+          "bestIndividualThisGameweekIsTheSeasonHigh": false,
+          "bestIndividualBefore": {
+            "player": "Egan",
+            "ref": "p277",
+            "team": "Hull City",
+            "position": "DEF",
+            "gameweek": 1,
+            "defensiveContribution": 21
+          }
+        }
       }
     }
   ],

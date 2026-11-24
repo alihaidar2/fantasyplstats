@@ -1,13 +1,14 @@
 import { z } from "zod";
 import { defineTool } from "./tool";
-import { label, limitInput, matchFact, seasonTotals, topBy } from "./shared";
+import { chipRows, defensiveRecords, label, limitInput, matchFact, seasonTotals, topBy, transfersMadeFact } from "./shared";
 
 export const seasonRecords = defineTool({
   name: "season_records",
   description:
     "This gameweek against the season so far: the average and highest manager score of every gameweek to date, " +
     "the best single-gameweek player scores, the season's leaders for points, goals and assists, the biggest " +
-    "wins, and goals per gameweek. Flags tell you whether this gameweek set a new season high (or low) for each; equalling the previous best does not count. " +
+    "wins, goals per gameweek, chips played, transfers made, and defensive contributions (the gameweek's total and " +
+    "the best single-player gameweek). Flags tell you whether this gameweek set a new season high (or low) for each; equalling the previous best does not count. " +
     "Use it before calling anything a record or a season best. Everything stops at this gameweek, and there are " +
     "no records from earlier seasons.",
   input: z.object({ limit: limitInput(5, 10) }),
@@ -59,6 +60,9 @@ export const seasonRecords = defineTool({
     const goalsNow = goals.get(gameweek)?.goals ?? 0;
     const goalsBefore = Math.max(0, ...goalsPerGameweek.filter((g) => g.gameweek < gameweek).map((g) => g.goals));
 
+    const defence = defensiveRecords(context);
+    const transfers = transfersMadeFact(context);
+
     return {
       gameweek,
       ...(several ? {} : { note: "The first gameweek of the season: there is nothing earlier to compare it with." }),
@@ -86,6 +90,32 @@ export const seasonRecords = defineTool({
       ...(several ? { thisGameweekHasTheBiggestWinSoFar: biggestNow > biggestBefore } : {}),
       goalsPerGameweek,
       ...(several ? { thisGameweekHasTheMostGoalsSoFar: goalsNow > goalsBefore } : {}),
+      // The share of managers and the previous high for each chip are in captaincy.
+      chipsThisGameweek: chipRows(context).map((c) => ({
+        chip: c.chip,
+        played: c.played,
+        ...(c.mostPlayedInAGameweekSoFar === undefined ? {} : { mostPlayedInAGameweekSoFar: c.mostPlayedInAGameweekSoFar }),
+      })),
+      ...(transfers ? { transfers } : {}),
+      defensiveContributions: {
+        thisGameweek: { defensiveContribution: defence.totalNow },
+        ...(defence.previousHigh
+          ? { mostInAGameweekSoFar: defence.mostSoFar, previousHigh: defence.previousHigh }
+          : {}),
+        ...(defence.bestNow
+          ? { bestIndividualThisGameweek: { ...label(context, defence.bestNow.player), defensiveContribution: defence.bestNow.defensiveContribution } }
+          : {}),
+        ...(defence.bestBefore
+          ? {
+              bestIndividualThisGameweekIsTheSeasonHigh: defence.bestIndividualSoFar,
+              bestIndividualBefore: {
+                ...label(context, defence.bestBefore.player),
+                gameweek: defence.bestBefore.gameweek,
+                defensiveContribution: defence.bestBefore.defensiveContribution,
+              },
+            }
+          : {}),
+      },
     };
   },
 });

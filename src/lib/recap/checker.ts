@@ -577,6 +577,17 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
         continue;
       }
 
+      // "Szoboszlai, Isak and Gakpo ... all three": a count of the players
+      // the sentence itself names. It has to match the names exactly.
+      if (
+        token.kind === "plain" &&
+        !/\d/.test(token.text) &&
+        /\b(?:all|the|those|these)\s+$/i.test(beforeText) &&
+        new Set(players.map((m) => m.ids.join(","))).size === token.value
+      ) {
+        continue;
+      }
+
       // "Seven players scored 10 or more points": no tool returns the 7, but
       // a ranked list can prove it. It stands when one result in scope lists
       // exactly that many players meeting the bound and at least one player

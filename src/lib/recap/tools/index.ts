@@ -8,6 +8,7 @@ import { ownershipOutcomes } from "./ownership-outcomes";
 import { playerStory } from "./player-story";
 import { priceChanges } from "./price-changes";
 import { seasonRecords } from "./season-records";
+import { storyCandidates } from "./story-candidates";
 import { submitRecap } from "./submit-recap";
 import { teamStory } from "./team-story";
 import type { RecapTool } from "./tool";
@@ -17,6 +18,7 @@ import { transferStory } from "./transfer-story";
 /** Every tool the recap agent can call, in the order they are offered. */
 export const RECAP_TOOLS: readonly RecapTool[] = [
   gameweekSummary,
+  storyCandidates,
   captaincy,
   transferStory,
   topPerformers,
@@ -43,6 +45,7 @@ export {
   playerStory,
   priceChanges,
   seasonRecords,
+  storyCandidates,
   submitRecap,
   teamStory,
   topPerformers,

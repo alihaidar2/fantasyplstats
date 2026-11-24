@@ -664,6 +664,30 @@ describe("captaincy and transfer results", () => {
     expect(codes(add("A Triple Captain on João Pedro returned 27 points.", ["r8"]))).toEqual(["wrong-player"]);
   });
 
+  it("reads a small number beside a chip as a score, not as a chip count", () => {
+    expect(add("Haaland scored 9 points, which made 18 for a captain and 27 for a Triple Captain.", ["r8"]).issues).toEqual([]);
+    expect(codes(add("Haaland scored 9 points, which made 18 for a captain and 28 for a Triple Captain.", ["r8"]))).not.toEqual([]);
+    // João Pedro scored 12, so 27 is not his either way.
+    expect(codes(add("João Pedro's score made 27 for a Triple Captain.", ["r8"]))).toEqual(["wrong-player"]);
+    // A percentage beside a chip can be the named player's ownership or the chip's share, and nothing else.
+    const result = captaincy.result as { mostCaptained: { ownership: string }; tripleCaptain: { shareOfManagers: string } };
+    expect(add(`Haaland, in ${result.mostCaptained.ownership} of squads, was the obvious Triple Captain pick.`, ["r8"]).issues).toEqual([]);
+    expect(add(`Haaland was the obvious pick for the ${result.tripleCaptain.shareOfManagers} of managers who played Triple Captain.`, ["r8"]).issues).toEqual([]);
+    expect(codes(add("Haaland was the obvious pick for the 55.5% of managers who played Triple Captain.", ["r8"]))).toEqual([
+      "number-not-cited",
+      "number-not-in-evidence",
+    ]);
+  });
+
+  it("accepts a count of the players a sentence names, and only that count", () => {
+    expect(add("Haaland, João Pedro and B.Fernandes were the most-owned players, and all three started.", ["r8"]).issues).toEqual([]);
+    // Any other number is checked like every other figure: it has to be one of theirs in the cited result.
+    expect(codes(add("Haaland, João Pedro and B.Fernandes were the most-owned players, and all seventeen started.", ["r8"]))).toContain(
+      "number-not-cited",
+    );
+    expect(codes(add("Haaland and João Pedro were the most-owned players, and all seventeen started.", ["r8"]))).toContain("number-not-cited");
+  });
+
   it("counts chips for the gameweek, and an earlier gameweek's count only when the sentence names it", () => {
     expect(add("The Triple Captain chip was played by 323,226 managers, down from 1,787,071 in Gameweek 3.", ["r8"]).issues).toEqual([]);
     expect(codes(add("The Triple Captain chip was played by 1,787,071 managers.", ["r8"]))).toEqual(["wrong-period"]);

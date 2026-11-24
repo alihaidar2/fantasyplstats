@@ -414,7 +414,7 @@ describe("the Claude API model", () => {
         },
       ],
     });
-    expect(calls[0].params.tools).toMatchObject([{ name: "gameweek_summary" }, { name: "captaincy" }]);
+    expect(calls[0].params.tools).toMatchObject([{ name: "gameweek_summary" }, { name: "story_candidates" }]);
     expect(calls[0].params).not.toHaveProperty("tool_choice");
     expect(JSON.stringify(calls[0].params)).not.toMatch(/api[_-]?key/i);
 

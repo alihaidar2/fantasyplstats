@@ -261,11 +261,18 @@ export function writtenStat(token: NumberToken, before: string, after: string): 
   if (/\b(?:highest|top|best)\b[^.;]*\bmanagers?\b|\bmanagers?\b[^.;]*\b(?:highest|top|best)\b/i.test(before)) {
     return { stats: ["highestScore"], label: "the highest manager score", gameweekWide: true };
   }
-  // A chip nearby makes a count the chip's ("1.79 million played Triple Captain"), but not a figure the words
-  // have already given a stat of its own ("a Triple Captain on him returned 27 points").
-  const ownStat = stat !== null && stat !== "managers";
-  if (!ownStat && (CHIP.test(before) || CHIP.test(after.slice(0, 60)))) {
-    return { stats: ["chips"], label: "chip plays", gameweekWide: true };
+  // A chip nearby makes a count the chip's ("1.79 million played Triple Captain", "17.2% of managers"), but
+  // not a figure the words have given a stat of its own ("a Triple Captain on him returned 27 points"), and
+  // not a small number, which is a score ("18 for a captain and 27 for a Triple Captain"): no chip is played
+  // by fewer than a thousand managers. A percentage may also be the ownership of a player the sentence names.
+  const ownStat = stat !== null && stat !== "managers" && token.kind !== "percent";
+  const chipSized = token.kind === "percent" || (token.kind === "plain" && token.value >= 1000);
+  if (!ownStat && chipSized && (CHIP.test(before) || CHIP.test(after.slice(0, 60)))) {
+    return {
+      stats: token.kind === "percent" ? ["chips", "ownership"] : ["chips"],
+      label: "chip plays",
+      gameweekWide: true,
+    };
   }
   const existential = /\bthere (?:were|was|have been|has been)\b/i.test(before);
   return {

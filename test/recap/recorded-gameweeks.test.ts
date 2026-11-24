@@ -66,6 +66,7 @@ function recordedSources(gameweek: number, through = Math.max(...RECORDED)): Gam
 
 const TOUR = (context: ReturnType<typeof buildGameweekContext>): [string, unknown][] => [
   ["gameweek_summary", {}],
+  ["story_candidates", {}],
   ["captaincy", {}],
   ["transfer_story", {}],
   ["top_performers", {}],
@@ -188,6 +189,81 @@ describe("captaincy, transfers and runs across the recorded gameweeks", () => {
     const result = call(1, "transfer_story");
     expect(result).not.toHaveProperty("biggestNetTransfersIn");
     expect(result.note).toMatch(/no transfers/);
+  });
+
+  it("season_records: chips, transfers and defensive contributions against the season so far (GW3)", () => {
+    const records = call(3, "season_records") as {
+      chipsThisGameweek: Record<string, unknown>[];
+      defensiveContributions: Record<string, unknown>;
+    };
+    expect(records.chipsThisGameweek).toContainEqual(
+      expect.objectContaining({ chip: "Triple Captain", played: 1787071, mostPlayedInAGameweekSoFar: true }),
+    );
+    expect(records).toMatchObject({ transfers: { transfersMade: 27412065, mostTransfersInAGameweekSoFar: true } });
+    expect(records.defensiveContributions).toMatchObject({
+      thisGameweek: { defensiveContribution: expect.any(Number) },
+      mostInAGameweekSoFar: expect.any(Boolean),
+      bestIndividualThisGameweek: { player: expect.any(String), defensiveContribution: expect.any(Number) },
+      bestIndividualThisGameweekIsTheSeasonHigh: expect.any(Boolean),
+    });
+    // Gameweek 1 has nothing to be a high against.
+    const first = call(1, "season_records") as { defensiveContributions: Record<string, unknown> };
+    expect(first.defensiveContributions).not.toHaveProperty("mostInAGameweekSoFar");
+    expect(first).not.toHaveProperty("transfers");
+  });
+
+  it("season_records: the defensive totals add up from the players' own figures", () => {
+    for (const gameweek of [2, 6]) {
+      const context = buildGameweekContext(gameweek, recordedSources(gameweek));
+      const records = createRecapSession(context).call("season_records", {}).result as {
+        defensiveContributions: { thisGameweek: { defensiveContribution: number }; bestIndividualThisGameweek: { defensiveContribution: number } };
+      };
+      const rows = context.players.flatMap((p) => p.rounds.filter((r) => r.gameweek === gameweek));
+      expect(records.defensiveContributions.thisGameweek.defensiveContribution).toBe(rows.reduce((sum, r) => sum + r.defensiveContribution, 0));
+      expect(records.defensiveContributions.bestIndividualThisGameweek.defensiveContribution).toBe(Math.max(...rows.map((r) => r.defensiveContribution)));
+    }
+  });
+
+  it.each(RECORDED)("story_candidates GW%i: a ranked shortlist led by stories that reached the most managers", (gameweek) => {
+    const context = buildGameweekContext(gameweek, recordedSources(gameweek));
+    const result = createRecapSession(context).call("story_candidates", {}).result as {
+      candidates: (Record<string, unknown> & { story: string; player?: string; ref?: string })[];
+    };
+    expect(result.candidates.length).toBeGreaterThanOrEqual(5);
+    expect(result.candidates.length).toBeLessThanOrEqual(8);
+    // The captain's result is always on the list, and no player appears twice.
+    const captain = context.playerById.get(context.event.mostCaptainedId!)!;
+    expect(result.candidates.find((c) => c.ref === captain.ref)?.story).toMatch(/most-captained/);
+    const refs = result.candidates.flatMap((c) => (c.ref ? [c.ref] : []));
+    expect(new Set(refs).size).toBe(refs.length);
+    // Every player's figures are that player's own this gameweek, and the ranking's scores stay out of the result.
+    for (const c of result.candidates) {
+      expect(c).not.toHaveProperty("score");
+      if (!c.ref) continue;
+      const player = context.playerById.get(Number(c.ref.slice(1)))!;
+      expect(c).toMatchObject({ player: player.name, points: player.gw.points, minutes: player.gw.minutes });
+    }
+    // The gameweek's top scorer is there too.
+    const top = Math.max(...context.players.map((p) => p.gw.points));
+    expect(result.candidates.some((c) => c.points === top)).toBe(true);
+  });
+
+  it("story_candidates: lists a season high when one is set, and not otherwise", () => {
+    const highs = (gameweek: number) =>
+      (call(gameweek, "story_candidates") as { seasonHighs?: { seasonHigh: string }[] }).seasonHighs ?? [];
+    expect(highs(3)).toContainEqual(
+      expect.objectContaining({ seasonHigh: "most Triple Captain chips played in a gameweek so far", played: 1787071 }),
+    );
+    expect(highs(4).filter((h) => h.seasonHigh.includes("Triple Captain"))).toEqual([]);
+    // Gameweek 1 has nothing earlier to beat.
+    expect(highs(1)).toEqual([]);
+    // Each one agrees with season_records' own flag.
+    for (const gameweek of RECORDED) {
+      const records = call(gameweek, "season_records") as { thisGameweekHasTheMostGoalsSoFar?: boolean };
+      expect(highs(gameweek).some((h) => h.seasonHigh === "most goals in a gameweek so far"), `GW${gameweek}`).toBe(
+        records.thisGameweekHasTheMostGoalsSoFar ?? false,
+      );
+    }
   });
 
   it("gameweek_summary: counts the matches", () => {
