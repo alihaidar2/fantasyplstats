@@ -1,0 +1,2717 @@
+{
+  "version": 2,
+  "season": "2026-27",
+  "gameweek": 8,
+  "headline": "João Pedro sits out as Gabriel's 17 points top a low-scoring Gameweek 8",
+  "evidence": [
+    {
+      "id": "r1",
+      "tool": "gameweek_summary",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 8,
+        "season": "2026-27",
+        "status": {
+          "note": "A past gameweek: its points are final."
+        },
+        "managers": {
+          "averageScore": 45,
+          "highestScore": 120,
+          "ranked": 11111669
+        },
+        "matches": [
+          {
+            "home": "Ipswich Town",
+            "away": "Nott'm Forest",
+            "score": "1-1",
+            "day": "Friday",
+            "scorers": [
+              {
+                "player": "Enciso",
+                "ref": "p591",
+                "team": "Ipswich Town",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "N.Williams",
+                "ref": "p469",
+                "team": "Nott'm Forest",
+                "position": "DEF",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Aston Villa",
+            "away": "Man City",
+            "score": "2-1",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "N.Jackson",
+                "ref": "p166",
+                "team": "Aston Villa",
+                "position": "FWD",
+                "goals": 2
+              },
+              {
+                "player": "Haaland",
+                "ref": "p411",
+                "team": "Man City",
+                "position": "FWD",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Arsenal",
+            "away": "Everton",
+            "score": "2-0",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Gabriel",
+                "ref": "p4",
+                "team": "Arsenal",
+                "position": "DEF",
+                "goals": 1
+              },
+              {
+                "player": "Konsa",
+                "ref": "p31",
+                "team": "Arsenal",
+                "position": "DEF",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Coventry City",
+            "away": "Fulham",
+            "score": "0-1",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Bobb",
+                "ref": "p264",
+                "team": "Fulham",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Chelsea",
+            "away": "Spurs",
+            "score": "0-2",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Tel",
+                "ref": "p514",
+                "team": "Spurs",
+                "position": "MID",
+                "goals": 1
+              }
+            ],
+            "ownGoals": [
+              {
+                "player": "Penders",
+                "ref": "p560",
+                "team": "Chelsea",
+                "position": "GKP",
+                "ownGoals": 1
+              }
+            ]
+          },
+          {
+            "home": "Crystal Palace",
+            "away": "Newcastle",
+            "score": "0-2",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "Barnes",
+                "ref": "p453",
+                "team": "Newcastle",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Osula",
+                "ref": "p465",
+                "team": "Newcastle",
+                "position": "FWD",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Hull City",
+            "away": "Brentford",
+            "score": "1-1",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "McBurnie",
+                "ref": "p295",
+                "team": "Hull City",
+                "position": "FWD",
+                "goals": 1
+              },
+              {
+                "player": "O.Dango",
+                "ref": "p95",
+                "team": "Brentford",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Liverpool",
+            "away": "Brighton",
+            "score": "2-0",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "Isak",
+                "ref": "p379",
+                "team": "Liverpool",
+                "position": "FWD",
+                "goals": 1
+              }
+            ],
+            "ownGoals": [
+              {
+                "player": "Groß",
+                "ref": "p124",
+                "team": "Brighton",
+                "position": "MID",
+                "ownGoals": 1
+              }
+            ]
+          },
+          {
+            "home": "Man Utd",
+            "away": "Bournemouth",
+            "score": "0-3",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "Rayan",
+                "ref": "p67",
+                "team": "Bournemouth",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Tavernier",
+                "ref": "p68",
+                "team": "Bournemouth",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Evanilson",
+                "ref": "p79",
+                "team": "Bournemouth",
+                "position": "FWD",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Sunderland",
+            "away": "Leeds",
+            "score": "0-0",
+            "day": "Sunday"
+          }
+        ],
+        "matchCount": 10,
+        "goals": 19,
+        "topScorer": {
+          "player": "Gabriel",
+          "ref": "p4",
+          "team": "Arsenal",
+          "position": "DEF",
+          "points": 17,
+          "ownedBy": 2357283,
+          "ownership": "21.2%"
+        },
+        "mostCaptained": {
+          "player": "Haaland",
+          "ref": "p411",
+          "team": "Man City",
+          "position": "FWD",
+          "points": 8,
+          "ownedBy": 8642337,
+          "ownership": "77.8%"
+        },
+        "mostTransferredIn": {
+          "player": "Tavernier",
+          "ref": "p68",
+          "team": "Bournemouth",
+          "position": "MID",
+          "points": 10,
+          "ownedBy": 1502646,
+          "ownership": "13.5%"
+        },
+        "chips": [
+          {
+            "chip": "Bench Boost",
+            "played": 157767
+          },
+          {
+            "chip": "Free Hit",
+            "played": 84907
+          },
+          {
+            "chip": "Wildcard",
+            "played": 216025
+          },
+          {
+            "chip": "Triple Captain",
+            "played": 78068
+          }
+        ],
+        "dreamTeam": [
+          {
+            "player": "Trafford",
+            "ref": "p385",
+            "team": "Leeds",
+            "position": "GKP",
+            "points": 10
+          },
+          {
+            "player": "Gabriel",
+            "ref": "p4",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 17
+          },
+          {
+            "player": "Konsa",
+            "ref": "p31",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 14
+          },
+          {
+            "player": "Hill",
+            "ref": "p60",
+            "team": "Bournemouth",
+            "position": "DEF",
+            "points": 11
+          },
+          {
+            "player": "Dedić",
+            "ref": "p593",
+            "team": "Newcastle",
+            "position": "DEF",
+            "points": 11
+          },
+          {
+            "player": "White",
+            "ref": "p10",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 10
+          },
+          {
+            "player": "Bobb",
+            "ref": "p264",
+            "team": "Fulham",
+            "position": "MID",
+            "points": 11
+          },
+          {
+            "player": "Tel",
+            "ref": "p514",
+            "team": "Spurs",
+            "position": "MID",
+            "points": 11
+          },
+          {
+            "player": "Tavernier",
+            "ref": "p68",
+            "team": "Bournemouth",
+            "position": "MID",
+            "points": 10
+          },
+          {
+            "player": "Enciso",
+            "ref": "p591",
+            "team": "Ipswich Town",
+            "position": "MID",
+            "points": 10
+          },
+          {
+            "player": "N.Jackson",
+            "ref": "p166",
+            "team": "Aston Villa",
+            "position": "FWD",
+            "points": 13
+          }
+        ]
+      }
+    },
+    {
+      "id": "r2",
+      "tool": "story_candidates",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 8,
+        "note": "Ranked by managers affected and surprise, biggest first. A guide, not the recap: confirm each story with the tool that owns it before writing.",
+        "candidates": [
+          {
+            "story": "a widely owned player did not play",
+            "player": "João Pedro",
+            "ref": "p165",
+            "team": "Chelsea",
+            "position": "FWD",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 8240033,
+            "ownership": "74.2%"
+          },
+          {
+            "story": "a scoring run",
+            "also": [
+              "the most-captained player's modest return"
+            ],
+            "player": "Haaland",
+            "ref": "p411",
+            "team": "Man City",
+            "position": "FWD",
+            "points": 8,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "outcome": "returned",
+            "ownedBy": 8642337,
+            "ownership": "77.8%",
+            "captainPoints": 16,
+            "tripleCaptainPoints": 24,
+            "gameweeksInARowWithAGoal": 7
+          },
+          {
+            "story": "a widely owned player blanked",
+            "player": "Calafiori",
+            "ref": "p8",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 1,
+            "minutes": 22,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 6119815,
+            "ownership": "55.1%"
+          },
+          {
+            "story": "the top score of the gameweek",
+            "also": [
+              "a widely owned player hauled"
+            ],
+            "player": "Gabriel",
+            "ref": "p4",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 17,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "outcome": "double-figure haul",
+            "ownedBy": 2357283,
+            "ownership": "21.2%"
+          },
+          {
+            "story": "a widely owned player blanked",
+            "player": "Rogers",
+            "ref": "p40",
+            "team": "Chelsea",
+            "position": "MID",
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 5547714,
+            "ownership": "49.9%"
+          },
+          {
+            "story": "a widely owned player did not play",
+            "also": [
+              "a run of blanks"
+            ],
+            "player": "B.Fernandes",
+            "ref": "p426",
+            "team": "Man Utd",
+            "position": "MID",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 2916064,
+            "ownership": "26.2%",
+            "gameweeksInARowBlanking": 6
+          },
+          {
+            "story": "a standout match",
+            "home": "Man Utd",
+            "away": "Bournemouth",
+            "score": "0-3",
+            "goals": 3,
+            "hauls": [
+              {
+                "player": "Hill",
+                "ref": "p60",
+                "team": "Bournemouth",
+                "position": "DEF",
+                "points": 11,
+                "ownedBy": 93965,
+                "ownership": "0.8%"
+              },
+              {
+                "player": "Truffert",
+                "ref": "p61",
+                "team": "Bournemouth",
+                "position": "DEF",
+                "points": 10,
+                "ownedBy": 300830,
+                "ownership": "2.7%"
+              },
+              {
+                "player": "Rayan",
+                "ref": "p67",
+                "team": "Bournemouth",
+                "position": "MID",
+                "points": 10,
+                "ownedBy": 169490,
+                "ownership": "1.5%"
+              },
+              {
+                "player": "Tavernier",
+                "ref": "p68",
+                "team": "Bournemouth",
+                "position": "MID",
+                "points": 10,
+                "ownedBy": 1502646,
+                "ownership": "13.5%"
+              }
+            ]
+          },
+          {
+            "story": "the most-bought player hauled",
+            "also": [
+              "a widely owned player hauled"
+            ],
+            "player": "Tavernier",
+            "ref": "p68",
+            "team": "Bournemouth",
+            "position": "MID",
+            "points": 10,
+            "minutes": 86,
+            "goals": 1,
+            "assists": 0,
+            "outcome": "double-figure haul",
+            "ownedBy": 1502646,
+            "ownership": "13.5%",
+            "netTransfersIn": 610334
+          }
+        ],
+        "highsSetThisGameweek": [
+          {
+            "high": "lowest average manager score in a gameweek so far",
+            "averageScore": 45
+          },
+          {
+            "high": "most defensive contributions by one player in a gameweek so far",
+            "player": "M.Sangaré",
+            "ref": "p565",
+            "team": "Brentford",
+            "position": "MID",
+            "defensiveContribution": 23,
+            "points": 4
+          },
+          {
+            "high": "most defensive contributions by all players in a gameweek so far",
+            "defensiveContribution": 1619,
+            "previousHigh": {
+              "gameweek": 6,
+              "defensiveContribution": 1592
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r3",
+      "tool": "captaincy",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 8,
+        "mostCaptained": {
+          "player": "Haaland",
+          "ref": "p411",
+          "team": "Man City",
+          "position": "FWD",
+          "points": 8,
+          "minutes": 90,
+          "goals": 1,
+          "assists": 0,
+          "outcome": "returned",
+          "ownedBy": 8642337,
+          "ownership": "77.8%",
+          "captainPoints": 16,
+          "tripleCaptainPoints": 24,
+          "gameweeksInARowAsMostCaptained": 8,
+          "wasTheGameweekTopScorer": false
+        },
+        "mostViceCaptained": {
+          "player": "João Pedro",
+          "ref": "p165",
+          "team": "Chelsea",
+          "position": "FWD",
+          "points": 0,
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "outcome": "did not play",
+          "ownedBy": 8240033,
+          "ownership": "74.2%"
+        },
+        "tripleCaptain": {
+          "chip": "Triple Captain",
+          "played": 78068,
+          "shareOfManagers": "0.7%",
+          "mostPlayedInAGameweekSoFar": false,
+          "previousHigh": {
+            "chip": "Triple Captain",
+            "gameweek": 3,
+            "played": 1787071
+          },
+          "note": "FPL does not say which players the Triple Captains were on. Most go on the most-captained player, so report their tripled score as what a Triple Captain on them earned, not as what every chip user got."
+        },
+        "mostOwnedPlayers": [
+          {
+            "player": "Haaland",
+            "ref": "p411",
+            "team": "Man City",
+            "position": "FWD",
+            "points": 8,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "outcome": "returned",
+            "ownedBy": 8642337,
+            "ownership": "77.8%"
+          },
+          {
+            "player": "João Pedro",
+            "ref": "p165",
+            "team": "Chelsea",
+            "position": "FWD",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 8240033,
+            "ownership": "74.2%"
+          },
+          {
+            "player": "Calafiori",
+            "ref": "p8",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 1,
+            "minutes": 22,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 6119815,
+            "ownership": "55.1%"
+          },
+          {
+            "player": "Rogers",
+            "ref": "p40",
+            "team": "Chelsea",
+            "position": "MID",
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 5547714,
+            "ownership": "49.9%"
+          },
+          {
+            "player": "Groß",
+            "ref": "p124",
+            "team": "Brighton",
+            "position": "MID",
+            "points": 0,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 5161092,
+            "ownership": "46.4%"
+          }
+        ],
+        "chips": [
+          {
+            "chip": "Bench Boost",
+            "played": 157767,
+            "shareOfManagers": "1.4%",
+            "mostPlayedInAGameweekSoFar": false,
+            "previousHigh": {
+              "chip": "Bench Boost",
+              "gameweek": 1,
+              "played": 814606
+            }
+          },
+          {
+            "chip": "Free Hit",
+            "played": 84907,
+            "shareOfManagers": "0.8%",
+            "mostPlayedInAGameweekSoFar": false,
+            "previousHigh": {
+              "chip": "Free Hit",
+              "gameweek": 3,
+              "played": 421239
+            }
+          },
+          {
+            "chip": "Wildcard",
+            "played": 216025,
+            "shareOfManagers": "1.9%",
+            "mostPlayedInAGameweekSoFar": false,
+            "previousHigh": {
+              "chip": "Wildcard",
+              "gameweek": 6,
+              "played": 762489
+            }
+          },
+          {
+            "chip": "Triple Captain",
+            "played": 78068,
+            "shareOfManagers": "0.7%",
+            "mostPlayedInAGameweekSoFar": false,
+            "previousHigh": {
+              "chip": "Triple Captain",
+              "gameweek": 3,
+              "played": 1787071
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r4",
+      "tool": "transfer_story",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 8,
+        "allManagers": {
+          "transfersMade": 10389270,
+          "mostTransfersInAGameweekSoFar": false,
+          "previousHigh": {
+            "gameweek": 3,
+            "transfersMade": 27412065
+          }
+        },
+        "mostTransferredIn": {
+          "player": "Tavernier",
+          "ref": "p68",
+          "team": "Bournemouth",
+          "position": "MID",
+          "points": 10,
+          "minutes": 86,
+          "goals": 1,
+          "assists": 0,
+          "outcome": "double-figure haul",
+          "ownedBy": 1502646,
+          "ownership": "13.5%",
+          "netTransfersIn": 610334,
+          "ownershipBefore": "7.9%",
+          "price": "£6.2m",
+          "priceChange": "+£0.1m",
+          "biggestNetTransfersInOfTheSeasonSoFar": false
+        },
+        "biggestNetTransfersIn": [
+          {
+            "player": "Tavernier",
+            "ref": "p68",
+            "team": "Bournemouth",
+            "position": "MID",
+            "points": 10,
+            "minutes": 86,
+            "goals": 1,
+            "assists": 0,
+            "outcome": "double-figure haul",
+            "ownedBy": 1502646,
+            "ownership": "13.5%",
+            "netTransfersIn": 610334,
+            "ownershipBefore": "7.9%",
+            "price": "£6.2m",
+            "priceChange": "+£0.1m",
+            "biggestNetTransfersInOfTheSeasonSoFar": false
+          },
+          {
+            "player": "Rogers",
+            "ref": "p40",
+            "team": "Chelsea",
+            "position": "MID",
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 5547714,
+            "ownership": "49.9%",
+            "netTransfersIn": 295421,
+            "ownershipBefore": "47.4%",
+            "price": "£8.0m",
+            "priceChange": "+£0.1m",
+            "biggestNetTransfersInOfTheSeasonSoFar": false
+          },
+          {
+            "player": "Palmer",
+            "ref": "p154",
+            "team": "Chelsea",
+            "position": "MID",
+            "points": -1,
+            "minutes": 79,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 3194202,
+            "ownership": "28.7%",
+            "netTransfersIn": 280632,
+            "ownershipBefore": "26.2%",
+            "price": "£9.8m",
+            "priceChange": "+£0.1m",
+            "biggestNetTransfersInOfTheSeasonSoFar": false
+          },
+          {
+            "player": "Groß",
+            "ref": "p124",
+            "team": "Brighton",
+            "position": "MID",
+            "points": 0,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 5161092,
+            "ownership": "46.4%",
+            "netTransfersIn": 271891,
+            "ownershipBefore": "44.4%",
+            "price": "£6.2m",
+            "priceChange": "+£0.1m",
+            "biggestNetTransfersInOfTheSeasonSoFar": false
+          },
+          {
+            "player": "Cherki",
+            "ref": "p399",
+            "team": "Man City",
+            "position": "MID",
+            "points": 0,
+            "minutes": 45,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 4379451,
+            "ownership": "39.4%",
+            "netTransfersIn": 271302,
+            "ownershipBefore": "37.3%",
+            "price": "£8.0m",
+            "priceChange": "+£0.1m",
+            "biggestNetTransfersInOfTheSeasonSoFar": false
+          }
+        ],
+        "biggestNetTransfersOut": [
+          {
+            "player": "Saka",
+            "ref": "p12",
+            "team": "Arsenal",
+            "position": "MID",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 1154725,
+            "ownership": "10.4%",
+            "netTransfersOut": 721298,
+            "ownershipBefore": "17.1%",
+            "price": "£9.6m",
+            "priceChange": "£0.0m",
+            "biggestNetTransfersOutOfTheSeasonSoFar": false
+          },
+          {
+            "player": "Semenyo",
+            "ref": "p397",
+            "team": "Man City",
+            "position": "MID",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 973512,
+            "ownership": "8.8%",
+            "netTransfersOut": 638836,
+            "ownershipBefore": "14.7%",
+            "price": "£8.3m",
+            "priceChange": "£0.0m",
+            "biggestNetTransfersOutOfTheSeasonSoFar": false
+          },
+          {
+            "player": "Szoboszlai",
+            "ref": "p368",
+            "team": "Liverpool",
+            "position": "MID",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 1808471,
+            "ownership": "16.3%",
+            "netTransfersOut": 605301,
+            "ownershipBefore": "21.7%",
+            "price": "£6.8m",
+            "priceChange": "£0.0m",
+            "biggestNetTransfersOutOfTheSeasonSoFar": false
+          },
+          {
+            "player": "B.Fernandes",
+            "ref": "p426",
+            "team": "Man Utd",
+            "position": "MID",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 2916064,
+            "ownership": "26.2%",
+            "netTransfersOut": 515978,
+            "ownershipBefore": "30.9%",
+            "price": "£11.8m",
+            "priceChange": "£0.0m",
+            "biggestNetTransfersOutOfTheSeasonSoFar": false
+          },
+          {
+            "player": "Wissa",
+            "ref": "p464",
+            "team": "Newcastle",
+            "position": "FWD",
+            "points": 1,
+            "minutes": 13,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 1396203,
+            "ownership": "12.6%",
+            "netTransfersOut": 327790,
+            "ownershipBefore": "15.5%",
+            "price": "£6.1m",
+            "priceChange": "-£0.1m",
+            "biggestNetTransfersOutOfTheSeasonSoFar": false
+          }
+        ],
+        "previousHighs": {
+          "biggestNetTransfersIn": {
+            "player": "Cherki",
+            "ref": "p399",
+            "team": "Man City",
+            "position": "MID",
+            "gameweek": 3,
+            "netTransfersIn": 1783948
+          },
+          "biggestNetTransfersOut": {
+            "player": "Szoboszlai",
+            "ref": "p368",
+            "team": "Liverpool",
+            "position": "MID",
+            "gameweek": 7,
+            "netTransfersOut": 916813
+          }
+        }
+      }
+    },
+    {
+      "id": "r5",
+      "tool": "player_story",
+      "input": {
+        "player": "p411"
+      },
+      "ok": true,
+      "result": {
+        "player": "Haaland",
+        "ref": "p411",
+        "team": "Man City",
+        "position": "FWD",
+        "fullName": "Erling Haaland",
+        "thisGameweek": {
+          "points": 8,
+          "minutes": 90,
+          "goals": 1,
+          "assists": 0,
+          "bonus": 2,
+          "bps": 35,
+          "defensiveContribution": 4,
+          "xG": 0.4,
+          "xA": 0,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Aston Villa",
+              "away": "Man City",
+              "score": "2-1",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 1,
+                  "points": 4
+                },
+                {
+                  "stat": "bonus",
+                  "value": 2,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£15.7m",
+        "priceChangeSinceLastGameweek": "£0.0m",
+        "priceChangeSinceFirstGameweek": "+£0.2m",
+        "ownedBy": 8642337,
+        "ownership": "77.8%",
+        "netTransfersIn": 129364,
+        "season": {
+          "points": 66,
+          "rankInPosition": 1,
+          "gameweeksPlayed": 8,
+          "minutes": 709,
+          "goals": 9,
+          "assists": 0,
+          "bonus": 14,
+          "defensiveContribution": 31,
+          "xG": 6.09,
+          "xA": 0.77,
+          "bestScore": 13,
+          "bestScoreGameweek": 2,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 4,
+            "points": 9,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 7610939,
+            "ownership": "71.3%",
+            "netTransfersIn": 45312
+          },
+          {
+            "gameweek": 5,
+            "points": 6,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 7989349,
+            "ownership": "73.7%",
+            "netTransfersIn": 172491
+          },
+          {
+            "gameweek": 6,
+            "points": 6,
+            "minutes": 79,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 8207626,
+            "ownership": "74.6%",
+            "netTransfersIn": 122964
+          },
+          {
+            "gameweek": 7,
+            "points": 13,
+            "minutes": 90,
+            "goals": 2,
+            "assists": 0,
+            "ownedBy": 8489905,
+            "ownership": "76.7%",
+            "netTransfersIn": 205309
+          },
+          {
+            "gameweek": 8,
+            "points": 8,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 8642337,
+            "ownership": "77.8%",
+            "netTransfersIn": 129364
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 7,
+          "gameweeksInARowWithAGoalOrAssist": 7,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 8,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 4,
+          "ownershipThen": "71.3%",
+          "ownershipNow": "77.8%",
+          "netTransfersInOverTheseGameweeks": 675440
+        }
+      }
+    },
+    {
+      "id": "r6",
+      "tool": "player_story",
+      "input": {
+        "player": "p165"
+      },
+      "ok": true,
+      "result": {
+        "player": "João Pedro",
+        "ref": "p165",
+        "team": "Chelsea",
+        "position": "FWD",
+        "fullName": "João Pedro",
+        "thisGameweek": {
+          "points": 0,
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "bps": 0,
+          "defensiveContribution": 0,
+          "xG": 0,
+          "xA": 0,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Chelsea",
+              "away": "Spurs",
+              "score": "0-2",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 0,
+                  "points": 0
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£7.9m",
+        "priceChangeSinceLastGameweek": "+£0.1m",
+        "priceChangeSinceFirstGameweek": "+£0.4m",
+        "ownedBy": 8240033,
+        "ownership": "74.2%",
+        "netTransfersIn": 183554,
+        "season": {
+          "points": 47,
+          "rankInPosition": 3,
+          "gameweeksPlayed": 6,
+          "minutes": 521,
+          "goals": 5,
+          "assists": 3,
+          "bonus": 9,
+          "defensiveContribution": 17,
+          "xG": 3.05,
+          "xA": 0.31,
+          "bestScore": 12,
+          "bestScoreGameweek": 4,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 4,
+            "points": 12,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "ownedBy": 7935710,
+            "ownership": "74.3%",
+            "netTransfersIn": 296877
+          },
+          {
+            "gameweek": 5,
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 7300631,
+            "ownership": "67.4%",
+            "netTransfersOut": 487412
+          },
+          {
+            "gameweek": 6,
+            "points": 12,
+            "minutes": 71,
+            "goals": 2,
+            "assists": 0,
+            "ownedBy": 7259843,
+            "ownership": "65.9%",
+            "netTransfersOut": 228331
+          },
+          {
+            "gameweek": 7,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 8042898,
+            "ownership": "72.7%",
+            "netTransfersIn": 669755
+          },
+          {
+            "gameweek": 8,
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 8240033,
+            "ownership": "74.2%",
+            "netTransfersIn": 183554
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 0,
+          "gameweeksInARowWithAGoalOrAssist": 0,
+          "gameweeksInARowWithoutAGoalOrAssist": 2,
+          "gameweeksInARowBlanking": 2,
+          "gameweeksInARowWithMinutes": 0,
+          "gameweeksInARowWithoutMinutes": 1
+        },
+        "trend": {
+          "sinceGameweek": 4,
+          "ownershipThen": "74.3%",
+          "ownershipNow": "74.2%",
+          "netTransfersInOverTheseGameweeks": 434443
+        }
+      }
+    },
+    {
+      "id": "r7",
+      "tool": "player_story",
+      "input": {
+        "player": "p4"
+      },
+      "ok": true,
+      "result": {
+        "player": "Gabriel",
+        "ref": "p4",
+        "team": "Arsenal",
+        "position": "DEF",
+        "fullName": "Gabriel Magalhães",
+        "thisGameweek": {
+          "points": 17,
+          "minutes": 90,
+          "goals": 1,
+          "assists": 0,
+          "bonus": 3,
+          "bps": 44,
+          "cleanSheets": 1,
+          "defensiveContribution": 14,
+          "xG": 0.54,
+          "xA": 0.02,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Arsenal",
+              "away": "Everton",
+              "score": "2-0",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 1,
+                  "points": 6
+                },
+                {
+                  "stat": "clean_sheets",
+                  "value": 1,
+                  "points": 4
+                },
+                {
+                  "stat": "bonus",
+                  "value": 3,
+                  "points": 3
+                },
+                {
+                  "stat": "defensive_contribution",
+                  "value": 14,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£7.9m",
+        "priceChangeSinceLastGameweek": "£0.0m",
+        "priceChangeSinceFirstGameweek": "-£0.1m",
+        "ownedBy": 2357283,
+        "ownership": "21.2%",
+        "netTransfersIn": -11548,
+        "season": {
+          "points": 52,
+          "rankInPosition": 2,
+          "gameweeksPlayed": 8,
+          "minutes": 720,
+          "goals": 1,
+          "assists": 0,
+          "bonus": 5,
+          "defensiveContribution": 72,
+          "xG": 1.47,
+          "xA": 0.25,
+          "bestScore": 17,
+          "bestScoreGameweek": 8,
+          "thisIsTheirBestScore": true
+        },
+        "lastFive": [
+          {
+            "gameweek": 4,
+            "points": 9,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 2549738,
+            "ownership": "23.9%",
+            "netTransfersOut": 197767
+          },
+          {
+            "gameweek": 5,
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 2494884,
+            "ownership": "23.0%",
+            "netTransfersOut": 70779
+          },
+          {
+            "gameweek": 6,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 2494754,
+            "ownership": "22.7%",
+            "netTransfersOut": 71209
+          },
+          {
+            "gameweek": 7,
+            "points": 8,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 2347750,
+            "ownership": "21.2%",
+            "netTransfersOut": 136255
+          },
+          {
+            "gameweek": 8,
+            "points": 17,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 2357283,
+            "ownership": "21.2%",
+            "netTransfersOut": 11548
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 8,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 4,
+          "ownershipThen": "23.9%",
+          "ownershipNow": "21.2%",
+          "netTransfersOutOverTheseGameweeks": 487558
+        }
+      }
+    },
+    {
+      "id": "r8",
+      "tool": "player_story",
+      "input": {
+        "player": "p68"
+      },
+      "ok": true,
+      "result": {
+        "player": "Tavernier",
+        "ref": "p68",
+        "team": "Bournemouth",
+        "position": "MID",
+        "fullName": "Marcus Tavernier",
+        "thisGameweek": {
+          "points": 10,
+          "minutes": 86,
+          "goals": 1,
+          "assists": 0,
+          "bonus": 2,
+          "bps": 40,
+          "cleanSheets": 1,
+          "defensiveContribution": 6,
+          "xG": 0.72,
+          "xA": 0.21,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Man Utd",
+              "away": "Bournemouth",
+              "score": "0-3",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 86,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 1,
+                  "points": 5
+                },
+                {
+                  "stat": "clean_sheets",
+                  "value": 1,
+                  "points": 1
+                },
+                {
+                  "stat": "bonus",
+                  "value": 2,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£6.2m",
+        "priceChangeSinceLastGameweek": "+£0.1m",
+        "priceChangeSinceFirstGameweek": "+£0.2m",
+        "ownedBy": 1502646,
+        "ownership": "13.5%",
+        "netTransfersIn": 610334,
+        "season": {
+          "points": 52,
+          "rankInPosition": 2,
+          "gameweeksPlayed": 8,
+          "minutes": 660,
+          "goals": 5,
+          "assists": 0,
+          "bonus": 12,
+          "defensiveContribution": 63,
+          "xG": 3.61,
+          "xA": 1.33,
+          "bestScore": 10,
+          "bestScoreGameweek": 1,
+          "thisIsTheirBestScore": true
+        },
+        "lastFive": [
+          {
+            "gameweek": 4,
+            "points": 8,
+            "minutes": 82,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 417515,
+            "ownership": "3.9%",
+            "netTransfersIn": 125960
+          },
+          {
+            "gameweek": 5,
+            "points": 2,
+            "minutes": 74,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 709800,
+            "ownership": "6.6%",
+            "netTransfersIn": 257318
+          },
+          {
+            "gameweek": 6,
+            "points": 1,
+            "minutes": 72,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 801781,
+            "ownership": "7.3%",
+            "netTransfersIn": 91498
+          },
+          {
+            "gameweek": 7,
+            "points": 10,
+            "minutes": 78,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 872113,
+            "ownership": "7.9%",
+            "netTransfersIn": 65222
+          },
+          {
+            "gameweek": 8,
+            "points": 10,
+            "minutes": 86,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 1502646,
+            "ownership": "13.5%",
+            "netTransfersIn": 610334
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 2,
+          "gameweeksInARowWithAGoalOrAssist": 2,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 8,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 4,
+          "ownershipThen": "3.9%",
+          "ownershipNow": "13.5%",
+          "netTransfersInOverTheseGameweeks": 1150332
+        }
+      }
+    },
+    {
+      "id": "r9",
+      "tool": "player_story",
+      "input": {
+        "player": "p31"
+      },
+      "ok": true,
+      "result": {
+        "player": "Konsa",
+        "ref": "p31",
+        "team": "Arsenal",
+        "position": "DEF",
+        "fullName": "Ezri Konsa Ngoyo",
+        "thisGameweek": {
+          "points": 14,
+          "minutes": 90,
+          "goals": 1,
+          "assists": 0,
+          "bonus": 2,
+          "bps": 43,
+          "cleanSheets": 1,
+          "defensiveContribution": 2,
+          "xG": 0.38,
+          "xA": 0,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Arsenal",
+              "away": "Everton",
+              "score": "2-0",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 1,
+                  "points": 6
+                },
+                {
+                  "stat": "clean_sheets",
+                  "value": 1,
+                  "points": 4
+                },
+                {
+                  "stat": "bonus",
+                  "value": 2,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£4.6m",
+        "priceChangeSinceLastGameweek": "£0.0m",
+        "priceChangeSinceFirstGameweek": "+£0.1m",
+        "ownedBy": 2089556,
+        "ownership": "18.8%",
+        "netTransfersIn": 137666,
+        "season": {
+          "points": 39,
+          "rankInPosition": 12,
+          "gameweeksPlayed": 7,
+          "minutes": 551,
+          "goals": 1,
+          "assists": 0,
+          "bonus": 5,
+          "defensiveContribution": 40,
+          "xG": 0.61,
+          "xA": 0.03,
+          "bestScore": 14,
+          "bestScoreGameweek": 8,
+          "thisIsTheirBestScore": true
+        },
+        "lastFive": [
+          {
+            "gameweek": 4,
+            "points": 6,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 1867300,
+            "ownership": "17.5%",
+            "netTransfersIn": 612675
+          },
+          {
+            "gameweek": 5,
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 2062931,
+            "ownership": "19.0%",
+            "netTransfersIn": 277564
+          },
+          {
+            "gameweek": 6,
+            "points": 4,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 1874574,
+            "ownership": "17.0%",
+            "netTransfersOut": 179766
+          },
+          {
+            "gameweek": 7,
+            "points": 9,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 1934708,
+            "ownership": "17.5%",
+            "netTransfersIn": 19126
+          },
+          {
+            "gameweek": 8,
+            "points": 14,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 2089556,
+            "ownership": "18.8%",
+            "netTransfersIn": 137666
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 7,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 4,
+          "ownershipThen": "17.5%",
+          "ownershipNow": "18.8%",
+          "netTransfersInOverTheseGameweeks": 867265
+        }
+      }
+    },
+    {
+      "id": "r10",
+      "tool": "player_story",
+      "input": {
+        "player": "p40"
+      },
+      "ok": true,
+      "result": {
+        "player": "Rogers",
+        "ref": "p40",
+        "team": "Chelsea",
+        "position": "MID",
+        "fullName": "Morgan Rogers",
+        "thisGameweek": {
+          "points": 1,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "bps": 7,
+          "yellowCards": 1,
+          "defensiveContribution": 6,
+          "xG": 0.06,
+          "xA": 0.03,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Chelsea",
+              "away": "Spurs",
+              "score": "0-2",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "yellow_cards",
+                  "value": 1,
+                  "points": -1
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£8.0m",
+        "priceChangeSinceLastGameweek": "+£0.1m",
+        "priceChangeSinceFirstGameweek": "+£0.5m",
+        "ownedBy": 5547714,
+        "ownership": "49.9%",
+        "netTransfersIn": 295421,
+        "season": {
+          "points": 41,
+          "rankInPosition": 7,
+          "gameweeksPlayed": 8,
+          "minutes": 700,
+          "goals": 4,
+          "assists": 1,
+          "bonus": 2,
+          "defensiveContribution": 61,
+          "xG": 2.13,
+          "xA": 1.39,
+          "bestScore": 9,
+          "bestScoreGameweek": 6,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 4,
+            "points": 8,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 3834585,
+            "ownership": "35.9%",
+            "netTransfersIn": 1039938
+          },
+          {
+            "gameweek": 5,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 4380885,
+            "ownership": "40.4%",
+            "netTransfersIn": 628130
+          },
+          {
+            "gameweek": 6,
+            "points": 9,
+            "minutes": 83,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 4741700,
+            "ownership": "43.1%",
+            "netTransfersIn": 331771
+          },
+          {
+            "gameweek": 7,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 5247070,
+            "ownership": "47.4%",
+            "netTransfersIn": 495765
+          },
+          {
+            "gameweek": 8,
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 5547714,
+            "ownership": "49.9%",
+            "netTransfersIn": 295421
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 0,
+          "gameweeksInARowWithAGoalOrAssist": 0,
+          "gameweeksInARowWithoutAGoalOrAssist": 2,
+          "gameweeksInARowBlanking": 2,
+          "gameweeksInARowWithMinutes": 8,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 4,
+          "ownershipThen": "35.9%",
+          "ownershipNow": "49.9%",
+          "netTransfersInOverTheseGameweeks": 2791025
+        }
+      }
+    },
+    {
+      "id": "r11",
+      "tool": "player_story",
+      "input": {
+        "player": "p8"
+      },
+      "ok": true,
+      "result": {
+        "player": "Calafiori",
+        "ref": "p8",
+        "team": "Arsenal",
+        "position": "DEF",
+        "fullName": "Riccardo Calafiori",
+        "thisGameweek": {
+          "points": 1,
+          "minutes": 22,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "bps": 4,
+          "defensiveContribution": 3,
+          "xG": 0,
+          "xA": 0,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Arsenal",
+              "away": "Everton",
+              "score": "2-0",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 22,
+                  "points": 1
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£6.0m",
+        "priceChangeSinceLastGameweek": "+£0.1m",
+        "priceChangeSinceFirstGameweek": "+£0.5m",
+        "ownedBy": 6119815,
+        "ownership": "55.1%",
+        "netTransfersIn": 175521,
+        "season": {
+          "points": 45,
+          "rankInPosition": 6,
+          "gameweeksPlayed": 8,
+          "minutes": 609,
+          "goals": 1,
+          "assists": 2,
+          "bonus": 3,
+          "defensiveContribution": 27,
+          "xG": 1.22,
+          "xA": 0.98,
+          "bestScore": 11,
+          "bestScoreGameweek": 2,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 4,
+            "points": 6,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 5296821,
+            "ownership": "49.6%",
+            "netTransfersIn": 392809
+          },
+          {
+            "gameweek": 5,
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 5451521,
+            "ownership": "50.3%",
+            "netTransfersIn": 183297
+          },
+          {
+            "gameweek": 6,
+            "points": 9,
+            "minutes": 81,
+            "goals": 1,
+            "assists": 0,
+            "ownedBy": 5689502,
+            "ownership": "51.7%",
+            "netTransfersIn": 125175
+          },
+          {
+            "gameweek": 7,
+            "points": 6,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 5920614,
+            "ownership": "53.5%",
+            "netTransfersIn": 207772
+          },
+          {
+            "gameweek": 8,
+            "points": 1,
+            "minutes": 22,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 6119815,
+            "ownership": "55.1%",
+            "netTransfersIn": 175521
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 0,
+          "gameweeksInARowWithAGoalOrAssist": 0,
+          "gameweeksInARowWithoutAGoalOrAssist": 2,
+          "gameweeksInARowBlanking": 1,
+          "gameweeksInARowWithMinutes": 8,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 4,
+          "ownershipThen": "49.6%",
+          "ownershipNow": "55.1%",
+          "netTransfersInOverTheseGameweeks": 1084574
+        }
+      }
+    },
+    {
+      "id": "r12",
+      "tool": "player_story",
+      "input": {
+        "player": "p426"
+      },
+      "ok": true,
+      "result": {
+        "player": "B.Fernandes",
+        "ref": "p426",
+        "team": "Man Utd",
+        "position": "MID",
+        "fullName": "Bruno Fernandes",
+        "thisGameweek": {
+          "points": 0,
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "bps": 0,
+          "defensiveContribution": 0,
+          "xG": 0,
+          "xA": 0,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Man Utd",
+              "away": "Bournemouth",
+              "score": "0-3",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 0,
+                  "points": 0
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£11.8m",
+        "priceChangeSinceLastGameweek": "£0.0m",
+        "priceChangeSinceFirstGameweek": "-£0.2m",
+        "ownedBy": 2916064,
+        "ownership": "26.2%",
+        "netTransfersIn": -515978,
+        "season": {
+          "points": 33,
+          "rankInPosition": 22,
+          "gameweeksPlayed": 7,
+          "minutes": 630,
+          "goals": 3,
+          "assists": 1,
+          "bonus": 3,
+          "defensiveContribution": 41,
+          "xG": 2.66,
+          "xA": 1.5,
+          "bestScore": 23,
+          "bestScoreGameweek": 2,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 4,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 4455713,
+            "ownership": "41.7%",
+            "netTransfersOut": 615807
+          },
+          {
+            "gameweek": 5,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 4318751,
+            "ownership": "39.9%",
+            "netTransfersOut": 282231
+          },
+          {
+            "gameweek": 6,
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 4136437,
+            "ownership": "37.6%",
+            "netTransfersOut": 284770
+          },
+          {
+            "gameweek": 7,
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 3415322,
+            "ownership": "30.9%",
+            "netTransfersOut": 681104
+          },
+          {
+            "gameweek": 8,
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 2916064,
+            "ownership": "26.2%",
+            "netTransfersOut": 515978
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 0,
+          "gameweeksInARowWithAGoalOrAssist": 0,
+          "gameweeksInARowWithoutAGoalOrAssist": 6,
+          "gameweeksInARowBlanking": 6,
+          "gameweeksInARowWithMinutes": 0,
+          "gameweeksInARowWithoutMinutes": 1
+        },
+        "trend": {
+          "sinceGameweek": 4,
+          "ownershipThen": "41.7%",
+          "ownershipNow": "26.2%",
+          "netTransfersOutOverTheseGameweeks": 2379890
+        }
+      }
+    },
+    {
+      "id": "r13",
+      "tool": "submit_recap",
+      "input": {
+        "headline": "João Pedro sits out as Gabriel's 17 points top a low-scoring Gameweek 8",
+        "cards": [
+          {
+            "type": "numbers",
+            "items": [
+              {
+                "value": "45",
+                "label": "average score"
+              },
+              {
+                "value": "120",
+                "label": "highest score"
+              },
+              {
+                "value": "19",
+                "label": "goals"
+              },
+              {
+                "value": "10",
+                "label": "matches"
+              }
+            ],
+            "evidence": [
+              "r1"
+            ]
+          },
+          {
+            "type": "captaincy",
+            "player": "Haaland",
+            "ref": "p411",
+            "points": 8,
+            "ownership": 77.8,
+            "tiles": [
+              {
+                "value": "16",
+                "label": "as captain"
+              },
+              {
+                "value": "24",
+                "label": "as Triple Captain"
+              }
+            ],
+            "badge": "Scored in 7 gameweeks running",
+            "text": "Haaland's goal kept captains ticking over, but the most vice-captained player, João Pedro, never got off the bench.",
+            "evidence": [
+              "r3",
+              "r5"
+            ]
+          },
+          {
+            "type": "players",
+            "title": "Popular picks that let owners down",
+            "players": [
+              {
+                "player": "João Pedro",
+                "ref": "p165",
+                "points": 0,
+                "detail": "did not play",
+                "ownership": 74.2
+              },
+              {
+                "player": "Calafiori",
+                "ref": "p8",
+                "points": 1,
+                "detail": "22 minutes",
+                "ownership": 55.1
+              },
+              {
+                "player": "Rogers",
+                "ref": "p40",
+                "points": 1,
+                "detail": "booked, no return",
+                "ownership": 49.9
+              },
+              {
+                "player": "Groß",
+                "ref": "p124",
+                "points": 0,
+                "detail": "90 minutes, no return",
+                "ownership": 46.4
+              }
+            ],
+            "text": "Four of the most-owned players in the game delivered almost nothing, which goes a long way to explaining the lowest average of the season so far.",
+            "evidence": [
+              "r3",
+              "r2",
+              "r6",
+              "r10",
+              "r11"
+            ]
+          },
+          {
+            "type": "players",
+            "title": "Arsenal's defenders steal the show",
+            "players": [
+              {
+                "player": "Gabriel",
+                "ref": "p4",
+                "points": 17,
+                "detail": "1 goal, clean sheet, 3 bonus",
+                "ownership": 21.2
+              },
+              {
+                "player": "Konsa",
+                "ref": "p31",
+                "points": 14,
+                "detail": "1 goal, clean sheet, 2 bonus",
+                "ownership": 18.8
+              }
+            ],
+            "text": "Both scored in the 2-0 win over Everton. Gabriel's 17 points made him the gameweek's top scorer and is his best score this season.",
+            "evidence": [
+              "r1",
+              "r7",
+              "r9"
+            ]
+          },
+          {
+            "type": "matches",
+            "title": "Bournemouth run riot",
+            "matches": [
+              {
+                "home": "Man Utd",
+                "away": "Bournemouth",
+                "score": "0-3"
+              }
+            ],
+            "text": "Hill (11 points), Truffert (10 points), Rayan (10 points) and Tavernier (10 points) all hauled, and only Tavernier was widely owned.",
+            "evidence": [
+              "r1",
+              "r2"
+            ]
+          },
+          {
+            "type": "transfers",
+            "moves": [
+              {
+                "player": "Tavernier",
+                "ref": "p68",
+                "direction": "in",
+                "netTransfers": 610334,
+                "points": 10,
+                "minutes": 86,
+                "detail": "ownership up from 7.9% to 13.5%"
+              },
+              {
+                "player": "Saka",
+                "ref": "p12",
+                "direction": "out",
+                "netTransfers": 721298,
+                "points": 0,
+                "minutes": 0,
+                "detail": "still 10.4% owned"
+              },
+              {
+                "player": "B.Fernandes",
+                "ref": "p426",
+                "direction": "out",
+                "netTransfers": 515978,
+                "points": 0,
+                "minutes": 0,
+                "run": {
+                  "kind": "blanks",
+                  "gameweeks": 6
+                }
+              }
+            ],
+            "text": "The Tavernier bandwagon paid off with a goal, while the sellers of Saka and B.Fernandes lost nothing.",
+            "evidence": [
+              "r4",
+              "r8",
+              "r12"
+            ]
+          },
+          {
+            "type": "notes",
+            "items": [
+              {
+                "player": "M.Sangaré",
+                "ref": "p565",
+                "points": 4,
+                "text": "made 23 defensive contributions, the most by one player in a gameweek this season"
+              },
+              {
+                "text": "The 1,619 defensive contributions across all players were the most in a gameweek this season."
+              },
+              {
+                "text": "The average score of 45 was the lowest of the season so far."
+              }
+            ],
+            "evidence": [
+              "r2"
+            ]
+          }
+        ]
+      },
+      "ok": true,
+      "result": {
+        "accepted": false,
+        "problems": [
+          "card 3 (players), text: This is 26 words. Keep it to 25 words at most.",
+          "card 7 (notes), note 2: This is 15 words. Keep it to 14 words at most."
+        ]
+      }
+    },
+    {
+      "id": "r14",
+      "tool": "submit_recap",
+      "input": {
+        "headline": "João Pedro sits out as Gabriel's 17 points top a low-scoring Gameweek 8",
+        "cards": [
+          {
+            "type": "numbers",
+            "items": [
+              {
+                "value": "45",
+                "label": "average score"
+              },
+              {
+                "value": "120",
+                "label": "highest score"
+              },
+              {
+                "value": "19",
+                "label": "goals"
+              },
+              {
+                "value": "10",
+                "label": "matches"
+              }
+            ],
+            "evidence": [
+              "r1"
+            ]
+          },
+          {
+            "type": "captaincy",
+            "player": "Haaland",
+            "ref": "p411",
+            "points": 8,
+            "ownership": 77.8,
+            "tiles": [
+              {
+                "value": "16",
+                "label": "as captain"
+              },
+              {
+                "value": "24",
+                "label": "as Triple Captain"
+              }
+            ],
+            "badge": "Scored in 7 gameweeks running",
+            "text": "Haaland's goal kept captains ticking over, but the most vice-captained player, João Pedro, never got off the bench.",
+            "evidence": [
+              "r3",
+              "r5"
+            ]
+          },
+          {
+            "type": "players",
+            "title": "Popular picks that let owners down",
+            "players": [
+              {
+                "player": "João Pedro",
+                "ref": "p165",
+                "points": 0,
+                "detail": "did not play",
+                "ownership": 74.2
+              },
+              {
+                "player": "Calafiori",
+                "ref": "p8",
+                "points": 1,
+                "detail": "22 minutes",
+                "ownership": 55.1
+              },
+              {
+                "player": "Rogers",
+                "ref": "p40",
+                "points": 1,
+                "detail": "booked, no return",
+                "ownership": 49.9
+              },
+              {
+                "player": "Groß",
+                "ref": "p124",
+                "points": 0,
+                "detail": "90 minutes, no return",
+                "ownership": 46.4
+              }
+            ],
+            "text": "Hugely popular picks gave almost nothing back in the lowest-scoring gameweek of the season so far.",
+            "evidence": [
+              "r3",
+              "r2",
+              "r6",
+              "r10",
+              "r11"
+            ]
+          },
+          {
+            "type": "players",
+            "title": "Arsenal's defenders steal the show",
+            "players": [
+              {
+                "player": "Gabriel",
+                "ref": "p4",
+                "points": 17,
+                "detail": "1 goal, clean sheet, 3 bonus",
+                "ownership": 21.2
+              },
+              {
+                "player": "Konsa",
+                "ref": "p31",
+                "points": 14,
+                "detail": "1 goal, clean sheet, 2 bonus",
+                "ownership": 18.8
+              }
+            ],
+            "text": "Both scored in the 2-0 win over Everton. Gabriel's 17 points made him the gameweek's top scorer and is his best score this season.",
+            "evidence": [
+              "r1",
+              "r7",
+              "r9"
+            ]
+          },
+          {
+            "type": "matches",
+            "title": "Bournemouth run riot",
+            "matches": [
+              {
+                "home": "Man Utd",
+                "away": "Bournemouth",
+                "score": "0-3"
+              }
+            ],
+            "text": "Hill (11 points), Truffert (10 points), Rayan (10 points) and Tavernier (10 points) all hauled, and only Tavernier was widely owned.",
+            "evidence": [
+              "r1",
+              "r2"
+            ]
+          },
+          {
+            "type": "transfers",
+            "moves": [
+              {
+                "player": "Tavernier",
+                "ref": "p68",
+                "direction": "in",
+                "netTransfers": 610334,
+                "points": 10,
+                "minutes": 86,
+                "detail": "ownership up from 7.9% to 13.5%"
+              },
+              {
+                "player": "Saka",
+                "ref": "p12",
+                "direction": "out",
+                "netTransfers": 721298,
+                "points": 0,
+                "minutes": 0,
+                "detail": "still 10.4% owned"
+              },
+              {
+                "player": "B.Fernandes",
+                "ref": "p426",
+                "direction": "out",
+                "netTransfers": 515978,
+                "points": 0,
+                "minutes": 0,
+                "run": {
+                  "kind": "blanks",
+                  "gameweeks": 6
+                }
+              }
+            ],
+            "text": "The Tavernier bandwagon paid off with a goal, while the sellers of Saka and B.Fernandes lost nothing.",
+            "evidence": [
+              "r4",
+              "r8",
+              "r12"
+            ]
+          },
+          {
+            "type": "notes",
+            "items": [
+              {
+                "player": "M.Sangaré",
+                "ref": "p565",
+                "points": 4,
+                "text": "made 23 defensive contributions, the most by one player in a gameweek this season"
+              },
+              {
+                "text": "1,619 defensive contributions in total, the most in a gameweek this season."
+              },
+              {
+                "text": "The average score of 45 was the lowest of the season so far."
+              }
+            ],
+            "evidence": [
+              "r2"
+            ]
+          }
+        ]
+      },
+      "ok": true,
+      "result": {
+        "accepted": true,
+        "numbersChecked": 53,
+        "namesChecked": 55
+      }
+    }
+  ],
+  "checks": {
+    "passed": true,
+    "issues": [],
+    "numbersChecked": 53,
+    "namesChecked": 55
+  },
+  "model": "claude-opus-5-5",
+  "usage": {
+    "inputTokens": 113141,
+    "outputTokens": 4458,
+    "toolCalls": 14,
+    "cacheReadInputTokens": 96263,
+    "cacheCreationInputTokens": 16864
+  },
+  "costUsd": 0.1927886,
+  "timing": {
+    "startedAt": "2026-11-24T16:11:12.302Z",
+    "durationMs": 35731
+  },
+  "generatedAt": "2026-11-24T16:11:48.033Z",
+  "run": {
+    "outcome": "after-retry",
+    "fallback": false,
+    "attempts": [
+      {
+        "attempt": 1,
+        "outcome": "failed",
+        "toolCalls": 12,
+        "issues": [
+          {
+            "code": "length",
+            "where": "card 3 (players), text",
+            "message": "This is 26 words. Keep it to 25 words at most."
+          },
+          {
+            "code": "length",
+            "where": "card 7 (notes), note 2",
+            "message": "This is 15 words. Keep it to 14 words at most."
+          }
+        ]
+      },
+      {
+        "attempt": 2,
+        "outcome": "passed",
+        "toolCalls": 0,
+        "issues": []
+      }
+    ],
+    "modelCalls": 5,
+    "priced": true,
+    "limits": {
+      "maxToolCallsPerAttempt": 15,
+      "maxOutputTokens": 4000,
+      "timeoutMs": 180000
+    }
+  },
+  "cards": [
+    {
+      "type": "numbers",
+      "items": [
+        {
+          "value": "45",
+          "label": "average score"
+        },
+        {
+          "value": "120",
+          "label": "highest score"
+        },
+        {
+          "value": "19",
+          "label": "goals"
+        },
+        {
+          "value": "10",
+          "label": "matches"
+        }
+      ],
+      "evidence": [
+        "r1"
+      ]
+    },
+    {
+      "type": "captaincy",
+      "player": "Haaland",
+      "ref": "p411",
+      "points": 8,
+      "ownership": 77.8,
+      "tiles": [
+        {
+          "value": "16",
+          "label": "as captain"
+        },
+        {
+          "value": "24",
+          "label": "as Triple Captain"
+        }
+      ],
+      "badge": "Scored in 7 gameweeks running",
+      "text": "Haaland's goal kept captains ticking over, but the most vice-captained player, João Pedro, never got off the bench.",
+      "evidence": [
+        "r3",
+        "r5"
+      ]
+    },
+    {
+      "type": "players",
+      "title": "Popular picks that let owners down",
+      "players": [
+        {
+          "player": "João Pedro",
+          "ref": "p165",
+          "points": 0,
+          "detail": "did not play",
+          "ownership": 74.2
+        },
+        {
+          "player": "Calafiori",
+          "ref": "p8",
+          "points": 1,
+          "detail": "22 minutes",
+          "ownership": 55.1
+        },
+        {
+          "player": "Rogers",
+          "ref": "p40",
+          "points": 1,
+          "detail": "booked, no return",
+          "ownership": 49.9
+        },
+        {
+          "player": "Groß",
+          "ref": "p124",
+          "points": 0,
+          "detail": "90 minutes, no return",
+          "ownership": 46.4
+        }
+      ],
+      "text": "Hugely popular picks gave almost nothing back in the lowest-scoring gameweek of the season so far.",
+      "evidence": [
+        "r3",
+        "r2",
+        "r6",
+        "r10",
+        "r11"
+      ]
+    },
+    {
+      "type": "players",
+      "title": "Arsenal's defenders steal the show",
+      "players": [
+        {
+          "player": "Gabriel",
+          "ref": "p4",
+          "points": 17,
+          "detail": "1 goal, clean sheet, 3 bonus",
+          "ownership": 21.2
+        },
+        {
+          "player": "Konsa",
+          "ref": "p31",
+          "points": 14,
+          "detail": "1 goal, clean sheet, 2 bonus",
+          "ownership": 18.8
+        }
+      ],
+      "text": "Both scored in the 2-0 win over Everton. Gabriel's 17 points made him the gameweek's top scorer and is his best score this season.",
+      "evidence": [
+        "r1",
+        "r7",
+        "r9"
+      ]
+    },
+    {
+      "type": "matches",
+      "title": "Bournemouth run riot",
+      "matches": [
+        {
+          "home": "Man Utd",
+          "away": "Bournemouth",
+          "score": "0-3"
+        }
+      ],
+      "text": "Hill (11 points), Truffert (10 points), Rayan (10 points) and Tavernier (10 points) all hauled, and only Tavernier was widely owned.",
+      "evidence": [
+        "r1",
+        "r2"
+      ]
+    },
+    {
+      "type": "transfers",
+      "moves": [
+        {
+          "player": "Tavernier",
+          "ref": "p68",
+          "direction": "in",
+          "netTransfers": 610334,
+          "points": 10,
+          "minutes": 86,
+          "detail": "ownership up from 7.9% to 13.5%"
+        },
+        {
+          "player": "Saka",
+          "ref": "p12",
+          "direction": "out",
+          "netTransfers": 721298,
+          "points": 0,
+          "minutes": 0,
+          "detail": "still 10.4% owned"
+        },
+        {
+          "player": "B.Fernandes",
+          "ref": "p426",
+          "direction": "out",
+          "netTransfers": 515978,
+          "points": 0,
+          "minutes": 0,
+          "run": {
+            "kind": "blanks",
+            "gameweeks": 6
+          }
+        }
+      ],
+      "text": "The Tavernier bandwagon paid off with a goal, while the sellers of Saka and B.Fernandes lost nothing.",
+      "evidence": [
+        "r4",
+        "r8",
+        "r12"
+      ]
+    },
+    {
+      "type": "notes",
+      "items": [
+        {
+          "player": "M.Sangaré",
+          "ref": "p565",
+          "text": "made 23 defensive contributions, the most by one player in a gameweek this season",
+          "points": 4
+        },
+        {
+          "text": "1,619 defensive contributions in total, the most in a gameweek this season."
+        },
+        {
+          "text": "The average score of 45 was the lowest of the season so far."
+        }
+      ],
+      "evidence": [
+        "r2"
+      ]
+    }
+  ]
+}
