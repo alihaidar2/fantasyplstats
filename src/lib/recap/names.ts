@@ -20,6 +20,12 @@ export interface NameMention {
   start: number;
   end: number;
   /**
+   * A club nickname ("City", "United") that more than one club in the
+   * dictionary could answer to. `ids` lists them all, even when only one is
+   * in the league, so the checker always confirms which club is meant.
+   */
+  sharedNickname?: boolean;
+  /**
    * A single word that opens a sentence and might not be a name at all: a
    * first name ("Will ..."), or a surname that is also an ordinary word
    * ("Young ...", "White ..."). Only trust it when the evidence agrees.
@@ -51,7 +57,7 @@ export interface NameIndex {
 /** Longer or more formal names for clubs FPL abbreviates, keyed by FPL's team name. */
 export const TEAM_ALIASES: Record<string, string[]> = {
   "Man City": ["Manchester City"],
-  "Man Utd": ["Manchester United"],
+  "Man Utd": ["Manchester United", "Man United"],
   Spurs: ["Tottenham", "Tottenham Hotspur"],
   "Nott'm Forest": ["Nottingham Forest", "Forest"],
   Wolves: ["Wolverhampton", "Wolverhampton Wanderers"],
@@ -60,10 +66,35 @@ export const TEAM_ALIASES: Record<string, string[]> = {
   Leeds: ["Leeds United"],
   "Aston Villa": ["Villa"],
   "Crystal Palace": ["Palace"],
+  Brighton: ["Brighton and Hove Albion"],
+  Leicester: ["Leicester City"],
+  "Sheffield Utd": ["Sheffield United"],
+  "West Brom": ["West Bromwich Albion", "West Bromwich"],
+};
+
+/**
+ * The one-word nicknames several clubs answer to, keyed by FPL's team name.
+ * "City" is Man City to most readers, but Hull City and Coventry City are
+ * "City" too, so these are never taken on trust: the index reports every club
+ * in the dictionary that shares the nickname, and the checker accepts it only
+ * when the recap itself makes clear which one is meant (see `sharedNickname`
+ * on a mention). Clubs FPL names "X City" or "X United" get theirs from the
+ * name, so only the clubs FPL abbreviates are listed.
+ */
+export const SHARED_NICKNAMES: Record<string, string[]> = {
+  "Man City": ["City"],
+  Leicester: ["City"],
+  "Man Utd": ["United"],
+  Newcastle: ["United"],
+  Leeds: ["United"],
+  "West Ham": ["United"],
+  "Sheffield Utd": ["United"],
 };
 
 /** "Coventry City" is also "Coventry". */
 const CLUB_SUFFIX = /^(.{4,}) (City|Town|United|Albion|Wanderers|Athletic|Rovers|County)$/;
+/** The suffixes that double as a nickname on their own ("City", "United"). */
+const NICKNAME_SUFFIXES = new Set(["City", "United"]);
 
 /** Capitalised words a recap may use that are not names. */
 export const ALLOWED_CAPITALISED = new Set(
@@ -177,6 +208,8 @@ const unique = (ids: Iterable<number>) => [...new Set(ids)].sort((a, b) => a - b
 export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
   /** Phrase ("man city") -> team ids. */
   const teamPhrases = new Map<string, number[]>();
+  /** Nicknames ("city") that must be confirmed against the recap, whether or not two clubs share them this season. */
+  const sharedNicknames = new Set<string>();
   /** Short name ("mci") -> team id. */
   const teamShort = new Map<string, number>();
   /** Phrase -> players usually called exactly that. */
@@ -198,7 +231,12 @@ export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
       const names = [entry.name, ...(TEAM_ALIASES[entry.name] ?? [])];
       const stem = CLUB_SUFFIX.exec(entry.name);
       if (stem) names.push(stem[1]);
+      const nicknames = [...(SHARED_NICKNAMES[entry.name] ?? []), ...(stem && NICKNAME_SUFFIXES.has(stem[2]) ? [stem[2]] : [])];
       for (const name of names) add(teamPhrases, phraseKey(name), entry.id);
+      for (const nickname of nicknames) {
+        add(teamPhrases, phraseKey(nickname), entry.id);
+        sharedNicknames.add(phraseKey(nickname));
+      }
       teamShort.set(entry.shortName.toLowerCase(), entry.id);
       continue;
     }
@@ -240,7 +278,10 @@ export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
   function lookupTeam(query: string): number | null {
     const short = teamShort.get(query.trim().toLowerCase());
     if (short !== undefined) return short;
-    const ids = teamPhrases.get(phraseKey(query));
+    const key = phraseKey(query);
+    // A shared nickname ("City") is never a way to ask for a club, even when one club has it this season.
+    if (sharedNicknames.has(key)) return null;
+    const ids = teamPhrases.get(key);
     return ids?.length === 1 ? ids[0] : null;
   }
 
@@ -297,7 +338,12 @@ export function createNameIndex(entries: readonly NameEntry[]): NameIndex {
 
           const teams = teamPhrases.get(keys.join(" "));
           if (teams) {
-            segments.push({ type: "mention", words: length, mention: { kind: "team", ids: unique(teams), exactIds: unique(teams), ...base, weak: false } });
+            const sharedNickname = sharedNicknames.has(keys.join(" "));
+            segments.push({
+              type: "mention",
+              words: length,
+              mention: { kind: "team", ids: unique(teams), exactIds: unique(teams), ...base, weak: false, ...(sharedNickname ? { sharedNickname } : {}) },
+            });
             matched = length;
             break;
           }

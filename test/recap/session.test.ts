@@ -5,6 +5,8 @@ import { buildGameweekContext } from "../../src/lib/recap/context";
 
 const TOOL_NAMES = [
   "gameweek_summary",
+  "captaincy",
+  "transfer_story",
   "top_performers",
   "player_story",
   "find_players",

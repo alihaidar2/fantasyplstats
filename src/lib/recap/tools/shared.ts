@@ -276,3 +276,40 @@ export function kickoffDay(kickoff: string | null): string | undefined {
   const day = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "long" }).format(new Date(kickoff));
   return DAYS.includes(day) ? day : undefined;
 }
+
+/** FPL's chip ids as managers know them. */
+export const CHIP_NAMES: Record<string, string> = {
+  bboost: "Bench Boost",
+  freehit: "Free Hit",
+  wildcard: "Wildcard",
+  "3xc": "Triple Captain",
+};
+
+/** A goal or an assist, or a clean sheet for a goalkeeper or defender who played. */
+export const returnedThisGameweek = (p: ContextPlayer) =>
+  p.gw.goals + p.gw.assists > 0 || ((p.position === "GKP" || p.position === "DEF") && p.gw.cleanSheets > 0);
+
+/** At most this many points is a blank: appearance points and nothing else. */
+export const BLANK_MAX_POINTS = 2;
+
+/** How a player's gameweek went for the managers who had them, in one phrase (no names or numbers: the checker reads strings too). */
+export function outcomeOf(context: GameweekContext, player: ContextPlayer): string {
+  if (!roundOf(player, context.gameweek)) return "club had no match";
+  if (player.gw.minutes === 0) return "did not play";
+  if (player.gw.points >= 10) return "double-figure haul";
+  if (returnedThisGameweek(player)) return "returned";
+  return player.gw.points <= BLANK_MAX_POINTS ? "blanked" : "no goal or assist";
+}
+
+/** How a player did this gameweek, in the shape every "what happened to this pick" list uses. */
+export function gameweekOutcome(context: GameweekContext, player: ContextPlayer) {
+  return {
+    ...label(context, player),
+    points: player.gw.points,
+    minutes: player.gw.minutes,
+    goals: player.gw.goals,
+    assists: player.gw.assists,
+    outcome: outcomeOf(context, player),
+    ...ownershipOf(context, player),
+  };
+}

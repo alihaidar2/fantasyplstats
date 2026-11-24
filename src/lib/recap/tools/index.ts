@@ -1,3 +1,4 @@
+import { captaincy } from "./captaincy";
 import { defensiveContributions } from "./defensive-contributions";
 import { disciplineAndAvailability } from "./discipline-and-availability";
 import { expectedVsActual } from "./expected-vs-actual";
@@ -11,10 +12,13 @@ import { submitRecap } from "./submit-recap";
 import { teamStory } from "./team-story";
 import type { RecapTool } from "./tool";
 import { topPerformers } from "./top-performers";
+import { transferStory } from "./transfer-story";
 
 /** Every tool the recap agent can call, in the order they are offered. */
 export const RECAP_TOOLS: readonly RecapTool[] = [
   gameweekSummary,
+  captaincy,
+  transferStory,
   topPerformers,
   playerStory,
   findPlayers,
@@ -29,6 +33,7 @@ export const RECAP_TOOLS: readonly RecapTool[] = [
 ];
 
 export {
+  captaincy,
   defensiveContributions,
   disciplineAndAvailability,
   expectedVsActual,
@@ -41,5 +46,6 @@ export {
   submitRecap,
   teamStory,
   topPerformers,
+  transferStory,
 };
 export * from "./tool";

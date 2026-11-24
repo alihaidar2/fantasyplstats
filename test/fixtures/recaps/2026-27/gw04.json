@@ -373,6 +373,7 @@
             ]
           }
         ],
+        "matchCount": 10,
         "goals": 29,
         "topScorer": {
           "player": "Groß",
@@ -695,34 +696,54 @@
             "points": 2,
             "minutes": 90,
             "goals": 0,
-            "assists": 0
+            "assists": 0,
+            "ownedBy": 1308033,
+            "ownership": "14.7%"
           },
           {
             "gameweek": 2,
             "points": 13,
             "minutes": 90,
             "goals": 1,
-            "assists": 1
+            "assists": 1,
+            "ownedBy": 1268429,
+            "ownership": "12.8%",
+            "netTransfersOut": 81694
           },
           {
             "gameweek": 3,
             "points": 1,
             "minutes": 90,
             "goals": 0,
-            "assists": 0
+            "assists": 0,
+            "ownedBy": 1691790,
+            "ownership": "16.3%",
+            "netTransfersIn": 341111
           },
           {
             "gameweek": 4,
             "points": 17,
             "minutes": 90,
             "goals": 1,
-            "assists": 2
+            "assists": 2,
+            "ownedBy": 1745184,
+            "ownership": "16.3%",
+            "netTransfersIn": 72242
           }
         ],
         "streaks": {
+          "gameweeksInARowWithAGoal": 1,
           "gameweeksInARowWithAGoalOrAssist": 1,
           "gameweeksInARowWithoutAGoalOrAssist": 0,
-          "gameweeksInARowWithMinutes": 4
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 4,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 1,
+          "ownershipThen": "14.7%",
+          "ownershipNow": "16.3%",
+          "netTransfersInOverTheseGameweeks": 331659
         }
       }
     },

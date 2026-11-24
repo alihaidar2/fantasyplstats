@@ -66,6 +66,8 @@ function recordedSources(gameweek: number, through = Math.max(...RECORDED)): Gam
 
 const TOUR = (context: ReturnType<typeof buildGameweekContext>): [string, unknown][] => [
   ["gameweek_summary", {}],
+  ["captaincy", {}],
+  ["transfer_story", {}],
   ["top_performers", {}],
   ["player_story", { player: context.players.reduce((a, b) => (b.gw.points > a.gw.points ? b : a)).ref }],
   ["find_players", { sortBy: "ownership" }],
@@ -121,6 +123,112 @@ describe("the gameweeks recorded for the evals", () => {
     expect((evidence[0].result as { matches: unknown[] }).matches).toContainEqual(
       expect.objectContaining({ home: "Man City", away: "Sunderland", score: "5-3" }),
     );
+  });
+});
+
+describe("captaincy, transfers and runs across the recorded gameweeks", () => {
+  const call = (gameweek: number, tool: string, input: unknown = {}) => {
+    const session = createRecapSession(buildGameweekContext(gameweek, recordedSources(gameweek)));
+    const entry = session.call(tool, input);
+    expect(entry.ok, JSON.stringify(entry.result).slice(0, 200)).toBe(true);
+    return entry.result as Record<string, unknown>;
+  };
+
+  it("captaincy: the most-captained player's score, doubled and tripled, and a season-high chip count (GW3)", () => {
+    // evals/references/2026-27/gw03.md, story 1
+    expect(call(3, "captaincy")).toMatchObject({
+      mostCaptained: {
+        player: "Haaland",
+        points: 9,
+        captainPoints: 18,
+        tripleCaptainPoints: 27,
+        ownedBy: 7594638,
+        gameweeksInARowAsMostCaptained: 3,
+        wasTheGameweekTopScorer: false,
+      },
+      mostViceCaptained: { player: "B.Fernandes", points: 2, outcome: "blanked" },
+      tripleCaptain: {
+        played: 1787071,
+        mostPlayedInAGameweekSoFar: true,
+        previousHigh: { chip: "Triple Captain", gameweek: 1, played: 250816 },
+      },
+    });
+  });
+
+  it("captaincy: a chip count below an earlier gameweek's is not flagged (GW4 after GW3's Triple Captains)", () => {
+    expect(call(4, "captaincy")).toMatchObject({
+      tripleCaptain: { played: 323226, mostPlayedInAGameweekSoFar: false, previousHigh: { gameweek: 3, played: 1787071 } },
+    });
+  });
+
+  it("captaincy: gameweek 1 has nothing earlier to compare its chips with", () => {
+    const result = call(1, "captaincy") as { chips: Record<string, unknown>[] };
+    expect(result.chips.length).toBeGreaterThan(0);
+    for (const chip of result.chips) expect(chip).not.toHaveProperty("mostPlayedInAGameweekSoFar");
+  });
+
+  it("transfer_story: what the most-transferred-in player then scored (GW3 and GW5)", () => {
+    // evals/references/2026-27/gw03.md, story 2
+    const gw3 = call(3, "transfer_story") as { biggestNetTransfersIn: Record<string, unknown>[]; biggestNetTransfersOut: Record<string, unknown>[] };
+    expect(gw3).toMatchObject({
+      allManagers: { transfersMade: 27412065, mostTransfersInAGameweekSoFar: true, previousHigh: { gameweek: 2, transfersMade: 11562127 } },
+      mostTransferredIn: { player: "Cherki", points: 3, minutes: 65, netTransfersIn: 1783948, biggestNetTransfersInOfTheSeasonSoFar: true },
+    });
+    // Only the gameweek's biggest mover can hold the season high.
+    expect(gw3.biggestNetTransfersIn[0]).toMatchObject({ player: "Cherki", biggestNetTransfersInOfTheSeasonSoFar: true });
+    expect(gw3.biggestNetTransfersIn[1]).toMatchObject({ biggestNetTransfersInOfTheSeasonSoFar: false });
+    for (const row of gw3.biggestNetTransfersOut) {
+      expect(row.netTransfersOut).toBeGreaterThan(0);
+      expect(row).not.toHaveProperty("netTransfersIn");
+    }
+    expect(call(5, "transfer_story")).toMatchObject({ mostTransferredIn: { player: "Gibbs-White", points: 2 } });
+  });
+
+  it("transfer_story: gameweek 1 has no transfers", () => {
+    const result = call(1, "transfer_story");
+    expect(result).not.toHaveProperty("biggestNetTransfersIn");
+    expect(result.note).toMatch(/no transfers/);
+  });
+
+  it("gameweek_summary: counts the matches", () => {
+    expect(call(3, "gameweek_summary")).toMatchObject({ matchCount: 10, goals: 23 });
+  });
+
+  it("player_story: runs are counted back from this gameweek and match the weeks shown", () => {
+    for (const gameweek of [4, 7, 10]) {
+      const context = buildGameweekContext(gameweek, recordedSources(gameweek));
+      const session = createRecapSession(context);
+      for (const player of context.players.filter((p) => p.rounds.length >= 3).slice(0, 60)) {
+        const story = session.call("player_story", { player: player.ref }).result as {
+          lastFive: { gameweek: number; points: number; minutes: number; goals: number }[];
+          streaks: Record<string, number>;
+        };
+        expect(story.lastFive.every((r) => r.gameweek <= gameweek)).toBe(true);
+        const back = [...story.lastFive].reverse();
+        const run = (test: (r: (typeof back)[number]) => boolean) => {
+          const stop = back.findIndex((r) => !test(r));
+          return stop === -1 ? back.length : stop;
+        };
+        const capped = (n: number) => Math.min(n, back.length);
+        expect(capped(story.streaks.gameweeksInARowWithAGoal), player.name).toBe(run((r) => r.goals > 0));
+        expect(capped(story.streaks.gameweeksInARowBlanking), player.name).toBe(run((r) => r.points <= 2));
+        expect(capped(story.streaks.gameweeksInARowWithoutMinutes), player.name).toBe(run((r) => r.minutes === 0));
+        // A run can't be both live and broken.
+        expect(story.streaks.gameweeksInARowWithAGoal > 0 && story.streaks.gameweeksInARowBlanking > 0).toBe(false);
+      }
+    }
+  });
+
+  it("player_story: shows the ownership and transfer trend over the weeks it lists", () => {
+    const story = call(5, "player_story", { player: "Haaland" }) as {
+      lastFive: Record<string, unknown>[];
+      trend: Record<string, unknown>;
+    };
+    expect(story.lastFive).toHaveLength(5);
+    expect(story.lastFive[0]).toMatchObject({ gameweek: 1, ownedBy: expect.any(Number), ownership: expect.stringMatching(/%$/) });
+    expect(story.lastFive[0]).not.toHaveProperty("netTransfersIn");
+    expect(story.lastFive[4]).toMatchObject({ gameweek: 5, ownedBy: 7989349 });
+    expect(story.trend).toMatchObject({ sinceGameweek: 1, ownershipThen: expect.any(String), ownershipNow: expect.any(String) });
   });
 });
 

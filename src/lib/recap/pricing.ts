@@ -2,7 +2,7 @@
 //
 // VERIFY AGAINST CURRENT PRICING before trusting a cost figure:
 // https://platform.claude.com/docs/en/about-claude/pricing
-// Copied from that page on 22 November 2026. Cache writes are priced at the
+// Copied from that page on 22 November 2026 (Fable 5.2 on 23 November 2026). Cache writes are priced at the
 // 5-minute rate, which is what anthropic-model.ts asks for.
 
 import type { ModelUsage } from "./model";
@@ -30,6 +30,7 @@ export const MODEL_PRICES_USD_PER_MTOK: Readonly<Record<string, ModelPrices>> = 
   },
   "claude-sonnet-5-5": { input: 2, output: 10, cacheWrite: 2.5, cacheRead: 0.1 },
   "claude-opus-5-5": { input: 4, output: 20, cacheWrite: 5, cacheRead: 0.2 },
+  "claude-fable-5-2": { input: 8, output: 40, cacheWrite: 10, cacheRead: 0.2 },
 };
 
 export function pricesFor(

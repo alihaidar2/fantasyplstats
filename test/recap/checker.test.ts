@@ -369,11 +369,9 @@ describe("a number in a sentence about a player has to be that player's", () => 
     expect(add("Many of the 323,226 managers who played the Triple Captain chip backed Haaland.").issues).toEqual([]);
     // A count of players.
     expect(add("Haaland was not among the 14 players in double figures.", ["r1", "r2"]).issues).toEqual([]);
-    // "10 or more" has no stat word, and no 10 in the evidence is a figure of Haaland's.
-    expect(codes(add("Haaland was not among the 14 players to score 10 or more.", ["r1", "r2"]))).toEqual([
-      "number-not-cited",
-      "wrong-subject",
-    ]);
+    // "10 or more" has no stat word, so it is read as a plain figure, and no 10 in the evidence is Haaland's
+    // (the only 10 is the gameweek's match count).
+    expect(codes(add("Haaland was not among the 14 players to score 10 or more.", ["r1", "r2"]))).toEqual(["wrong-subject"]);
     // But the same numbers can't be passed off as his.
     expect(codes(add("Haaland was owned by 323,226 managers."))).toEqual(["wrong-subject"]);
   });
@@ -508,5 +506,189 @@ describe("length limits", () => {
 
   it("can be changed", () => {
     expect(broken(() => {}, { limits: { maxWords: 100 } }).issues.map((i) => i.code)).toEqual(["length"]);
+  });
+});
+
+describe("club nicknames", () => {
+  const index = nameIndexOf(context);
+  const teamIds = (text: string) => index.scan(text).mentions.filter((m) => m.kind === "team").map((m) => m.ids);
+  const id = (name: string) => context.teams.find((t) => t.name === name)!.id;
+
+  /** A short recap of its own, so the test controls which clubs it names in full. */
+  const short = (paragraphs: string[], claims: { text: string; evidence: string[] }[]) =>
+    checkRecap(
+      { headline: "Haaland wins it for the champions", paragraphs, claims },
+      { ...options, limits: { minWords: 1, minClaims: 1, minParagraphs: 1 } },
+    );
+
+  it("reads one-club nicknames as that club", () => {
+    expect(teamIds("Villa beat Forest, Palace drew with Spurs and Brighton lost.")).toEqual(
+      ["Aston Villa", "Nott'm Forest", "Crystal Palace", "Spurs", "Brighton"].map((name) => [id(name)]),
+    );
+    expect(index.scan("Villa beat Forest.").unknown).toEqual([]);
+  });
+
+  it("reads a shared nickname as every club that answers to it, and never as a tool input", () => {
+    expect(teamIds("City won.")).toEqual([[id("Coventry City"), id("Hull City"), id("Man City")].sort((a, b) => a - b)]);
+    expect(teamIds("United lost.")).toEqual([[id("Leeds"), id("Man Utd"), id("Newcastle")].sort((a, b) => a - b)]);
+    // The full names still mean one club each.
+    expect(teamIds("Man City beat Hull City.")).toEqual([[id("Man City")], [id("Hull City")]]);
+    expect(index.lookupTeam("City")).toBeNull();
+    expect(index.lookupTeam("United")).toBeNull();
+    expect(index.lookupTeam("Man City")).toBe(id("Man City"));
+  });
+
+  it("accepts a shared nickname once the same text names that club in full", () => {
+    const report = broken((d) => {
+      const sentence = "Man City won 1-0 at Man Utd, and City had Haaland to thank for it.";
+      d.paragraphs[3] += ` ${sentence}`;
+      d.claims.push({ text: sentence, evidence: ["r1"] });
+    });
+    expect(report.issues).toEqual([]);
+  });
+
+  it("accepts a shared nickname when the recap names only one such club in full", () => {
+    const claims = [{ text: "City won 1-0 at Man Utd.", evidence: ["r1"] }];
+    expect(short(["Haaland got the only goal for Man City.", "City won 1-0 at Man Utd."], claims).issues).toEqual([]);
+  });
+
+  it("still checks the facts about the club a nickname stands for", () => {
+    const claims = [{ text: "City won 3-0 at Man Utd.", evidence: ["r1"] }];
+    const report = short(["Haaland got the only goal for Man City.", "City won 3-0 at Man Utd."], claims);
+    expect(codes(report)).toEqual(["wrong-score"]);
+  });
+
+  it("rejects a shared nickname when the text names two clubs it could be", () => {
+    // Paragraph 3 of the sample names both Hull City and Man City.
+    const report = broken((d) => {
+      d.paragraphs[2] += " City were good value.";
+    });
+    expect(codes(report)).toEqual(["ambiguous-name"]);
+    expect(messages(report, "ambiguous-name")[0]).toMatch(/"City" could mean Hull City or Man City/);
+  });
+
+  it("rejects a shared nickname when the recap as a whole names two clubs it could be", () => {
+    // The sample names Man Utd and Leeds; this claim names neither in full.
+    const report = broken((d) => {
+      d.claims.push({ text: "United lost to the only goal of the match.", evidence: ["r1"] });
+    });
+    expect(codes(report)).toEqual(["ambiguous-name"]);
+    expect(messages(report, "ambiguous-name")[0]).toMatch(/"United" could mean Leeds or Man Utd/);
+  });
+
+  it("rejects a shared nickname when the recap names no club it could be", () => {
+    const claims = [{ text: "United lost to the only goal of the match.", evidence: ["r1"] }];
+    const report = short(["Haaland scored the only goal of the match.", "United lost to the only goal of the match."], claims);
+    expect(codes(report)).toEqual(["ambiguous-name"]);
+  });
+});
+
+describe("thresholds and counts", () => {
+  const add = (sentence: string, cite = ["r2"]) =>
+    broken((d) => {
+      d.paragraphs[3] += ` ${sentence}`;
+      d.claims.push({ text: sentence, evidence: cite });
+    });
+
+  it("accepts a threshold the named player's figure meets", () => {
+    // r2: Groß 17 points, Schade 15, 14 players in double figures.
+    expect(add("Groß was one of 14 players with 10 or more points.").issues).toEqual([]);
+    expect(add("Schade delivered at least 15 points.").issues).toEqual([]);
+    expect(add("Groß finished with more than 15 points.").issues).toEqual([]);
+    expect(add("Groß finished with 10+ points.").issues).toEqual([]);
+    expect(add("Groß reached a double-digit haul.").issues).toEqual([]);
+  });
+
+  it("rejects a threshold the named player's figure does not meet", () => {
+    expect(codes(add("Groß was one of 14 players with 20 or more points."))).toEqual(["threshold-not-supported"]);
+    expect(codes(add("Groß finished with more than 17 points."))).toEqual(["threshold-not-supported"]);
+    expect(codes(add("Schade delivered at least 16 points."))).toEqual(["threshold-not-supported"]);
+    // Haaland scored 9: someone else's 17 doesn't make it true of him.
+    expect(codes(add("Haaland delivered 10 or more points.", ["r1", "r2"]))).toEqual(["threshold-not-supported"]);
+    expect(messages(add("Haaland delivered 10 or more points.", ["r1", "r2"]), "threshold-not-supported")[0]).toMatch(
+      /"10 or more".*no Haaland's points figure that meets it/,
+    );
+  });
+
+  it("checks a threshold against the stat it names", () => {
+    // Groß has 17 points but 1 goal and 2 assists.
+    expect(codes(add("Groß had 3 or more assists."))).toEqual(["threshold-not-supported"]);
+    expect(add("Groß had 2 or more assists.").issues).toEqual([]);
+  });
+
+  it("does not let a threshold borrow a season total", () => {
+    // Groß has 33 points this season and 17 this gameweek.
+    expect(codes(add("Groß delivered 30 or more points."))).toEqual(["threshold-not-supported"]);
+    expect(add("Groß has 30 or more points this season.").issues).toEqual([]);
+  });
+
+  it("reads a threshold with no stat word as a plain figure, which still has to be in the evidence", () => {
+    expect(codes(add("Groß scored 16 or more."))).toEqual(["number-not-cited", "number-not-in-evidence"]);
+  });
+
+  it("still rejects a made-up figure beside a threshold", () => {
+    expect(codes(add("Groß had 10 or more points and 19 touches in the box."))).toEqual(["number-not-cited", "number-not-in-evidence"]);
+    expect(codes(add("Groß had 10 or more points from 21 shots."))).toContain("number-not-cited");
+  });
+
+  it("accepts a count of players only when a cited list proves it", () => {
+    // r2 lists six scores: 17, 15, 15, 14, 14 and 13. No tool returned a 5 or a 4.
+    expect(add("Five players scored 14 or more points.").issues).toEqual([]);
+    expect(codes(add("Four players scored 14 or more points."))).toEqual(["number-not-cited"]);
+    // All six listed players meet it, so the list may go on: nothing shows where it stops.
+    expect(codes(add("Six players scored 13 or more points."))).toEqual(["number-not-cited"]);
+    // Only three of them reached 15.
+    expect(codes(add("Five players scored 15 or more points."))).toEqual(["number-not-cited"]);
+  });
+});
+
+describe("captaincy and transfer results", () => {
+  // Two more results for the sample's gameweek, under ids the sample doesn't use.
+  const session = createRecapSession(context);
+  const captaincy = { ...session.call("captaincy", {}), id: "r8" };
+  const transfers = { ...session.call("transfer_story", {}), id: "r9" };
+  const add = (sentence: string, cite: string[]) =>
+    broken(
+      (d) => {
+        d.paragraphs[3] += ` ${sentence}`;
+        d.claims.push({ text: sentence, evidence: cite });
+      },
+      { evidence: [...sample.evidence, captaincy, transfers] },
+    );
+
+  it("ties the captain's doubled and tripled scores to the captain", () => {
+    expect(add("A Triple Captain on Haaland returned 27 points.", ["r8"]).issues).toEqual([]);
+    expect(add("Haaland's 9 points became 18 for the managers who captained him.", ["r8"]).issues).toEqual([]);
+    expect(codes(add("A Triple Captain on Haaland returned 36 points.", ["r8"]))).toEqual(["number-not-cited", "number-not-in-evidence"]);
+    // João Pedro scored 12: Haaland's tripled score is not his.
+    expect(codes(add("A Triple Captain on João Pedro returned 27 points.", ["r8"]))).toEqual(["wrong-player"]);
+  });
+
+  it("counts chips for the gameweek, and an earlier gameweek's count only when the sentence names it", () => {
+    expect(add("The Triple Captain chip was played by 323,226 managers, down from 1,787,071 in Gameweek 3.", ["r8"]).issues).toEqual([]);
+    expect(codes(add("The Triple Captain chip was played by 1,787,071 managers.", ["r8"]))).toEqual(["wrong-period"]);
+    expect(codes(add("The Triple Captain chip was played by 423,226 managers.", ["r8"]))).toEqual(["number-not-cited", "number-not-in-evidence"]);
+  });
+
+  it("reads a run as most-captained player", () => {
+    expect(add("Haaland has been the most-captained player for 4 gameweeks in a row.", ["r8"]).issues).toEqual([]);
+    // There is a 6 in the result, but it is not a run of Haaland's.
+    expect(codes(add("Haaland has been the most-captained player for 6 gameweeks in a row.", ["r8"]))).not.toEqual([]);
+  });
+
+  it("ties transfer figures to the player who was bought or sold", () => {
+    const result = transfers.result as {
+      mostTransferredIn: { player: string; points: number; netTransfersIn: number };
+      biggestNetTransfersOut: { player: string; netTransfersOut: number }[];
+    };
+    const bought = result.mostTransferredIn;
+    const sold = result.biggestNetTransfersOut[0];
+    expect(bought.netTransfersIn).toBeGreaterThan(1000);
+    const n = (value: number) => value.toLocaleString("en-GB");
+    expect(add(`${bought.player} was bought by a net ${n(bought.netTransfersIn)} managers.`, ["r9"]).issues).toEqual([]);
+    expect(add(`${sold.player} was sold by a net ${n(sold.netTransfersOut)} managers.`, ["r9"]).issues).toEqual([]);
+    // An invented figure, and the right figure on the wrong player.
+    expect(codes(add(`${bought.player} was bought by a net ${n(bought.netTransfersIn + 1000)} managers.`, ["r9"]))).toEqual(["number-not-cited", "number-not-in-evidence"]);
+    expect(codes(add(`${sold.player} was sold by a net ${n(bought.netTransfersIn)} managers.`, ["r9"]))).toEqual(["wrong-player"]);
   });
 });
