@@ -1,0 +1,1936 @@
+{
+  "version": 2,
+  "season": "2026-27",
+  "gameweek": 1,
+  "headline": "Haaland blanks for his captains while Brighton and Hull City defenders haul",
+  "evidence": [
+    {
+      "id": "r1",
+      "tool": "gameweek_summary",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 1,
+        "season": "2026-27",
+        "status": {
+          "note": "A past gameweek: its points are final."
+        },
+        "managers": {
+          "averageScore": 50,
+          "highestScore": 131,
+          "ranked": 8903411
+        },
+        "matches": [
+          {
+            "home": "Arsenal",
+            "away": "Coventry City",
+            "score": "3-0",
+            "day": "Friday",
+            "scorers": [
+              {
+                "player": "Saka",
+                "ref": "p12",
+                "team": "Arsenal",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Ødegaard",
+                "ref": "p15",
+                "team": "Arsenal",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Havertz",
+                "ref": "p26",
+                "team": "Arsenal",
+                "position": "FWD",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Hull City",
+            "away": "Man Utd",
+            "score": "2-0",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Ajayi",
+                "ref": "p279",
+                "team": "Hull City",
+                "position": "DEF",
+                "goals": 1
+              },
+              {
+                "player": "Mendy",
+                "ref": "p586",
+                "team": "Hull City",
+                "position": "DEF",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Everton",
+            "away": "Crystal Palace",
+            "score": "2-0",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Dewsbury-Hall",
+                "ref": "p236",
+                "team": "Everton",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Barry",
+                "ref": "p249",
+                "team": "Everton",
+                "position": "FWD",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Ipswich Town",
+            "away": "Sunderland",
+            "score": "2-1",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Clarke",
+                "ref": "p313",
+                "team": "Ipswich Town",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Emersonn",
+                "ref": "p316",
+                "team": "Ipswich Town",
+                "position": "FWD",
+                "goals": 1
+              },
+              {
+                "player": "N.Angulo",
+                "ref": "p551",
+                "team": "Sunderland",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Nott'm Forest",
+            "away": "Leeds",
+            "score": "0-1",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Stach",
+                "ref": "p335",
+                "team": "Leeds",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Brentford",
+            "away": "Spurs",
+            "score": "3-0",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Lewis-Potter",
+                "ref": "p86",
+                "team": "Brentford",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Kayode",
+                "ref": "p88",
+                "team": "Brentford",
+                "position": "DEF",
+                "goals": 1
+              },
+              {
+                "player": "Janelt",
+                "ref": "p98",
+                "team": "Brentford",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Brighton",
+            "away": "Aston Villa",
+            "score": "4-0",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "Hinshelwood",
+                "ref": "p123",
+                "team": "Brighton",
+                "position": "MID",
+                "goals": 2
+              },
+              {
+                "player": "De Cuyper",
+                "ref": "p115",
+                "team": "Brighton",
+                "position": "DEF",
+                "goals": 1
+              }
+            ],
+            "ownGoals": [
+              {
+                "player": "Lindelöf",
+                "ref": "p37",
+                "team": "Aston Villa",
+                "position": "DEF",
+                "ownGoals": 1
+              }
+            ]
+          },
+          {
+            "home": "Man City",
+            "away": "Bournemouth",
+            "score": "2-1",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "Guéhi",
+                "ref": "p388",
+                "team": "Man City",
+                "position": "DEF",
+                "goals": 1
+              },
+              {
+                "player": "Gvardiol",
+                "ref": "p391",
+                "team": "Man City",
+                "position": "DEF",
+                "goals": 1
+              },
+              {
+                "player": "Tavernier",
+                "ref": "p68",
+                "team": "Bournemouth",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Newcastle",
+            "away": "Liverpool",
+            "score": "2-2",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "Elanga",
+                "ref": "p454",
+                "team": "Newcastle",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Willock",
+                "ref": "p460",
+                "team": "Newcastle",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Gakpo",
+                "ref": "p367",
+                "team": "Liverpool",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Szoboszlai",
+                "ref": "p368",
+                "team": "Liverpool",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Fulham",
+            "away": "Chelsea",
+            "score": "2-3",
+            "day": "Monday",
+            "scorers": [
+              {
+                "player": "King",
+                "ref": "p268",
+                "team": "Fulham",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Gonzalo",
+                "ref": "p569",
+                "team": "Fulham",
+                "position": "FWD",
+                "goals": 1
+              },
+              {
+                "player": "Rogers",
+                "ref": "p40",
+                "team": "Chelsea",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Palmer",
+                "ref": "p154",
+                "team": "Chelsea",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "João Pedro",
+                "ref": "p165",
+                "team": "Chelsea",
+                "position": "FWD",
+                "goals": 1
+              }
+            ]
+          }
+        ],
+        "matchCount": 10,
+        "goals": 30,
+        "topScorer": {
+          "player": "De Cuyper",
+          "ref": "p115",
+          "team": "Brighton",
+          "position": "DEF",
+          "points": 17,
+          "ownedBy": 151636,
+          "ownership": "1.7%"
+        },
+        "mostCaptained": {
+          "player": "Haaland",
+          "ref": "p411",
+          "team": "Man City",
+          "position": "FWD",
+          "points": 2,
+          "ownedBy": 6209794,
+          "ownership": "69.7%"
+        },
+        "transfersNote": "Gameweek 1 has no transfers, so there is no most-transferred-in player.",
+        "chips": [
+          {
+            "chip": "Bench Boost",
+            "played": 814606
+          },
+          {
+            "chip": "Triple Captain",
+            "played": 250816
+          }
+        ],
+        "dreamTeam": [
+          {
+            "player": "Tzolakis",
+            "ref": "p572",
+            "team": "Hull City",
+            "position": "GKP",
+            "points": 10
+          },
+          {
+            "player": "De Cuyper",
+            "ref": "p115",
+            "team": "Brighton",
+            "position": "DEF",
+            "points": 17
+          },
+          {
+            "player": "Mendy",
+            "ref": "p586",
+            "team": "Hull City",
+            "position": "DEF",
+            "points": 15
+          },
+          {
+            "player": "Ajayi",
+            "ref": "p279",
+            "team": "Hull City",
+            "position": "DEF",
+            "points": 14
+          },
+          {
+            "player": "Kayode",
+            "ref": "p88",
+            "team": "Brentford",
+            "position": "DEF",
+            "points": 13
+          },
+          {
+            "player": "Hinshelwood",
+            "ref": "p123",
+            "team": "Brighton",
+            "position": "MID",
+            "points": 16
+          },
+          {
+            "player": "M.Sangaré",
+            "ref": "p565",
+            "team": "Brentford",
+            "position": "MID",
+            "points": 14
+          },
+          {
+            "player": "Palmer",
+            "ref": "p154",
+            "team": "Chelsea",
+            "position": "MID",
+            "points": 13
+          },
+          {
+            "player": "Stach",
+            "ref": "p335",
+            "team": "Leeds",
+            "position": "MID",
+            "points": 13
+          },
+          {
+            "player": "Gakpo",
+            "ref": "p367",
+            "team": "Liverpool",
+            "position": "MID",
+            "points": 12
+          },
+          {
+            "player": "João Pedro",
+            "ref": "p165",
+            "team": "Chelsea",
+            "position": "FWD",
+            "points": 11
+          }
+        ]
+      }
+    },
+    {
+      "id": "r2",
+      "tool": "story_candidates",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 1,
+        "note": "Ranked by managers affected and surprise, biggest first. A guide, not the recap: confirm each story with the tool that owns it before writing.",
+        "candidates": [
+          {
+            "story": "the most-captained player blanked",
+            "player": "Haaland",
+            "ref": "p411",
+            "team": "Man City",
+            "position": "FWD",
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 6209794,
+            "ownership": "69.7%",
+            "captainPoints": 4,
+            "tripleCaptainPoints": 6
+          },
+          {
+            "story": "a standout match",
+            "home": "Fulham",
+            "away": "Chelsea",
+            "score": "2-3",
+            "goals": 5,
+            "hauls": [
+              {
+                "player": "Palmer",
+                "ref": "p154",
+                "team": "Chelsea",
+                "position": "MID",
+                "points": 13,
+                "ownedBy": 919516,
+                "ownership": "10.3%"
+              },
+              {
+                "player": "João Pedro",
+                "ref": "p165",
+                "team": "Chelsea",
+                "position": "FWD",
+                "points": 11,
+                "ownedBy": 5764207,
+                "ownership": "64.7%"
+              }
+            ]
+          },
+          {
+            "story": "a widely owned player hauled",
+            "player": "João Pedro",
+            "ref": "p165",
+            "team": "Chelsea",
+            "position": "FWD",
+            "points": 11,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "outcome": "double-figure haul",
+            "ownedBy": 5764207,
+            "ownership": "64.7%"
+          },
+          {
+            "story": "a widely owned player blanked",
+            "player": "B.Fernandes",
+            "ref": "p426",
+            "team": "Man Utd",
+            "position": "MID",
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 4653303,
+            "ownership": "52.3%"
+          },
+          {
+            "story": "the top score of the gameweek",
+            "player": "De Cuyper",
+            "ref": "p115",
+            "team": "Brighton",
+            "position": "DEF",
+            "points": 17,
+            "minutes": 77,
+            "goals": 1,
+            "assists": 1,
+            "outcome": "double-figure haul",
+            "ownedBy": 151636,
+            "ownership": "1.7%"
+          },
+          {
+            "story": "a widely owned player blanked",
+            "player": "Mbeumo",
+            "ref": "p427",
+            "team": "Man Utd",
+            "position": "MID",
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 3492739,
+            "ownership": "39.2%"
+          },
+          {
+            "story": "a widely owned player did not play",
+            "player": "Dubravka",
+            "ref": "p497",
+            "team": "Spurs",
+            "position": "GKP",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 1778139,
+            "ownership": "20.0%"
+          },
+          {
+            "story": "a low-owned player hauled",
+            "player": "Hinshelwood",
+            "ref": "p123",
+            "team": "Brighton",
+            "position": "MID",
+            "points": 16,
+            "minutes": 63,
+            "goals": 2,
+            "assists": 0,
+            "outcome": "double-figure haul",
+            "ownedBy": 39219,
+            "ownership": "0.4%"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r3",
+      "tool": "captaincy",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 1,
+        "mostCaptained": {
+          "player": "Haaland",
+          "ref": "p411",
+          "team": "Man City",
+          "position": "FWD",
+          "points": 2,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "outcome": "blanked",
+          "ownedBy": 6209794,
+          "ownership": "69.7%",
+          "captainPoints": 4,
+          "tripleCaptainPoints": 6,
+          "gameweeksInARowAsMostCaptained": 1,
+          "wasTheGameweekTopScorer": false
+        },
+        "mostViceCaptained": {
+          "player": "Raya",
+          "ref": "p1",
+          "team": "Arsenal",
+          "position": "GKP",
+          "points": 6,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "outcome": "returned",
+          "ownedBy": 3347153,
+          "ownership": "37.6%"
+        },
+        "tripleCaptain": {
+          "chip": "Triple Captain",
+          "played": 250816,
+          "shareOfManagers": "2.8%",
+          "note": "FPL does not say which players the Triple Captains were on. Most go on the most-captained player, so report their tripled score as what a Triple Captain on them earned, not as what every chip user got."
+        },
+        "mostOwnedPlayers": [
+          {
+            "player": "Haaland",
+            "ref": "p411",
+            "team": "Man City",
+            "position": "FWD",
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 6209794,
+            "ownership": "69.7%"
+          },
+          {
+            "player": "João Pedro",
+            "ref": "p165",
+            "team": "Chelsea",
+            "position": "FWD",
+            "points": 11,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "outcome": "double-figure haul",
+            "ownedBy": 5764207,
+            "ownership": "64.7%"
+          },
+          {
+            "player": "B.Fernandes",
+            "ref": "p426",
+            "team": "Man Utd",
+            "position": "MID",
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 4653303,
+            "ownership": "52.3%"
+          },
+          {
+            "player": "Szoboszlai",
+            "ref": "p368",
+            "team": "Liverpool",
+            "position": "MID",
+            "points": 8,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "outcome": "returned",
+            "ownedBy": 3733259,
+            "ownership": "41.9%"
+          },
+          {
+            "player": "Calafiori",
+            "ref": "p8",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 9,
+            "minutes": 80,
+            "goals": 0,
+            "assists": 1,
+            "outcome": "returned",
+            "ownedBy": 3542684,
+            "ownership": "39.8%"
+          }
+        ],
+        "bestScoreAmongTheMostOwned": {
+          "player": "João Pedro",
+          "ref": "p165",
+          "team": "Chelsea",
+          "position": "FWD",
+          "points": 11,
+          "captainPoints": 22
+        },
+        "chips": [
+          {
+            "chip": "Bench Boost",
+            "played": 814606,
+            "shareOfManagers": "9.1%"
+          },
+          {
+            "chip": "Triple Captain",
+            "played": 250816,
+            "shareOfManagers": "2.8%"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r4",
+      "tool": "transfer_story",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 1,
+        "note": "Gameweek 1 has no transfers: every squad was picked from scratch."
+      }
+    },
+    {
+      "id": "r5",
+      "tool": "player_story",
+      "input": {
+        "player": "p411"
+      },
+      "ok": true,
+      "result": {
+        "player": "Haaland",
+        "ref": "p411",
+        "team": "Man City",
+        "position": "FWD",
+        "fullName": "Erling Haaland",
+        "thisGameweek": {
+          "points": 2,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "bps": 6,
+          "defensiveContribution": 3,
+          "xG": 0.74,
+          "xA": 0.02,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Man City",
+              "away": "Bournemouth",
+              "score": "2-1",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£15.5m",
+        "ownedBy": 6209794,
+        "ownership": "69.7%",
+        "season": {
+          "points": 2,
+          "rankInPosition": 11,
+          "gameweeksPlayed": 1,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "defensiveContribution": 3,
+          "xG": 0.74,
+          "xA": 0.02,
+          "bestScore": 2,
+          "bestScoreGameweek": 1,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 6209794,
+            "ownership": "69.7%"
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 0,
+          "gameweeksInARowWithAGoalOrAssist": 0,
+          "gameweeksInARowWithoutAGoalOrAssist": 1,
+          "gameweeksInARowBlanking": 1,
+          "gameweeksInARowWithMinutes": 1,
+          "gameweeksInARowWithoutMinutes": 0
+        }
+      }
+    },
+    {
+      "id": "r6",
+      "tool": "player_story",
+      "input": {
+        "player": "p165"
+      },
+      "ok": true,
+      "result": {
+        "player": "João Pedro",
+        "ref": "p165",
+        "team": "Chelsea",
+        "position": "FWD",
+        "fullName": "João Pedro",
+        "thisGameweek": {
+          "points": 11,
+          "minutes": 90,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 2,
+          "bps": 45,
+          "defensiveContribution": 3,
+          "xG": 0.63,
+          "xA": 0.06,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Fulham",
+              "away": "Chelsea",
+              "score": "2-3",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 1,
+                  "points": 4
+                },
+                {
+                  "stat": "assists",
+                  "value": 1,
+                  "points": 3
+                },
+                {
+                  "stat": "bonus",
+                  "value": 2,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£7.5m",
+        "ownedBy": 5764207,
+        "ownership": "64.7%",
+        "season": {
+          "points": 11,
+          "rankInPosition": 1,
+          "gameweeksPlayed": 1,
+          "minutes": 90,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 2,
+          "defensiveContribution": 3,
+          "xG": 0.63,
+          "xA": 0.06,
+          "bestScore": 11,
+          "bestScoreGameweek": 1,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 11,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "ownedBy": 5764207,
+            "ownership": "64.7%"
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 1,
+          "gameweeksInARowWithoutMinutes": 0
+        }
+      }
+    },
+    {
+      "id": "r7",
+      "tool": "player_story",
+      "input": {
+        "player": "p154"
+      },
+      "ok": true,
+      "result": {
+        "player": "Palmer",
+        "ref": "p154",
+        "team": "Chelsea",
+        "position": "MID",
+        "fullName": "Cole Palmer",
+        "thisGameweek": {
+          "points": 13,
+          "minutes": 82,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 3,
+          "bps": 60,
+          "defensiveContribution": 9,
+          "xG": 0.28,
+          "xA": 0.19,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Fulham",
+              "away": "Chelsea",
+              "score": "2-3",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 82,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 1,
+                  "points": 5
+                },
+                {
+                  "stat": "assists",
+                  "value": 1,
+                  "points": 3
+                },
+                {
+                  "stat": "bonus",
+                  "value": 3,
+                  "points": 3
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£9.5m",
+        "ownedBy": 919516,
+        "ownership": "10.3%",
+        "season": {
+          "points": 13,
+          "rankInPosition": 3,
+          "gameweeksPlayed": 1,
+          "minutes": 82,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 3,
+          "defensiveContribution": 9,
+          "xG": 0.28,
+          "xA": 0.19,
+          "bestScore": 13,
+          "bestScoreGameweek": 1,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 13,
+            "minutes": 82,
+            "goals": 1,
+            "assists": 1,
+            "ownedBy": 919516,
+            "ownership": "10.3%"
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 1,
+          "gameweeksInARowWithoutMinutes": 0
+        }
+      }
+    },
+    {
+      "id": "r8",
+      "tool": "player_story",
+      "input": {
+        "player": "p115"
+      },
+      "ok": true,
+      "result": {
+        "player": "De Cuyper",
+        "ref": "p115",
+        "team": "Brighton",
+        "position": "DEF",
+        "fullName": "Maxim De Cuyper",
+        "thisGameweek": {
+          "points": 17,
+          "minutes": 77,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 2,
+          "bps": 46,
+          "cleanSheets": 1,
+          "defensiveContribution": 4,
+          "xG": 1.47,
+          "xA": 0.21,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Brighton",
+              "away": "Aston Villa",
+              "score": "4-0",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 77,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 1,
+                  "points": 6
+                },
+                {
+                  "stat": "assists",
+                  "value": 1,
+                  "points": 3
+                },
+                {
+                  "stat": "clean_sheets",
+                  "value": 1,
+                  "points": 4
+                },
+                {
+                  "stat": "bonus",
+                  "value": 2,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£4.5m",
+        "ownedBy": 151636,
+        "ownership": "1.7%",
+        "season": {
+          "points": 17,
+          "rankInPosition": 1,
+          "gameweeksPlayed": 1,
+          "minutes": 77,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 2,
+          "defensiveContribution": 4,
+          "xG": 1.47,
+          "xA": 0.21,
+          "bestScore": 17,
+          "bestScoreGameweek": 1,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 17,
+            "minutes": 77,
+            "goals": 1,
+            "assists": 1,
+            "ownedBy": 151636,
+            "ownership": "1.7%"
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 1,
+          "gameweeksInARowWithoutMinutes": 0
+        }
+      }
+    },
+    {
+      "id": "r9",
+      "tool": "player_story",
+      "input": {
+        "player": "p123"
+      },
+      "ok": true,
+      "result": {
+        "player": "Hinshelwood",
+        "ref": "p123",
+        "team": "Brighton",
+        "position": "MID",
+        "fullName": "Jack Hinshelwood",
+        "thisGameweek": {
+          "points": 16,
+          "minutes": 63,
+          "goals": 2,
+          "assists": 0,
+          "bonus": 3,
+          "bps": 54,
+          "cleanSheets": 1,
+          "defensiveContribution": 3,
+          "xG": 1.41,
+          "xA": 0.02,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Brighton",
+              "away": "Aston Villa",
+              "score": "4-0",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 63,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 2,
+                  "points": 10
+                },
+                {
+                  "stat": "clean_sheets",
+                  "value": 1,
+                  "points": 1
+                },
+                {
+                  "stat": "bonus",
+                  "value": 3,
+                  "points": 3
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£6.0m",
+        "ownedBy": 39219,
+        "ownership": "0.4%",
+        "season": {
+          "points": 16,
+          "rankInPosition": 1,
+          "gameweeksPlayed": 1,
+          "minutes": 63,
+          "goals": 2,
+          "assists": 0,
+          "bonus": 3,
+          "defensiveContribution": 3,
+          "xG": 1.41,
+          "xA": 0.02,
+          "bestScore": 16,
+          "bestScoreGameweek": 1,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 16,
+            "minutes": 63,
+            "goals": 2,
+            "assists": 0,
+            "ownedBy": 39219,
+            "ownership": "0.4%"
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 1,
+          "gameweeksInARowWithoutMinutes": 0
+        }
+      }
+    },
+    {
+      "id": "r10",
+      "tool": "player_story",
+      "input": {
+        "player": "p426"
+      },
+      "ok": true,
+      "result": {
+        "player": "B.Fernandes",
+        "ref": "p426",
+        "team": "Man Utd",
+        "position": "MID",
+        "fullName": "Bruno Fernandes",
+        "thisGameweek": {
+          "points": 2,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "bps": 18,
+          "defensiveContribution": 6,
+          "xG": 0.08,
+          "xA": 0.26,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Hull City",
+              "away": "Man Utd",
+              "score": "2-0",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£12.0m",
+        "ownedBy": 4653303,
+        "ownership": "52.3%",
+        "season": {
+          "points": 2,
+          "rankInPosition": 51,
+          "gameweeksPlayed": 1,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "defensiveContribution": 6,
+          "xG": 0.08,
+          "xA": 0.26,
+          "bestScore": 2,
+          "bestScoreGameweek": 1,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 4653303,
+            "ownership": "52.3%"
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 0,
+          "gameweeksInARowWithAGoalOrAssist": 0,
+          "gameweeksInARowWithoutAGoalOrAssist": 1,
+          "gameweeksInARowBlanking": 1,
+          "gameweeksInARowWithMinutes": 1,
+          "gameweeksInARowWithoutMinutes": 0
+        }
+      }
+    },
+    {
+      "id": "r11",
+      "tool": "player_story",
+      "input": {
+        "player": "p427"
+      },
+      "ok": true,
+      "result": {
+        "player": "Mbeumo",
+        "ref": "p427",
+        "team": "Man Utd",
+        "position": "MID",
+        "fullName": "Bryan Mbeumo",
+        "thisGameweek": {
+          "points": 2,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "bps": 12,
+          "defensiveContribution": 4,
+          "xG": 0.5,
+          "xA": 0.23,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Hull City",
+              "away": "Man Utd",
+              "score": "2-0",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£8.0m",
+        "ownedBy": 3492739,
+        "ownership": "39.2%",
+        "season": {
+          "points": 2,
+          "rankInPosition": 51,
+          "gameweeksPlayed": 1,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "defensiveContribution": 4,
+          "xG": 0.5,
+          "xA": 0.23,
+          "bestScore": 2,
+          "bestScoreGameweek": 1,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 3492739,
+            "ownership": "39.2%"
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 0,
+          "gameweeksInARowWithAGoalOrAssist": 0,
+          "gameweeksInARowWithoutAGoalOrAssist": 1,
+          "gameweeksInARowBlanking": 1,
+          "gameweeksInARowWithMinutes": 1,
+          "gameweeksInARowWithoutMinutes": 0
+        }
+      }
+    },
+    {
+      "id": "r12",
+      "tool": "team_story",
+      "input": {
+        "team": "Hull City"
+      },
+      "ok": true,
+      "result": {
+        "team": "Hull City",
+        "gameweek": 1,
+        "matches": [
+          {
+            "home": "Hull City",
+            "away": "Man Utd",
+            "score": "2-0",
+            "venue": "home",
+            "cleanSheet": true,
+            "scorers": [
+              {
+                "player": "Ajayi",
+                "ref": "p279",
+                "team": "Hull City",
+                "position": "DEF",
+                "goals": 1
+              },
+              {
+                "player": "Mendy",
+                "ref": "p586",
+                "team": "Hull City",
+                "position": "DEF",
+                "goals": 1
+              }
+            ],
+            "assisters": [
+              {
+                "player": "Slater",
+                "ref": "p290",
+                "team": "Hull City",
+                "position": "MID",
+                "assists": 1
+              },
+              {
+                "player": "McBurnie",
+                "ref": "p295",
+                "team": "Hull City",
+                "position": "FWD",
+                "assists": 1
+              }
+            ]
+          }
+        ],
+        "fantasyPoints": {
+          "clubTotal": 82,
+          "topPlayers": [
+            {
+              "player": "Mendy",
+              "ref": "p586",
+              "team": "Hull City",
+              "position": "DEF",
+              "points": 15,
+              "goals": 1,
+              "assists": 0
+            },
+            {
+              "player": "Ajayi",
+              "ref": "p279",
+              "team": "Hull City",
+              "position": "DEF",
+              "points": 14,
+              "goals": 1,
+              "assists": 0
+            },
+            {
+              "player": "Tzolakis",
+              "ref": "p572",
+              "team": "Hull City",
+              "position": "GKP",
+              "points": 10,
+              "goals": 0,
+              "assists": 0
+            }
+          ]
+        },
+        "table": {
+          "position": 5,
+          "played": 1,
+          "won": 1,
+          "drawn": 0,
+          "lost": 0,
+          "goalsFor": 2,
+          "goalsAgainst": 0,
+          "points": 3,
+          "form": "W"
+        },
+        "currentRun": {
+          "winsInARow": 1,
+          "unbeatenInARow": 1,
+          "winlessInARow": 0,
+          "defeatsInARow": 0
+        }
+      }
+    },
+    {
+      "id": "r13",
+      "tool": "top_performers",
+      "input": {
+        "limit": 8
+      },
+      "ok": true,
+      "result": {
+        "gameweek": 1,
+        "players": [
+          {
+            "player": "De Cuyper",
+            "ref": "p115",
+            "team": "Brighton",
+            "position": "DEF",
+            "points": 17,
+            "minutes": 77,
+            "goals": 1,
+            "assists": 1,
+            "bonus": 2,
+            "cleanSheets": 1,
+            "price": "£4.5m",
+            "ownedBy": 151636,
+            "ownership": "1.7%",
+            "seasonPoints": 17
+          },
+          {
+            "player": "Hinshelwood",
+            "ref": "p123",
+            "team": "Brighton",
+            "position": "MID",
+            "points": 16,
+            "minutes": 63,
+            "goals": 2,
+            "assists": 0,
+            "bonus": 3,
+            "cleanSheets": 1,
+            "price": "£6.0m",
+            "ownedBy": 39219,
+            "ownership": "0.4%",
+            "seasonPoints": 16
+          },
+          {
+            "player": "Mendy",
+            "ref": "p586",
+            "team": "Hull City",
+            "position": "DEF",
+            "points": 15,
+            "minutes": 63,
+            "goals": 1,
+            "assists": 0,
+            "bonus": 1,
+            "cleanSheets": 1,
+            "price": "£4.0m",
+            "ownedBy": 92688,
+            "ownership": "1.0%",
+            "seasonPoints": 15
+          },
+          {
+            "player": "Ajayi",
+            "ref": "p279",
+            "team": "Hull City",
+            "position": "DEF",
+            "points": 14,
+            "minutes": 63,
+            "goals": 1,
+            "assists": 0,
+            "bonus": 2,
+            "cleanSheets": 1,
+            "price": "£4.0m",
+            "ownedBy": 83256,
+            "ownership": "0.9%",
+            "seasonPoints": 14
+          },
+          {
+            "player": "M.Sangaré",
+            "ref": "p565",
+            "team": "Brentford",
+            "position": "MID",
+            "points": 14,
+            "minutes": 75,
+            "goals": 0,
+            "assists": 2,
+            "bonus": 3,
+            "cleanSheets": 1,
+            "price": "£5.5m",
+            "ownedBy": 294770,
+            "ownership": "3.3%",
+            "seasonPoints": 14
+          },
+          {
+            "player": "Kayode",
+            "ref": "p88",
+            "team": "Brentford",
+            "position": "DEF",
+            "points": 13,
+            "minutes": 75,
+            "goals": 1,
+            "assists": 0,
+            "bonus": 1,
+            "cleanSheets": 1,
+            "price": "£4.5m",
+            "ownedBy": 282611,
+            "ownership": "3.2%",
+            "seasonPoints": 13
+          },
+          {
+            "player": "Palmer",
+            "ref": "p154",
+            "team": "Chelsea",
+            "position": "MID",
+            "points": 13,
+            "minutes": 82,
+            "goals": 1,
+            "assists": 1,
+            "bonus": 3,
+            "price": "£9.5m",
+            "ownedBy": 919516,
+            "ownership": "10.3%",
+            "seasonPoints": 13
+          },
+          {
+            "player": "Stach",
+            "ref": "p335",
+            "team": "Leeds",
+            "position": "MID",
+            "points": 13,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "bonus": 3,
+            "cleanSheets": 1,
+            "price": "£6.0m",
+            "ownedBy": 80326,
+            "ownership": "0.9%",
+            "seasonPoints": 13
+          }
+        ],
+        "doubleDigitHauls": 19
+      }
+    },
+    {
+      "id": "r14",
+      "tool": "submit_recap",
+      "input": {
+        "headline": "Haaland blanks for his captains while Brighton and Hull City defenders haul",
+        "cards": [
+          {
+            "type": "numbers",
+            "items": [
+              {
+                "value": "50",
+                "label": "average score"
+              },
+              {
+                "value": "131",
+                "label": "highest score"
+              },
+              {
+                "value": "30",
+                "label": "goals"
+              },
+              {
+                "value": "19",
+                "label": "double-figure hauls"
+              }
+            ],
+            "evidence": [
+              "r1",
+              "r13"
+            ]
+          },
+          {
+            "type": "captaincy",
+            "player": "Haaland",
+            "ref": "p411",
+            "points": 2,
+            "ownership": 69.7,
+            "tiles": [
+              {
+                "value": "4",
+                "label": "as captain"
+              },
+              {
+                "value": "6",
+                "label": "as Triple Captain"
+              },
+              {
+                "value": "22",
+                "label": "as captain",
+                "player": "João Pedro",
+                "ref": "p165"
+              }
+            ],
+            "text": "Haaland played the full match without a goal or assist, while João Pedro rewarded the managers who trusted him with the armband instead.",
+            "evidence": [
+              "r3",
+              "r5",
+              "r6"
+            ]
+          },
+          {
+            "type": "players",
+            "title": "Hardly anyone had them",
+            "players": [
+              {
+                "player": "De Cuyper",
+                "ref": "p115",
+                "points": 17,
+                "detail": "1 goal, 1 assist",
+                "ownership": 1.7
+              },
+              {
+                "player": "Hinshelwood",
+                "ref": "p123",
+                "points": 16,
+                "detail": "2 goals",
+                "ownership": 0.4
+              },
+              {
+                "player": "Mendy",
+                "ref": "p586",
+                "points": 15,
+                "detail": "1 goal",
+                "ownership": 1
+              },
+              {
+                "player": "Ajayi",
+                "ref": "p279",
+                "points": 14,
+                "detail": "1 goal",
+                "ownership": 0.9
+              }
+            ],
+            "text": "Brighton beat Aston Villa 4-0 and Hull City beat Man Utd 2-0, a windfall for the very few who owned these players.",
+            "evidence": [
+              "r1",
+              "r13",
+              "r8",
+              "r9",
+              "r12"
+            ]
+          },
+          {
+            "type": "matches",
+            "title": "Chelsea's template pick delivered",
+            "matches": [
+              {
+                "home": "Fulham",
+                "away": "Chelsea",
+                "score": "2-3"
+              }
+            ],
+            "text": "Palmer (13 points) and João Pedro (11 points) each scored and assisted in the five-goal thriller.",
+            "evidence": [
+              "r2",
+              "r6",
+              "r7"
+            ]
+          },
+          {
+            "type": "players",
+            "title": "Popular picks that blanked",
+            "players": [
+              {
+                "player": "B.Fernandes",
+                "ref": "p426",
+                "points": 2,
+                "detail": "90 minutes, no returns",
+                "ownership": 52.3
+              },
+              {
+                "player": "Mbeumo",
+                "ref": "p427",
+                "points": 2,
+                "detail": "90 minutes, no returns",
+                "ownership": 39.2
+              }
+            ],
+            "text": "Man Utd's big-name midfield managed only appearance points as Hull City kept a clean sheet.",
+            "evidence": [
+              "r10",
+              "r11",
+              "r12"
+            ]
+          },
+          {
+            "type": "notes",
+            "items": [
+              {
+                "player": "Dubravka",
+                "ref": "p497",
+                "points": 0,
+                "text": "did not play a minute despite 20.0% ownership"
+              },
+              {
+                "text": "Bench Boost was played by 814,606 managers, 9.1% of the game"
+              },
+              {
+                "text": "Triple Captain was played by 250,816 managers, 2.8% of the game"
+              }
+            ],
+            "evidence": [
+              "r2",
+              "r3"
+            ]
+          }
+        ]
+      },
+      "ok": true,
+      "result": {
+        "accepted": true,
+        "numbersChecked": 40,
+        "namesChecked": 41
+      }
+    }
+  ],
+  "checks": {
+    "passed": true,
+    "issues": [],
+    "numbersChecked": 40,
+    "namesChecked": 41
+  },
+  "model": "claude-opus-5-5",
+  "usage": {
+    "inputTokens": 73813,
+    "outputTokens": 3376,
+    "toolCalls": 14,
+    "cacheReadInputTokens": 50928,
+    "cacheCreationInputTokens": 22875
+  },
+  "costUsd": 0.1921206,
+  "timing": {
+    "startedAt": "2026-11-24T16:00:30.861Z",
+    "durationMs": 30434
+  },
+  "generatedAt": "2026-11-24T16:01:01.295Z",
+  "run": {
+    "outcome": "first-try",
+    "fallback": false,
+    "attempts": [
+      {
+        "attempt": 1,
+        "outcome": "passed",
+        "toolCalls": 13,
+        "issues": []
+      }
+    ],
+    "modelCalls": 4,
+    "priced": true,
+    "limits": {
+      "maxToolCallsPerAttempt": 15,
+      "maxOutputTokens": 4000,
+      "timeoutMs": 180000
+    }
+  },
+  "cards": [
+    {
+      "type": "numbers",
+      "items": [
+        {
+          "value": "50",
+          "label": "average score"
+        },
+        {
+          "value": "131",
+          "label": "highest score"
+        },
+        {
+          "value": "30",
+          "label": "goals"
+        },
+        {
+          "value": "19",
+          "label": "double-figure hauls"
+        }
+      ],
+      "evidence": [
+        "r1",
+        "r13"
+      ]
+    },
+    {
+      "type": "captaincy",
+      "player": "Haaland",
+      "ref": "p411",
+      "points": 2,
+      "ownership": 69.7,
+      "tiles": [
+        {
+          "value": "4",
+          "label": "as captain"
+        },
+        {
+          "value": "6",
+          "label": "as Triple Captain"
+        },
+        {
+          "value": "22",
+          "label": "as captain",
+          "player": "João Pedro",
+          "ref": "p165"
+        }
+      ],
+      "text": "Haaland played the full match without a goal or assist, while João Pedro rewarded the managers who trusted him with the armband instead.",
+      "evidence": [
+        "r3",
+        "r5",
+        "r6"
+      ]
+    },
+    {
+      "type": "players",
+      "title": "Hardly anyone had them",
+      "players": [
+        {
+          "player": "De Cuyper",
+          "ref": "p115",
+          "points": 17,
+          "detail": "1 goal, 1 assist",
+          "ownership": 1.7
+        },
+        {
+          "player": "Hinshelwood",
+          "ref": "p123",
+          "points": 16,
+          "detail": "2 goals",
+          "ownership": 0.4
+        },
+        {
+          "player": "Mendy",
+          "ref": "p586",
+          "points": 15,
+          "detail": "1 goal",
+          "ownership": 1
+        },
+        {
+          "player": "Ajayi",
+          "ref": "p279",
+          "points": 14,
+          "detail": "1 goal",
+          "ownership": 0.9
+        }
+      ],
+      "text": "Brighton beat Aston Villa 4-0 and Hull City beat Man Utd 2-0, a windfall for the very few who owned these players.",
+      "evidence": [
+        "r1",
+        "r13",
+        "r8",
+        "r9",
+        "r12"
+      ]
+    },
+    {
+      "type": "matches",
+      "title": "Chelsea's template pick delivered",
+      "matches": [
+        {
+          "home": "Fulham",
+          "away": "Chelsea",
+          "score": "2-3"
+        }
+      ],
+      "text": "Palmer (13 points) and João Pedro (11 points) each scored and assisted in the five-goal thriller.",
+      "evidence": [
+        "r2",
+        "r6",
+        "r7"
+      ]
+    },
+    {
+      "type": "players",
+      "title": "Popular picks that blanked",
+      "players": [
+        {
+          "player": "B.Fernandes",
+          "ref": "p426",
+          "points": 2,
+          "detail": "90 minutes, no returns",
+          "ownership": 52.3
+        },
+        {
+          "player": "Mbeumo",
+          "ref": "p427",
+          "points": 2,
+          "detail": "90 minutes, no returns",
+          "ownership": 39.2
+        }
+      ],
+      "text": "Man Utd's big-name midfield managed only appearance points as Hull City kept a clean sheet.",
+      "evidence": [
+        "r10",
+        "r11",
+        "r12"
+      ]
+    },
+    {
+      "type": "notes",
+      "items": [
+        {
+          "player": "Dubravka",
+          "ref": "p497",
+          "text": "did not play a minute despite 20.0% ownership",
+          "points": 0
+        },
+        {
+          "text": "Bench Boost was played by 814,606 managers, 9.1% of the game"
+        },
+        {
+          "text": "Triple Captain was played by 250,816 managers, 2.8% of the game"
+        }
+      ],
+      "evidence": [
+        "r2",
+        "r3"
+      ]
+    }
+  ]
+}
