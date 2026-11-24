@@ -10,6 +10,8 @@ import {
   goalsByGameweek,
   label,
   limitInput,
+  matchFact,
+  ownershipOf,
   ownershipRatio,
   roundOf,
   transfersMadeFact,
@@ -27,7 +29,8 @@ const SURPRISE = {
   /** The captain's result is the gameweek's biggest swing either way. */
   captainBlank: 1.3,
   captainHaul: 1.2,
-  captainOther: 0.8,
+  /** A middling captain score is the backdrop to the week, not its headline. */
+  captainOther: 0.35,
   noShow: 1.0,
   blank: 0.6,
   haul: 0.8,
@@ -42,7 +45,11 @@ const SURPRISE = {
   sold: 0.8,
 } as const;
 /** Stories about nobody's own players (a season high, a low-owned haul) count as reaching this share of all managers. */
-const REACH = { topScorer: 0.15, differentialHaul: 0.06, hatTrick: 0.12, penaltySave: 0.05 } as const;
+const REACH = { topScorer: 0.3, differentialHaul: 0.12, hatTrick: 0.12, penaltySave: 0.05, goalInAStandoutMatch: 0.03 } as const;
+/** A match is a story of its own with this many goals, or a win by this margin. */
+const STANDOUT_MATCH = { goals: 5, margin: 3 } as const;
+/** At most this many shortlist places for one kind of story, so five blanks can't fill it. */
+const MAX_PER_KIND = 2;
 
 interface Candidate {
   /** Always on the shortlist, whatever its score: the captain, the top scorer and the most-bought player. */
@@ -59,7 +66,8 @@ export const storyCandidates = defineTool({
     "A ranked shortlist of this gameweek's candidate stories, biggest first, worked out from the data by how many " +
     "managers each one touched and how surprising it was: the captain's result, widely owned players who hauled, " +
     "blanked or didn't play, the top scorer, low-owned hauls, the most bought and most sold players and what they " +
-    "then did, runs of three gameweeks or more, red cards, penalty saves and hat-tricks. Separately it lists every " +
+    "then did, standout matches with everyone who hauled in them, runs of three gameweeks or more, red cards, " +
+    "penalty saves and hat-tricks (at most two of any one kind). Separately it lists every " +
     "season high this gameweek set (chips, transfers, goals, the average score, defensive contributions; the best " +
     "individual score is marked on its player). Each comes with the figures behind " +
     "it. It is a guide to what matters, not the recap: you still choose the stories, check each featured player " +
@@ -110,6 +118,29 @@ export const storyCandidates = defineTool({
         add(owners(p) * SURPRISE.blank + managers * REACH.penaltySave, "a penalty save", p, { penaltiesSaved: p.gw.penaltiesSaved });
       }
       if (p.gw.goals >= 3) add(owners(p) + managers * REACH.hatTrick, "a hat-trick", p);
+    }
+
+    // Standout matches: a hatful of goals or a rout, with everyone who hauled in it.
+    for (const match of context.matches) {
+      if (match.homeScore === null || match.awayScore === null) continue;
+      const total = match.homeScore + match.awayScore;
+      if (total < STANDOUT_MATCH.goals && Math.abs(match.homeScore - match.awayScore) < STANDOUT_MATCH.margin) continue;
+      const pointsIn = (p: ContextPlayer) =>
+        p.gw.breakdown.filter((part) => part.fixtureId === match.fixtureId).reduce((sum, part) => sum + part.lines.reduce((x, l) => x + l.points, 0), 0);
+      const hauls = played
+        .map((p) => ({ p, points: pointsIn(p) }))
+        .filter((h) => h.points >= HAUL_POINTS)
+        .sort((a, b) => b.points - a.points || a.p.id - b.p.id);
+      add(
+        hauls.reduce((sum, h) => sum + owners(h.p) * SURPRISE.haul, 0) + managers * REACH.goalInAStandoutMatch * total,
+        "a standout match",
+        undefined,
+        {
+          ...matchFact(context, match),
+          goals: total,
+          ...(hauls.length ? { hauls: hauls.slice(0, 4).map((h) => ({ ...label(context, h.p), points: h.points, ...ownershipOf(context, h.p) })) } : {}),
+        },
+      );
     }
 
     // Runs, for players enough managers own (the captain included).
@@ -202,9 +233,15 @@ export const storyCandidates = defineTool({
         existing.pinned ||= c.pinned;
       } else merged.push({ ...c, also: [] });
     }
-    // The shortlist: the highest scores, with the pinned stories taking the last places if they missed out.
-    const shortlist = merged.slice(0, input.limit);
-    for (const c of merged.slice(input.limit).filter((m) => m.pinned)) {
+    // The shortlist: the highest scores, a few of each kind, with the pinned stories taking the last places if they missed out.
+    const kinds = new Map<string, number>();
+    const varied = merged.filter((c) => {
+      const seen = kinds.get(c.story) ?? 0;
+      kinds.set(c.story, seen + 1);
+      return c.pinned || seen < MAX_PER_KIND;
+    });
+    const shortlist = varied.slice(0, input.limit);
+    for (const c of varied.slice(input.limit).filter((m) => m.pinned)) {
       const last = shortlist.findLastIndex((s) => !s.pinned);
       if (last !== -1) shortlist[last] = c;
     }

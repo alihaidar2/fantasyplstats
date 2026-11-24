@@ -227,18 +227,24 @@ describe("captaincy, transfers and runs across the recorded gameweeks", () => {
   it.each(RECORDED)("story_candidates GW%i: a ranked shortlist led by stories that reached the most managers", (gameweek) => {
     const context = buildGameweekContext(gameweek, recordedSources(gameweek));
     const result = createRecapSession(context).call("story_candidates", {}).result as {
-      candidates: (Record<string, unknown> & { story: string; player?: string; ref?: string })[];
+      candidates: (Record<string, unknown> & { story: string; also?: string[]; player?: string; ref?: string })[];
     };
     expect(result.candidates.length).toBeGreaterThanOrEqual(5);
     expect(result.candidates.length).toBeLessThanOrEqual(8);
     // The captain's result is always on the list, and no player appears twice.
     const captain = context.playerById.get(context.event.mostCaptainedId!)!;
-    expect(result.candidates.find((c) => c.ref === captain.ref)?.story).toMatch(/most-captained/);
+    const captainRow = result.candidates.find((c) => c.ref === captain.ref)!;
+    expect([captainRow.story, ...(captainRow.also ?? [])].join("; ")).toMatch(/most-captained/);
+    // No more than two of a kind, unless a story is one that is always listed.
+    const always = /most-captained|top score|most-bought/;
+    const kinds = result.candidates.filter((c) => !always.test([c.story, ...(c.also ?? [])].join("; "))).map((c) => c.story);
+    for (const kind of new Set(kinds)) expect(kinds.filter((k) => k === kind).length, kind).toBeLessThanOrEqual(2);
     const refs = result.candidates.flatMap((c) => (c.ref ? [c.ref] : []));
     expect(new Set(refs).size).toBe(refs.length);
     // Every player's figures are that player's own this gameweek, and the ranking's scores stay out of the result.
     for (const c of result.candidates) {
-      expect(c).not.toHaveProperty("score");
+      // A match's "score" is its scoreline; the ranking's number is never there.
+      expect(typeof c.score).not.toBe("number");
       if (!c.ref) continue;
       const player = context.playerById.get(Number(c.ref.slice(1)))!;
       expect(c).toMatchObject({ player: player.name, points: player.gw.points, minutes: player.gw.minutes });
@@ -246,6 +252,15 @@ describe("captaincy, transfers and runs across the recorded gameweeks", () => {
     // The gameweek's top scorer is there too.
     const top = Math.max(...context.players.map((p) => p.gw.points));
     expect(result.candidates.some((c) => c.points === top)).toBe(true);
+  });
+
+  it("story_candidates: a high-scoring match is a story, with everyone who hauled in it (GW5)", () => {
+    // evals/references/2026-27/gw05.md, story 1: Man City 5-3 Sunderland
+    const { candidates } = call(5, "story_candidates", { limit: 12 }) as { candidates: Record<string, unknown>[] };
+    const match = candidates.find((c) => c.story === "a standout match" && c.home === "Man City") as { hauls: { player: string; points: number }[] };
+    expect(match).toMatchObject({ home: "Man City", away: "Sunderland", score: "5-3", goals: 8 });
+    expect(match.hauls.map((h) => h.player)).toContain("Brobbey");
+    for (const haul of match.hauls) expect(haul.points).toBeGreaterThanOrEqual(10);
   });
 
   it("story_candidates: lists a season high when one is set, and not otherwise", () => {
