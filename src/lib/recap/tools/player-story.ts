@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { defineTool } from "./tool";
 import {
+  BLANK_MAX_POINTS,
   currentStreak,
+  formatPercent,
   formatPrice,
   formatPriceChange,
   label,
@@ -18,7 +20,9 @@ export const playerStory = defineTool({
   description:
     "Everything about one player's gameweek, with season context: where each point came from in each match, " +
     "price and ownership at the deadline, the season so far (totals, rank in their position, best score), their " +
-    "last five gameweeks, and current streaks. All figures stop at this gameweek. Use it before writing about " +
+    "last five gameweeks week by week (points, minutes, goals, assists, ownership, net transfers), their current " +
+    "runs (gameweeks in a row with a goal, with a goal or assist, blanking on 2 points or fewer, or without " +
+    "playing a minute) and the trend in ownership and net transfers over those weeks. All figures stop at this gameweek. Use it before writing about " +
     "any player. Gameweek 1 has no transfer or price-change figures.",
   input: z.object({ player: playerInput }),
   run(context, input) {
@@ -44,6 +48,35 @@ export const playerStory = defineTool({
       undefined,
     );
     const returned = (r: { goals: number; assists: number }) => r.goals + r.assists > 0;
+    const lastFive = player.rounds.slice(-5);
+
+    // A run that this gameweek broke is a story too ("blanked after scoring in four in a row").
+    const before = { ...player, rounds: player.rounds.filter((r) => r.gameweek < context.gameweek) };
+    const goalsBefore = round ? currentStreak(before, (r) => r.goals > 0) : 0;
+    const blanksBefore = round ? currentStreak(before, (r) => r.points <= BLANK_MAX_POINTS) : 0;
+    const endedRun =
+      round && round.goals === 0 && goalsBefore >= 2
+        ? { gameweeksInARowWithAGoalBeforeThisOne: goalsBefore }
+        : round && round.points > BLANK_MAX_POINTS && blanksBefore >= 2
+          ? { gameweeksInARowBlankingBeforeThisOne: blanksBefore }
+          : undefined;
+
+    // Ownership and transfers across the weeks shown, so a slow sell-off or a bandwagon is visible.
+    const oldest = lastFive[0];
+    const latest = lastFive.at(-1);
+    const managersThen = oldest ? context.managers.get(oldest.gameweek) : undefined;
+    const managersNow = latest ? context.managers.get(latest.gameweek) : undefined;
+    const netOverWeeks = lastFive.filter((r) => r.gameweek > 1).reduce((sum, r) => sum + r.transfersBalance, 0);
+    const trend =
+      oldest && latest && oldest !== latest
+        ? {
+            sinceGameweek: oldest.gameweek,
+            ...(managersThen && managersNow
+              ? { ownershipThen: formatPercent(oldest.owners / managersThen), ownershipNow: formatPercent(latest.owners / managersNow) }
+              : {}),
+            ...(netOverWeeks >= 0 ? { netTransfersInOverTheseGameweeks: netOverWeeks } : { netTransfersOutOverTheseGameweeks: -netOverWeeks }),
+          }
+        : undefined;
 
     return {
       ...label(context, player),
@@ -94,18 +127,30 @@ export const playerStory = defineTool({
         ...(best ? { bestScore: best.points, bestScoreGameweek: best.gameweek } : {}),
         thisIsTheirBestScore: Boolean(round && best && round.points === best.points && player.rounds.length > 1),
       },
-      lastFive: player.rounds.slice(-5).map((r) => ({
-        gameweek: r.gameweek,
-        points: r.points,
-        minutes: r.minutes,
-        goals: r.goals,
-        assists: r.assists,
-      })),
+      lastFive: lastFive.map((r) => {
+        const managers = context.managers.get(r.gameweek);
+        return {
+          gameweek: r.gameweek,
+          points: r.points,
+          minutes: r.minutes,
+          goals: r.goals,
+          assists: r.assists,
+          ownedBy: r.owners,
+          ...(managers ? { ownership: formatPercent(r.owners / managers) } : {}),
+          ...(r.gameweek > 1 ? (r.transfersBalance >= 0 ? { netTransfersIn: r.transfersBalance } : { netTransfersOut: -r.transfersBalance }) : {}),
+        };
+      }),
+      // Runs end with this gameweek and count only gameweeks their club played. Zero means the run is not live.
       streaks: {
+        gameweeksInARowWithAGoal: currentStreak(player, (r) => r.goals > 0),
         gameweeksInARowWithAGoalOrAssist: currentStreak(player, returned),
         gameweeksInARowWithoutAGoalOrAssist: currentStreak(player, (r) => !returned(r)),
+        gameweeksInARowBlanking: currentStreak(player, (r) => r.points <= BLANK_MAX_POINTS),
         gameweeksInARowWithMinutes: currentStreak(player, (r) => r.minutes > 0),
+        gameweeksInARowWithoutMinutes: currentStreak(player, (r) => r.minutes === 0),
+        ...(endedRun ? { runEndedThisGameweek: endedRun } : {}),
       },
+      ...(trend ? { trend } : {}),
     };
   },
 });

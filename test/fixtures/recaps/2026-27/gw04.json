@@ -373,6 +373,7 @@
             ]
           }
         ],
+        "matchCount": 10,
         "goals": 29,
         "topScorer": {
           "player": "Groß",
@@ -695,34 +696,54 @@
             "points": 2,
             "minutes": 90,
             "goals": 0,
-            "assists": 0
+            "assists": 0,
+            "ownedBy": 1308033,
+            "ownership": "14.7%"
           },
           {
             "gameweek": 2,
             "points": 13,
             "minutes": 90,
             "goals": 1,
-            "assists": 1
+            "assists": 1,
+            "ownedBy": 1268429,
+            "ownership": "12.8%",
+            "netTransfersOut": 81694
           },
           {
             "gameweek": 3,
             "points": 1,
             "minutes": 90,
             "goals": 0,
-            "assists": 0
+            "assists": 0,
+            "ownedBy": 1691790,
+            "ownership": "16.3%",
+            "netTransfersIn": 341111
           },
           {
             "gameweek": 4,
             "points": 17,
             "minutes": 90,
             "goals": 1,
-            "assists": 2
+            "assists": 2,
+            "ownedBy": 1745184,
+            "ownership": "16.3%",
+            "netTransfersIn": 72242
           }
         ],
         "streaks": {
+          "gameweeksInARowWithAGoal": 1,
           "gameweeksInARowWithAGoalOrAssist": 1,
           "gameweeksInARowWithoutAGoalOrAssist": 0,
-          "gameweeksInARowWithMinutes": 4
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 4,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 1,
+          "ownershipThen": "14.7%",
+          "ownershipNow": "16.3%",
+          "netTransfersInOverTheseGameweeks": 331659
         }
       }
     },
@@ -1512,7 +1533,55 @@
             "goals": 29
           }
         ],
-        "thisGameweekHasTheMostGoalsSoFar": false
+        "thisGameweekHasTheMostGoalsSoFar": false,
+        "chipsThisGameweek": [
+          {
+            "chip": "Bench Boost",
+            "played": 170070,
+            "mostPlayedInAGameweekSoFar": false
+          },
+          {
+            "chip": "Free Hit",
+            "played": 328740,
+            "mostPlayedInAGameweekSoFar": false
+          },
+          {
+            "chip": "Wildcard",
+            "played": 760682,
+            "mostPlayedInAGameweekSoFar": true
+          },
+          {
+            "chip": "Triple Captain",
+            "played": 323226,
+            "mostPlayedInAGameweekSoFar": false
+          }
+        ],
+        "defensiveContributions": {
+          "thisGameweek": {
+            "defensiveContribution": 1484
+          },
+          "mostInAGameweekSoFar": true,
+          "previousHigh": {
+            "gameweek": 2,
+            "defensiveContribution": 1468
+          },
+          "bestIndividualThisGameweek": {
+            "player": "Janelt",
+            "ref": "p98",
+            "team": "Brentford",
+            "position": "MID",
+            "defensiveContribution": 20
+          },
+          "bestIndividualThisGameweekIsTheSeasonHigh": false,
+          "bestIndividualBefore": {
+            "player": "Egan",
+            "ref": "p277",
+            "team": "Hull City",
+            "position": "DEF",
+            "gameweek": 1,
+            "defensiveContribution": 21
+          }
+        }
       }
     }
   ],

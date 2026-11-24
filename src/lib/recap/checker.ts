@@ -58,6 +58,7 @@ import {
   isSeasonField,
   statLabel,
   statsOfField,
+  countsPlayers,
   writtenStat,
 } from "./stats";
 import {
@@ -146,6 +147,8 @@ function readResult(entry: EvidenceEntry, names: NameIndex): ResultFacts {
     } else if (typeof value === "string") {
       for (const token of extractNumbers(value)) facts.numbers.push({ ...place, token });
       for (const mention of names.scan(value).mentions) {
+        // A bare "City" in a tool's note says nothing about which club it is.
+        if (mention.sharedNickname) continue;
         const seen = mention.kind === "team" ? facts.teams : facts.players;
         for (const id of mention.ids) seen.add(id);
       }
@@ -223,6 +226,42 @@ function sentencesOf(text: string): Sentence[] {
   return sentences;
 }
 
+/** A bound read from the words around a number: which figures meet it, and the words that made it one. */
+interface Threshold {
+  meets(figure: number, bound: number): boolean;
+  /** The text after the number with the threshold words removed, so the stat word can be read. */
+  rest: string;
+  /** Where the whole phrase starts and ends, given the number's own start and end. */
+  start(tokenStart: number): number;
+  end(tokenEnd: number): number;
+}
+
+const THRESHOLD_AFTER: [RegExp, Threshold["meets"]][] = [
+  [/^(?:\s+or\s+(?:more|better|higher|above|over)|\+|-plus|\s+plus)(?![\p{L}\p{N}])/iu, (figure, bound) => figure >= bound],
+  [/^\s+or\s+(?:fewer|less|lower|under|below)(?![\p{L}])/iu, (figure, bound) => figure <= bound],
+];
+const THRESHOLD_BEFORE: [RegExp, Threshold["meets"]][] = [
+  [/\b(?:at least|no fewer than|no less than|a minimum of|upwards of)\s+$/i, (figure, bound) => figure >= bound],
+  [/\b(?:more than|over|above|in excess of|north of|past)\s+$/i, (figure, bound) => figure > bound],
+  [/\b(?:at most|no more than|a maximum of|up to)\s+$/i, (figure, bound) => figure <= bound],
+  [/\b(?:fewer than|less than|under|below|short of)\s+$/i, (figure, bound) => figure < bound],
+];
+
+/** Reads "10 or more", "10+", "at least 10", "more than 10", "under 10" around a number. Null when it is a plain figure. */
+function thresholdOf(before: string, after: string): Threshold | null {
+  for (const [pattern, meets] of THRESHOLD_AFTER) {
+    const match = pattern.exec(after);
+    if (match) {
+      return { meets, rest: after.slice(match[0].length), start: (at) => at, end: (at) => at + match[0].length };
+    }
+  }
+  for (const [pattern, meets] of THRESHOLD_BEFORE) {
+    const match = pattern.exec(before);
+    if (match) return { meets, rest: after, start: (at) => at - match[0].length, end: (at) => at };
+  }
+  return null;
+}
+
 const quoted = (text: string) => `"${text.trim()}"`;
 
 function excerpt(text: string, sentence: Sentence): string {
@@ -255,6 +294,11 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
     if (entry.kind === "player") playerNames.set(entry.id, entry.webName);
     else teamNames.set(entry.id, entry.name);
   }
+
+  // Clubs the recap names in full, to settle which club a shared nickname ("City", "United") means.
+  const fullTeamsIn = (text: string) =>
+    new Set(names.scan(text).mentions.filter((m) => m.kind === "team" && !m.sharedNickname).flatMap((m) => m.ids));
+  const fullTeamsInRecap = fullTeamsIn([draft.headline, ...draft.paragraphs].join("\n"));
 
   const usable = options.evidence.filter((e) => e.ok && e.tool !== "submit_recap");
   const allFacts = usable.map((e) => readResult(e, names));
@@ -340,7 +384,30 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
       ids.filter((id) => scope.some((f) => (mention.kind === "team" ? f.teams : f.players).has(id)));
     /** The mentions that really are names here, each narrowed to who it means given the evidence. */
     const mentions: { mention: NameMention; ids: number[] }[] = [];
-    for (const mention of scan.mentions) {
+    const fullTeamsHere = fullTeamsIn(text);
+    for (const found of scan.mentions) {
+      let mention = found;
+      if (mention.sharedNickname) {
+        // "City" could be Man City, Hull City or Coventry City. It is taken
+        // as the one the writing has named in full: in this text, failing
+        // that anywhere in the recap. With none named, or two, it is refused.
+        const candidates = mention.ids;
+        const here = candidates.filter((id) => fullTeamsHere.has(id));
+        const anywhere = candidates.filter((id) => fullTeamsInRecap.has(id));
+        const meant = here.length > 0 ? here : anywhere;
+        if (meant.length !== 1) {
+          namesChecked++;
+          const clubs = (meant.length > 1 ? meant : candidates).map((id) => teamNames.get(id) ?? "another club");
+          report(
+            "ambiguous-name",
+            where,
+            `${quoted(mention.text)} could mean ${list(clubs, 6).replace(/, ([^,]+)$/, " or $1")}. ` +
+              "Write the club's name as the tools give it.",
+          );
+          continue;
+        }
+        mention = { ...mention, ids: meant, exactIds: meant };
+      }
       const exact = inScope(mention, mention.exactIds);
       const ids = exact.length > 0 ? exact : inScope(mention, mention.ids);
       if (ids.length > 0) {
@@ -439,33 +506,6 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
         continue;
       }
 
-      const agreeing = scope.flatMap((f) => f.numbers.filter((n) => numbersAgree(token, n.token)));
-      if (agreeing.length === 0) {
-        const elsewhere = cited
-          ? allFacts.filter((f) => f.numbers.some((n) => numbersAgree(token, n.token))).map((f) => f.id)
-          : [];
-        const otherKind = scope
-          .flatMap((f) => f.numbers)
-          .find(
-            (n) =>
-              n.token.kind !== token.kind &&
-              (n.token.kind === "percent" || n.token.kind === "price" || n.token.kind === "plain") &&
-              Math.abs(n.token.value - token.value) < 1e-9,
-          );
-        unsupported.add(`${where}|${token.text}`);
-        report(
-          cited ? "number-not-cited" : "number-not-in-evidence",
-          where,
-          `${quoted(token.text)} ${context} is not in ${source}.` +
-            (elsewhere.length > 0
-              ? ` It is in ${list(elsewhere)}: cite that result, or correct the number.`
-              : otherKind
-                ? ` The evidence has ${quoted(otherKind.token.text)}: write it the same way.`
-                : " Use only numbers a tool returned, exactly as returned: don't add, subtract, average or estimate."),
-        );
-        continue;
-      }
-
       // What is it a number of, and whose? The words on either side say,
       // up to the neighbouring number or player name.
       const neighbours = [
@@ -474,7 +514,9 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
       ];
       const from = Math.max(sentence.start, ...neighbours.filter((at) => at <= token.start));
       const to = Math.min(sentence.end, ...neighbours.filter((at) => at >= token.end));
-      const written = writtenStat(token, text.slice(from, token.start), text.slice(token.end, to));
+      const beforeText = text.slice(from, token.start);
+      const bound = thresholdOf(beforeText, text.slice(token.end, to));
+      const written = writtenStat(token, beforeText, bound ? bound.rest : text.slice(token.end, to));
       const isStat = (n: Fact) => written.stats === null || written.stats.some((stat) => n.stats.includes(stat));
       const describe = (n: Fact) => statLabel(n.stats[0] ?? n.field);
 
@@ -504,6 +546,106 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
         n.season
           ? seasonTalk
           : n.gameweek === null || n.gameweek === options.gameweek || namedGameweeks.has(n.gameweek) || seasonTalk;
+
+      // A threshold ("10 or more points", "at least 3 goals", "over 20%") is
+      // a bound, not a figure: no tool returns the 10. It stands when the
+      // evidence in scope has a figure of that stat, for the player the
+      // sentence names if it names one, that meets the bound. It needs a
+      // stat word: a bare "10 or more" could be met by any number at all.
+      if (bound && written.stats !== null) {
+        const met = scope.some((f) =>
+          f.numbers.some(
+            (n) =>
+              n.token.kind === token.kind &&
+              bound.meets(n.token.value, token.value) &&
+              isStat(n) &&
+              !n.stats.includes(PART_POINTS) &&
+              rightOwner(n) &&
+              rightPeriod(n),
+          ),
+        );
+        if (met) continue;
+        unsupported.add(`${where}|${token.text}`);
+        const whoseStat = tied && !written.gameweekWide ? `${list([...new Set(subjects.map((m) => m.mention.text))])}'s ` : "";
+        report(
+          "threshold-not-supported",
+          where,
+          `${quoted(text.slice(bound.start(token.start), bound.end(token.end)).trim())} ${context}: ${source} ${cited ? "have" : "has"} no ` +
+            `${whoseStat}${written.label ?? "figure"} figure that meets it${seasonTalk ? "" : " this gameweek"}. ` +
+            "State the exact figure a tool returned instead.",
+        );
+        continue;
+      }
+
+      // "Szoboszlai, Isak and Gakpo ... all three": a count of the players
+      // the sentence itself names. It has to match the names exactly.
+      if (
+        token.kind === "plain" &&
+        !/\d/.test(token.text) &&
+        /\b(?:all|the|those|these)\s+$/i.test(beforeText) &&
+        new Set(players.map((m) => m.ids.join(","))).size === token.value
+      ) {
+        continue;
+      }
+
+      // "Seven players scored 10 or more points": no tool returns the 7, but
+      // a ranked list can prove it. It stands when one result in scope lists
+      // exactly that many players meeting the bound and at least one player
+      // who falls short of it, so the list reaches past the threshold.
+      if (token.kind === "plain" && token.unit === 1 && countsPlayers(text.slice(token.end, to))) {
+        const next = numbers.find((n) => n.start >= token.end && n.start < sentence.end && n.kind === "plain");
+        if (next) {
+          const nextNeighbours = numbers.filter((n) => n !== next).flatMap((n) => [n.start, n.end]);
+          const nextFrom = Math.max(sentence.start, ...nextNeighbours.filter((at) => at <= next.start));
+          const nextTo = Math.min(sentence.end, ...nextNeighbours.filter((at) => at >= next.end));
+          const nextBound = thresholdOf(text.slice(nextFrom, next.start), text.slice(next.end, nextTo));
+          const nextStat = nextBound ? writtenStat(next, text.slice(nextFrom, next.start), nextBound.rest) : null;
+          if (nextBound && nextStat?.stats) {
+            const proven = scope.some((f) => {
+              const meeting = new Set<number>();
+              const short = new Set<number>();
+              for (const n of f.numbers) {
+                if (n.owners === null || n.owners.length !== 1 || n.token.kind !== "plain") continue;
+                if (n.season || (n.gameweek !== null && n.gameweek !== options.gameweek)) continue;
+                if (!nextStat.stats!.some((stat) => n.stats.includes(stat)) || n.stats.includes(PART_POINTS)) continue;
+                // Only a player's headline figure counts (a row's own points), not a doubled captain score.
+                if (n.field !== nextStat.stats![0]) continue;
+                (nextBound.meets(n.token.value, next.value) ? meeting : short).add(n.owners[0]);
+              }
+              for (const id of meeting) short.delete(id);
+              return meeting.size === token.value && short.size > 0;
+            });
+            if (proven) continue;
+          }
+        }
+      }
+
+      const agreeing = scope.flatMap((f) => f.numbers.filter((n) => numbersAgree(token, n.token)));
+      if (agreeing.length === 0) {
+        const elsewhere = cited
+          ? allFacts.filter((f) => f.numbers.some((n) => numbersAgree(token, n.token))).map((f) => f.id)
+          : [];
+        const otherKind = scope
+          .flatMap((f) => f.numbers)
+          .find(
+            (n) =>
+              n.token.kind !== token.kind &&
+              (n.token.kind === "percent" || n.token.kind === "price" || n.token.kind === "plain") &&
+              Math.abs(n.token.value - token.value) < 1e-9,
+          );
+        unsupported.add(`${where}|${token.text}`);
+        report(
+          cited ? "number-not-cited" : "number-not-in-evidence",
+          where,
+          `${quoted(token.text)} ${context} is not in ${source}.` +
+            (elsewhere.length > 0
+              ? ` It is in ${list(elsewhere)}: cite that result, or correct the number.`
+              : otherKind
+                ? ` The evidence has ${quoted(otherKind.token.text)}: write it the same way.`
+                : " Use only numbers a tool returned, exactly as returned: don't add, subtract, average or estimate."),
+        );
+        continue;
+      }
 
       if (agreeing.some((n) => isStat(n) && rightOwner(n) && rightPeriod(n))) continue;
 

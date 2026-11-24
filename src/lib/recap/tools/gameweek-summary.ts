@@ -1,20 +1,14 @@
 import { z } from "zod";
 import { defineTool } from "./tool";
-import { kickoffDay, label, matchFact, matchesOf, ownershipOf } from "./shared";
-
-const CHIP_NAMES: Record<string, string> = {
-  bboost: "Bench Boost",
-  freehit: "Free Hit",
-  wildcard: "Wildcard",
-  "3xc": "Triple Captain",
-};
+import { CHIP_NAMES, kickoffDay, label, matchFact, matchesOf, ownershipOf } from "./shared";
 
 export const gameweekSummary = defineTool({
   name: "gameweek_summary",
   description:
     "The gameweek at a glance: every result with its scorers, the average and highest manager scores, the top " +
     "scorer, the most-captained and most-transferred-in players and how they did, chips played, the Dream Team, " +
-    "and which clubs had two matches or none. Start here. Gameweek 1 has no transfers, so it has no " +
+    "how many matches were played and how many goals they had, and which clubs had two matches or none. Start " +
+    "here, then call captaincy and transfer_story for the full captaincy and transfer picture. Gameweek 1 has no transfers, so it has no " +
     "most-transferred-in player. Whether points are final is only known for the current gameweek.",
   input: z.object({}),
   run(context) {
@@ -63,6 +57,7 @@ export const gameweekSummary = defineTool({
         ...(context.managers.has(context.gameweek) ? { ranked: context.managers.get(context.gameweek) } : {}),
       },
       matches,
+      matchCount: context.matches.length,
       goals: context.matches.reduce((sum, m) => sum + (m.homeScore ?? 0) + (m.awayScore ?? 0), 0),
       ...(double.length ? { doubleGameweek: double } : {}),
       ...(blank.length ? { blankGameweek: blank } : {}),

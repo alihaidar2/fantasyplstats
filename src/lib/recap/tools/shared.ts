@@ -276,3 +276,128 @@ export function kickoffDay(kickoff: string | null): string | undefined {
   const day = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "long" }).format(new Date(kickoff));
   return DAYS.includes(day) ? day : undefined;
 }
+
+/** FPL's chip ids as managers know them. */
+export const CHIP_NAMES: Record<string, string> = {
+  bboost: "Bench Boost",
+  freehit: "Free Hit",
+  wildcard: "Wildcard",
+  "3xc": "Triple Captain",
+};
+
+/** A goal or an assist, or a clean sheet for a goalkeeper or defender who played. */
+export const returnedThisGameweek = (p: ContextPlayer) =>
+  p.gw.goals + p.gw.assists > 0 || ((p.position === "GKP" || p.position === "DEF") && p.gw.cleanSheets > 0);
+
+/** At most this many points is a blank: appearance points and nothing else. */
+export const BLANK_MAX_POINTS = 2;
+
+/** How a player's gameweek went for the managers who had them, in one phrase (no names or numbers: the checker reads strings too). */
+export function outcomeOf(context: GameweekContext, player: ContextPlayer): string {
+  if (!roundOf(player, context.gameweek)) return "club had no match";
+  if (player.gw.minutes === 0) return "did not play";
+  if (player.gw.points >= 10) return "double-figure haul";
+  if (returnedThisGameweek(player)) return "returned";
+  return player.gw.points <= BLANK_MAX_POINTS ? "blanked" : "no goal or assist";
+}
+
+/** How a player did this gameweek, in the shape every "what happened to this pick" list uses. */
+export function gameweekOutcome(context: GameweekContext, player: ContextPlayer) {
+  return {
+    ...label(context, player),
+    points: player.gw.points,
+    minutes: player.gw.minutes,
+    goals: player.gw.goals,
+    assists: player.gw.assists,
+    outcome: outcomeOf(context, player),
+    ...ownershipOf(context, player),
+  };
+}
+
+/** Every chip played this gameweek, with its share of managers and whether the count is the season's highest so far. */
+export function chipRows(context: GameweekContext) {
+  const { gameweek } = context;
+  const managers = context.managers.get(gameweek);
+  const thisEvent = context.seasonEvents.find((e) => e.gameweek === gameweek);
+  const earlier = context.seasonEvents.filter((e) => e.gameweek < gameweek);
+  return (thisEvent?.chipPlays ?? []).map((c) => {
+    const chip = CHIP_NAMES[c.chip] ?? c.chip;
+    const before = earlier.map((e) => ({ gameweek: e.gameweek, played: e.chipPlays.find((x) => x.chip === c.chip)?.played ?? 0 }));
+    const previousHigh = topBy(before, (b) => b.played, 1, (b) => b.gameweek)[0];
+    return {
+      chip,
+      played: c.played,
+      ...(managers ? { shareOfManagers: formatPercent(c.played / managers) } : {}),
+      ...(previousHigh
+        ? {
+            mostPlayedInAGameweekSoFar: c.played > previousHigh.played,
+            previousHigh: { chip, gameweek: previousHigh.gameweek, played: previousHigh.played },
+          }
+        : {}),
+    };
+  });
+}
+
+/** Transfers every manager made before this gameweek's deadline, against the earlier gameweeks. Undefined in gameweek 1 or when FPL didn't send it. */
+export function transfersMadeFact(context: GameweekContext) {
+  const { gameweek } = context;
+  const transfersMade = context.seasonEvents.find((e) => e.gameweek === gameweek)?.transfersMade;
+  if (!context.hasTransfers || transfersMade == null) return undefined;
+  const before = context.seasonEvents
+    .filter((e) => e.gameweek > 1 && e.gameweek < gameweek && e.transfersMade !== null)
+    .map((e) => ({ gameweek: e.gameweek, transfersMade: e.transfersMade! }));
+  const previousHigh = topBy(before, (e) => e.transfersMade, 1, (e) => e.gameweek)[0];
+  return {
+    transfersMade,
+    ...(previousHigh
+      ? {
+          mostTransfersInAGameweekSoFar: transfersMade > previousHigh.transfersMade,
+          previousHigh: { gameweek: previousHigh.gameweek, transfersMade: previousHigh.transfersMade },
+        }
+      : {}),
+  };
+}
+
+/** Goals in each gameweek so far, and whether this one has the most. */
+export function goalsByGameweek(context: GameweekContext) {
+  const goals = new Map<number, { gameweek: number; matches: number; goals: number }>();
+  for (const m of context.results) {
+    const row = goals.get(m.gameweek) ?? { gameweek: m.gameweek, matches: 0, goals: 0 };
+    row.matches += 1;
+    row.goals += (m.homeScore ?? 0) + (m.awayScore ?? 0);
+    goals.set(m.gameweek, row);
+  }
+  const byGameweek = [...goals.values()].sort((a, b) => a.gameweek - b.gameweek);
+  const now = goals.get(context.gameweek)?.goals ?? 0;
+  const before = byGameweek.filter((g) => g.gameweek < context.gameweek);
+  const previousHigh = topBy(before, (g) => g.goals, 1, (g) => g.gameweek)[0];
+  return { byGameweek, now, previousHigh, mostSoFar: previousHigh !== undefined && now > previousHigh.goals };
+}
+
+/** Defensive contributions: every gameweek's total, and the best single-player gameweek, with this gameweek against the earlier ones. */
+export function defensiveRecords(context: GameweekContext) {
+  const { gameweek } = context;
+  const totals = new Map<number, number>();
+  let bestBefore: { player: ContextPlayer; gameweek: number; defensiveContribution: number } | undefined;
+  let bestNow: { player: ContextPlayer; gameweek: number; defensiveContribution: number } | undefined;
+  for (const player of context.players) {
+    for (const r of player.rounds) {
+      totals.set(r.gameweek, (totals.get(r.gameweek) ?? 0) + r.defensiveContribution);
+      const row = { player, gameweek: r.gameweek, defensiveContribution: r.defensiveContribution };
+      if (r.gameweek < gameweek) {
+        if (!bestBefore || r.defensiveContribution > bestBefore.defensiveContribution) bestBefore = row;
+      } else if (!bestNow || r.defensiveContribution > bestNow.defensiveContribution) bestNow = row;
+    }
+  }
+  const before = [...totals].filter(([g]) => g < gameweek).map(([g, total]) => ({ gameweek: g, defensiveContribution: total }));
+  const previousHigh = topBy(before, (b) => b.defensiveContribution, 1, (b) => b.gameweek)[0];
+  const totalNow = totals.get(gameweek) ?? 0;
+  return {
+    totalNow,
+    previousHigh,
+    mostSoFar: previousHigh !== undefined && totalNow > previousHigh.defensiveContribution,
+    bestNow,
+    bestBefore,
+    bestIndividualSoFar: bestNow !== undefined && bestBefore !== undefined && bestNow.defensiveContribution > bestBefore.defensiveContribution,
+  };
+}

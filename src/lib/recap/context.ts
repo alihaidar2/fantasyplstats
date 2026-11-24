@@ -41,7 +41,9 @@ export interface SeasonData {
       | "average_entry_score"
       | "highest_score"
       | "most_captained"
+      | "most_vice_captained"
       | "most_transferred_in"
+      | "transfers_made"
       | "top_element_info"
       | "chip_plays"
       | "ranked_count"
@@ -198,6 +200,16 @@ export interface ContextEvent {
   chipPlays: { chip: string; played: number }[];
 }
 
+/** One gameweek of the season so far, as FPL's `events` describe it: what managers did before its deadline. */
+export interface SeasonEvent {
+  gameweek: number;
+  mostCaptainedId: number | null;
+  mostViceCaptainedId: number | null;
+  /** Transfers all managers made before the deadline (0 in gameweek 1), or null when FPL didn't send it. */
+  transfersMade: number | null;
+  chipPlays: { chip: string; played: number }[];
+}
+
 export interface PointsStatus {
   /** One row per match day. `points` is FPL's raw flag: "" not yet, "p" provisional, "r" confirmed. */
   days: { date: string; points: string; bonusAdded: boolean }[];
@@ -241,6 +253,8 @@ export interface GameweekContext {
   event: ContextEvent;
   /** Average and highest manager scores of the season so far, this gameweek included. */
   gameweekScores: { gameweek: number; averageScore: number; highestScore: number | null }[];
+  /** Captaincy, transfers and chips of every gameweek so far, this one included (never a later one). */
+  seasonEvents: SeasonEvent[];
   /** Managers ranked in each gameweek so far: the base for ownership percentages. */
   managers: ReadonlyMap<number, number>;
   teams: ContextTeam[];
@@ -541,6 +555,13 @@ export function buildGameweekContext(gameweek: number, sources: GameweekSources)
       gameweek: e.id,
       averageScore: e.average_entry_score,
       highestScore: e.highest_score,
+    })),
+    seasonEvents: eventsSoFar.map((e) => ({
+      gameweek: e.id,
+      mostCaptainedId: known(e.most_captained),
+      mostViceCaptainedId: known(e.most_vice_captained),
+      transfersMade: e.id > 1 ? (e.transfers_made ?? null) : 0,
+      chipPlays: e.chip_plays.map((c) => ({ chip: c.chip_name, played: c.num_played })),
     })),
     managers: new Map(eventsSoFar.filter((e) => e.ranked_count > 0).map((e) => [e.id, e.ranked_count])),
     teams,

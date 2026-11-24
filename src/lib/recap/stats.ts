@@ -12,6 +12,8 @@ const FIELD_STATS: Record<string, readonly string[]> = {
   seasonPoints: ["points"],
   earnedPoints: ["points"],
   bestScore: ["points"],
+  captainPoints: ["points"],
+  tripleCaptainPoints: ["points"],
   clubTotal: ["points"],
   averageScore: ["averageScore", "points"],
   highestScore: ["highestScore", "points"],
@@ -36,10 +38,18 @@ const FIELD_STATS: Record<string, readonly string[]> = {
   xA: ["xA"],
   xGI: ["xGI"],
   ownership: ["ownership"],
+  ownershipBefore: ["ownership"],
+  ownershipThen: ["ownership"],
+  ownershipNow: ["ownership"],
+  shareOfManagers: ["chips", "ownership"],
   chanceOfPlayingNextRound: ["chance"],
   ownedBy: ["owners", "managers"],
   ranked: ["managers"],
   netTransfersIn: ["transfers", "managers"],
+  netTransfersOut: ["transfers", "managers"],
+  netTransfersInOverTheseGameweeks: ["transfers", "managers"],
+  netTransfersOutOverTheseGameweeks: ["transfers", "managers"],
+  transfersMade: ["transfers"],
   price: ["price"],
   priceChange: ["price"],
   priceChangeSinceLastGameweek: ["price"],
@@ -47,6 +57,7 @@ const FIELD_STATS: Record<string, readonly string[]> = {
   yellowCards: ["yellowCards"],
   redCards: ["redCards"],
   matches: ["matches"],
+  matchCount: ["matches"],
   gameweeksPlayed: ["matches"],
   won: ["won"],
   drawn: ["drawn"],
@@ -194,7 +205,10 @@ const MODIFIER = /^(?:more|further|fpl|fantasy|league|total|extra|additional|val
 /** "14 players", "three clubs": a count across the gameweek, never one player's stat. */
 const COUNTED = /^(?:players|defenders|midfielders|forwards|strikers|goalkeepers|keepers|clubs|teams|sides)(?![\p{L}])/iu;
 
-const CHIP = /\b(?:triple captain|bench boost|free hit|wildcards?|chips?)\b/i;
+/** "seven players": the number counts players in general (not defenders or clubs, which a list can't prove). */
+export const countsPlayers = (after: string) => /^\s+(?:(?:different|other|more)\s+)?players(?![\p{L}])/iu.test(after);
+
+const CHIP = /\b(?:triple captain(?:s|ed|cy)?|bench boosts?|free hits?|wildcards?|chips?)\b/i;
 
 /** A stat named just before the number: "an xG of 0.82", "owned by 7.3 million". */
 const BEFORE: [RegExp, string][] = [
@@ -247,8 +261,18 @@ export function writtenStat(token: NumberToken, before: string, after: string): 
   if (/\b(?:highest|top|best)\b[^.;]*\bmanagers?\b|\bmanagers?\b[^.;]*\b(?:highest|top|best)\b/i.test(before)) {
     return { stats: ["highestScore"], label: "the highest manager score", gameweekWide: true };
   }
-  if (CHIP.test(before) || CHIP.test(after.slice(0, 60))) {
-    return { stats: ["chips"], label: "chip plays", gameweekWide: true };
+  // A chip nearby makes a count the chip's ("1.79 million played Triple Captain", "17.2% of managers"), but
+  // not a figure the words have given a stat of its own ("a Triple Captain on him returned 27 points"), and
+  // not a small number, which is a score ("18 for a captain and 27 for a Triple Captain"): no chip is played
+  // by fewer than a thousand managers. A percentage may also be the ownership of a player the sentence names.
+  const ownStat = stat !== null && stat !== "managers" && token.kind !== "percent";
+  const chipSized = token.kind === "percent" || (token.kind === "plain" && token.value >= 1000);
+  if (!ownStat && chipSized && (CHIP.test(before) || CHIP.test(after.slice(0, 60)))) {
+    return {
+      stats: token.kind === "percent" ? ["chips", "ownership"] : ["chips"],
+      label: "chip plays",
+      gameweekWide: true,
+    };
   }
   const existential = /\bthere (?:were|was|have been|has been)\b/i.test(before);
   return {
