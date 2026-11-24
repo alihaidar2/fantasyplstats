@@ -11,7 +11,14 @@ import {
   type MatrixFixture,
   type Snapshot,
 } from "./fpl";
-import { buildGameweekStats, playerRefs, type GameweekStats, type PlayerRef } from "./recap-pages";
+import {
+  buildGameweekStats,
+  buildRecapEntities,
+  playerRefs,
+  type GameweekStats,
+  type PlayerRef,
+  type RecapEntities,
+} from "./recap-pages";
 import { formatSeason, latestRecap, type PublishedRecap } from "./recaps";
 
 type SnapshotParts = Pick<Snapshot, "bootstrap" | "fixtures" | "generatedAt">;
@@ -65,8 +72,21 @@ export interface ThisWeek {
 export interface HomeRecap {
   recap: PublishedRecap;
   seasonLabel: string;
-  firstParagraph: string;
+  /** What the home page shows of it: the numbers strip and the first story card, or the first paragraph. */
+  preview: PublishedRecap["body"];
+  entities: RecapEntities;
   stats: GameweekStats | null;
+}
+
+/** How many story cards the home page shows after the numbers strip. */
+export const HOME_RECAP_STORY_CARDS = 1;
+
+/** The start of a recap for the home page. */
+export function recapPreview(recap: PublishedRecap): PublishedRecap["body"] {
+  if (recap.body.kind === "paragraphs") return { kind: "paragraphs", paragraphs: recap.body.paragraphs.slice(0, 1) };
+  const numbers = recap.body.cards.find((c) => c.type === "numbers");
+  const stories = recap.body.cards.filter((c) => c.type !== "numbers").slice(0, HOME_RECAP_STORY_CARDS);
+  return { kind: "cards", cards: numbers ? [numbers, ...stories] : stories };
 }
 
 export interface HomePage {
@@ -186,7 +206,8 @@ export function buildHomePage(snapshot: SnapshotParts, recaps: readonly Publishe
       ? {
           recap,
           seasonLabel: formatSeason(recap.season),
-          firstParagraph: recap.paragraphs[0],
+          preview: recapPreview(recap),
+          entities: buildRecapEntities(snapshot, recap),
           stats: buildGameweekStats(snapshot, recap.season, recap.gameweek),
         }
       : null,

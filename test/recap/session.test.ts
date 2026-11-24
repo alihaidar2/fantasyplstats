@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { RECAP_TOOLS, createRecapSession, recapDraftSchema, toolDefinitions } from "../../src/lib/recap";
+import { RECAP_TOOLS, createRecapSession, recapDraftSchema, toolDefinitions, type RecapCard } from "../../src/lib/recap";
 import { loadContext, loadSources, makeBlank, makeDouble } from "./helpers";
 import { buildGameweekContext } from "../../src/lib/recap/context";
 
@@ -62,8 +62,18 @@ describe("tool definitions", () => {
     expect(byName.top_performers.required ?? []).toEqual([]);
     expect(byName.top_performers.properties.limit).toMatchObject({ type: "integer", default: 10, minimum: 1, maximum: 20 });
     expect(byName.top_performers.properties.position.enum).toEqual(["GKP", "DEF", "MID", "FWD"]);
-    expect(byName.submit_recap.required).toEqual(["headline", "paragraphs", "claims"]);
-    expect(byName.submit_recap.properties.claims.items?.required).toEqual(["text", "evidence"]);
+    expect(byName.submit_recap.required).toEqual(["headline", "cards"]);
+    const cards = byName.submit_recap.properties.cards.items as unknown as { anyOf?: Schema[]; oneOf?: Schema[] };
+    const variants = (cards.oneOf ?? cards.anyOf)!;
+    expect(variants.map((v) => (v.properties.type as { const?: string }).const)).toEqual([
+      "numbers",
+      "captaincy",
+      "players",
+      "matches",
+      "transfers",
+      "notes",
+    ]);
+    for (const variant of variants) expect(variant.required).toContain("evidence");
   });
 
   it("say what each tool can't know about a past gameweek", () => {
@@ -147,26 +157,34 @@ describe("a recap session", () => {
     session.call("player_story", { player: "Mitchell" }); // r2
     const draft = recapDraftSchema.parse({
       headline: "Mitchell's two goals top a low-scoring gameweek",
-      paragraphs: [
-        "Mitchell was the surprise of Gameweek 3. The Crystal Palace defender scored twice in a 3-2 win at Fulham and finished with 15 points, the best score of the week, though only 4.6% of managers owned him.",
-        "Haaland, the most-captained player and owned by 73.0%, scored in Man City's 1-0 win over Coventry City and returned 9 points. Isak got both goals as Liverpool won 2-0 at Ipswich Town. The average manager scored 51 points, and 23 goals were scored across the gameweek.",
-      ],
-      claims: [
-        { text: "Mitchell scored twice in Crystal Palace's 3-2 win at Fulham and got 15 points.", evidence: ["r2"] },
-        { text: "Mitchell was owned by 4.6% of managers.", evidence: ["r2"] },
-        { text: "Haaland was the most-captained player, owned by 73.0%, and got 9 points.", evidence: ["r1"] },
-        { text: "Man City beat Coventry City 1-0 and Liverpool won 2-0 at Ipswich Town.", evidence: ["r1"] },
-        { text: "The average manager scored 51 points and 23 goals were scored.", evidence: ["r1"] },
+      cards: [
+        { type: "numbers", items: [{ value: "51", label: "average score" }, { value: "23", label: "goals" }], evidence: ["r1"] },
+        {
+          type: "players",
+          title: "The surprise of the week",
+          players: [{ player: "Mitchell", ref: "p204", points: 15, detail: "2 goals", ownership: 4.6 }],
+          text: "Only a few managers owned the Crystal Palace defender.",
+          evidence: ["r2"],
+        },
+        { type: "captaincy", player: "Haaland", ref: "p411", points: 9, ownership: 73.0, evidence: ["r1"] },
+        {
+          type: "matches",
+          matches: [
+            { home: "Fulham", away: "Crystal Palace", score: "2-3" },
+            { home: "Man City", away: "Coventry City", score: "1-0" },
+          ],
+          evidence: ["r1"],
+        },
       ],
     });
 
     const wrong = structuredClone(draft);
-    wrong.paragraphs[0] = wrong.paragraphs[0].replace("15 points", "18 points");
+    (wrong.cards[1] as Extract<RecapCard, { type: "players" }>).players[0].points = 18;
     const rejected = session.call("submit_recap", wrong);
     expect(rejected).toMatchObject({ id: "r3", tool: "submit_recap", ok: true });
     expect(rejected.result).toEqual({
       accepted: false,
-      problems: [expect.stringMatching(/^paragraph 1: "18" in ".*" is not in any tool result\./)],
+      problems: [expect.stringMatching(/^card 2 \(players\), player 1: "18" in "Mitchell scored 18 points\." is not in the results this card cites \(r2\)\./)],
     });
     expect(session.accepted).toBeNull();
 
@@ -178,8 +196,8 @@ describe("a recap session", () => {
 
   it("rejects a malformed submission before checking it", () => {
     const session = createRecapSession(loadContext(3));
-    const entry = session.call("submit_recap", { headline: "A headline", paragraphs: "one string", claims: [] });
-    expect(entry).toMatchObject({ ok: false, result: { error: expect.stringContaining("paragraphs") } });
+    const entry = session.call("submit_recap", { headline: "A headline", cards: [{ type: "story", text: "one string" }] });
+    expect(entry).toMatchObject({ ok: false, result: { error: expect.stringContaining("cards") } });
   });
 });
 

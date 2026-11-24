@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { parseSnapshot, type Snapshot } from "../src/lib/fpl";
 import { recapArchiveMetadata, recapMetadata, truncateDescription } from "../src/lib/metadata";
-import type { Recap } from "../src/lib/recap/recap";
+import type { CardRecap } from "../src/lib/recap/recap";
 import {
   authorshipNote,
   buildGameweekStats,
   buildRecapArchive,
+  buildRecapEntities,
   buildRecapPage,
   RECAP_PLACEHOLDER_PARAMS,
   recapParams,
@@ -16,8 +17,8 @@ import { loadRecapRaw } from "./recap/helpers";
 
 /** The recorded 2026/27 snapshot (GW4 current), which has the players the sample recap names. */
 const loadSnapshot = (): Snapshot => parseSnapshot(loadRecapRaw("snapshot.json"));
-const sample = () => loadRecapRaw("sample-recap.json") as Recap;
-const published = (season: string, gameweek: number, extra: Partial<Recap> = {}): PublishedRecap =>
+const sample = () => loadRecapRaw("sample-recap.json") as CardRecap;
+const published = (season: string, gameweek: number, extra: Partial<CardRecap> = {}): PublishedRecap =>
   toPublishedRecap({ ...sample(), season, gameweek, headline: `${season} GW${gameweek}`, ...extra });
 
 describe("buildGameweekStats", () => {
@@ -71,6 +72,24 @@ describe("buildGameweekStats", () => {
     const snapshot = loadSnapshot();
     snapshot.bootstrap.events.find((e) => e.id === 4)!.chip_plays = [{ chip_name: "newchip", num_played: 5 }];
     expect(buildGameweekStats(snapshot, "2026-27", 4)!.chips).toEqual([{ chip: "newchip", label: "newchip", played: 5 }]);
+  });
+});
+
+describe("buildRecapEntities", () => {
+  it("links and badges every player and club the cards name, from the snapshot", () => {
+    const entities = buildRecapEntities(loadSnapshot(), toPublishedRecap(sample()));
+    expect(entities.players.p411).toEqual({ path: "/players/411/", team: "MCI", badge: 43 });
+    expect(entities.players.p94).toMatchObject({ path: "/players/94/", team: "BRE" });
+    // Every ref on the sample's cards.
+    expect(Object.keys(entities.players).sort()).toEqual(
+      ["p1", "p165", "p286", "p330", "p40", "p411", "p426", "p8", "p94"].sort(),
+    );
+    expect(entities.clubs["Coventry City"]).toMatchObject({ short: expect.any(String), badge: expect.any(Number) });
+    expect(Object.keys(entities.clubs).sort()).toEqual(["Brighton", "Coventry City", "Leeds", "Newcastle"]);
+  });
+
+  it("has none for a recap from another season, whose ids the snapshot doesn't describe", () => {
+    expect(buildRecapEntities(loadSnapshot(), toPublishedRecap({ ...sample(), season: "2025-26" }))).toEqual({ players: {}, clubs: {} });
   });
 });
 
@@ -160,9 +179,9 @@ describe("recap metadata", () => {
     const metadata = recapMetadata(recap);
     expect(metadata.title).toBe(`GW4 recap: ${recap.headline}`);
     expect(metadata.alternates?.canonical).toBe("/recap/2026-27/gw4/");
-    expect(String(metadata.description)).toMatch(/^Fantasy Premier League 2026\/27 Gameweek 4 recap\. Brighton/);
+    expect(String(metadata.description)).toMatch(/^Fantasy Premier League 2026\/27 Gameweek 4 recap\. A steady return from the armband, but Raya was the better pick/);
     expect(String(metadata.description).length).toBeLessThanOrEqual(160);
-    expect(metadata.openGraph).toMatchObject({ type: "article", url: "/recap/2026-27/gw4/" });
+    expect(metadata.openGraph).toMatchObject({ type: "article", url: "/recap/2026-27/gw4/", description: metadata.description });
   });
 
   it("keeps the archive out of search results until there's a recap", () => {

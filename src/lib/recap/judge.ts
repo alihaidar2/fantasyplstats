@@ -84,11 +84,47 @@ export const RUBRIC = {
     "mattered most, judged against the reference stories? 1: the main stories are missing or buried under minor ones. " +
     "3: the main story is there but the order or the rest is off. 5: the biggest stories, in a sensible order, " +
     "with nothing trivial taking their place.",
+  /** For paragraph recaps (saved recap version 1). Kept as it was, so old scores stay what they were. */
   readability:
     "Readability. Is it clear, lively UK English that reads well from start to finish? 1: clumsy, repetitive or " +
     "robotic; hard to follow. 3: clear but flat, or with awkward sentences (stats crammed in, stilted phrasing). " +
     "5: a pleasure to read: varied sentences, a good headline, no padding.",
 } as const;
+
+/**
+ * Readability depends on the format. A card recap is terse on purpose (a
+ * headline and a few cards of figures with a line each, read on a phone), so
+ * asking whether it "reads well from start to finish" as prose measures the
+ * format, not the writing. Card recaps get their own criterion, with anchors;
+ * insight and story selection are the same for both. A score under one
+ * version is not comparable with a score under another.
+ */
+export type RecapFormat = "paragraphs" | "cards";
+export type ReadabilityRubricVersion = "paragraphs-v1" | "cards-v1";
+
+export const READABILITY_RUBRIC_OF: Record<RecapFormat, ReadabilityRubricVersion> = {
+  paragraphs: "paragraphs-v1",
+  cards: "cards-v1",
+};
+
+export const READABILITY_RUBRICS: Record<ReadabilityRubricVersion, string> = {
+  "paragraphs-v1": RUBRIC.readability,
+  "cards-v1":
+    "Readability (of story cards). Can a manager take in the gameweek in half a minute on a phone? Judge these six things: " +
+    "the headline lands (specific to this gameweek, says the main story); each card makes one clear point, and its title says what that point is; " +
+    "every number is labelled and means something to a manager (a figure with no label, or one the reader must work out, is a fault); " +
+    "there is no stat dump (a card or line that piles up figures without saying what they add up to) and no repetition of the same figure across cards; " +
+    "no jargon or abbreviations a casual FPL manager would not know; and the short text is plain, correct UK English. " +
+    "Short is not a fault: do not mark a card down for lacking flowing prose, linking sentences or length. Do mark it down for clutter, vagueness and clumsy wording. " +
+    "1: a jumble: cards with no clear point, unlabelled or unexplained figures, text that is hard to parse. " +
+    "2: you can find the stories but have to work for them: a vague or generic headline (\"Gameweek 7 recap\", or one that only names a score), " +
+    "several cards that mix two or three points or list figures with no point, titles that are bare labels (\"Players\", \"Notes\"), a line that repeats its card's figures or reads as a stat list. " +
+    "3: competent: every card can be read at a glance and the numbers are labelled, but it is flat or uneven: one or two cards are cluttered or make no clear point, " +
+    "a line restates what the card already shows, a title is generic, or a sentence is stilted. " +
+    "4: clean throughout with at most one small blemish. " +
+    "5: rare. Nothing to fix: a headline that could belong to no other gameweek, every card one point with a title that says it, every figure labelled and telling, " +
+    "each line adds the so-what in a few plain words, nothing repeated, no jargon.",
+};
 
 export type RubricKey = keyof typeof RUBRIC;
 export const RUBRIC_KEYS = Object.keys(RUBRIC) as RubricKey[];
@@ -127,7 +163,14 @@ export function judgeToolDefinition(): ToolDefinition {
   };
 }
 
-export const JUDGE_SYSTEM_PROMPT = `You are judging a short Fantasy Premier League (FPL) gameweek recap written for fantasyplstats.com. You are given the reference stories for that gameweek (the three to five biggest stories, chosen by an editor from the data) and the recap. The recap's facts have already been verified by a separate checker, so do not judge accuracy. The recap could only use what FPL's data shows: do not mark it down for lacking team news, quotes, tactics or predictions.
+const CARDS_NOTE =
+  "\n\nThis recap is a set of story cards, shown one under another on a phone: a headline, then four to seven cards. " +
+  "You see each card as its fields: its type, its title, the figures it displays (each with its label), and its short line of text, if it has one. " +
+  "On the page the figures are drawn as big numbers, tiles, bars and scorelines, so the cards carry most of the story and the text is short by design.";
+
+/** The judge's instructions for a recap of that format. Only the readability criterion (and, for cards, a note on what a card is) differs. */
+export function judgeSystemPrompt(format: RecapFormat = "paragraphs"): string {
+  return `You are judging a short Fantasy Premier League (FPL) gameweek recap written for fantasyplstats.com. You are given the reference stories for that gameweek (the three to five biggest stories, chosen by an editor from the data) and the recap. The recap's facts have already been verified by a separate checker, so do not judge accuracy. The recap could only use what FPL's data shows: do not mark it down for lacking team news, quotes, tactics or predictions.${format === "cards" ? CARDS_NOTE : ""}
 
 Do two things.
 
@@ -140,21 +183,32 @@ Give one entry for every reference story, in order, using the story's number.
 2. Quality. Score the recap from 1 to 5 on each of these, with a short reason. Be a demanding editor: 3 is competent, 5 is rare.
 - ${RUBRIC.insight}
 - ${RUBRIC.storySelection}
-- ${RUBRIC.readability}
+- ${READABILITY_RUBRICS[READABILITY_RUBRIC_OF[format]]}
 
 Reply only by calling ${JUDGE_TOOL}.`;
-
-export interface RecapText {
-  headline: string;
-  paragraphs: readonly string[];
 }
+
+/** The paragraph-recap instructions, as they have always been. */
+export const JUDGE_SYSTEM_PROMPT = judgeSystemPrompt("paragraphs");
+
+/**
+ * What the judge is shown. A paragraph recap is its paragraphs. A card recap
+ * is one block per card, each already laid out field by field (cardToJudgeView
+ * in text.ts), so the judge sees cards rather than prose made out of them.
+ */
+export type RecapText =
+  | { headline: string; paragraphs: readonly string[]; cards?: undefined }
+  | { headline: string; cards: readonly string[]; paragraphs?: undefined };
+
+export const formatOfRecapText = (recap: RecapText): RecapFormat => (recap.cards ? "cards" : "paragraphs");
 
 /** The judge's one user message. Stories are labelled "Story N: title" so replies can use the number. */
 export function judgeUserMessage(gameweek: number, references: ReferenceStories, recap: RecapText): string {
   const stories = references.stories.map((s) => `Story ${s.number}: ${s.title}\n${s.body}`.trim()).join("\n\n");
+  const body = recap.cards ? recap.cards.join("\n\n") : recap.paragraphs.join("\n\n");
   return (
     `<reference_stories gameweek="${gameweek}">\n${stories}\n</reference_stories>\n\n` +
-    `<recap>\n<headline>${recap.headline}</headline>\n${recap.paragraphs.join("\n\n")}\n</recap>\n\n` +
+    `<recap${recap.cards ? ' format="cards"' : ""}>\n<headline>${recap.headline}</headline>\n${body}\n</recap>\n\n` +
     `Judge the recap against the ${references.stories.length} reference stories and the rubric.`
   );
 }
@@ -178,6 +232,8 @@ export interface JudgeOptions {
 
 export interface JudgeResult {
   judgement: Judgement;
+  /** Which readability criterion the judge was given: scores under different versions are not comparable. */
+  readabilityRubric: ReadabilityRubricVersion;
   /** Covered stories as a share of the reference stories: "yes" counts 1, "partly" a half. */
   coverageScore: number;
   model: string;
@@ -222,6 +278,7 @@ export async function judgeRecap(options: JudgeOptions): Promise<JudgeResult> {
   const { model, references } = options;
   if (references.stories.length === 0) throw new JudgeError("There are no reference stories to judge against.");
   const prices = options.prices ?? MODEL_PRICES_USD_PER_MTOK;
+  const format = formatOfRecapText(options.recap);
   const messages: ModelMessage[] = [
     { role: "user", content: [{ type: "text", text: judgeUserMessage(options.gameweek, references, options.recap) }] },
   ];
@@ -232,7 +289,7 @@ export async function judgeRecap(options: JudgeOptions): Promise<JudgeResult> {
 
   for (let ask = 0; ask < 2; ask++) {
     const response = await model.send({
-      system: JUDGE_SYSTEM_PROMPT,
+      system: judgeSystemPrompt(format),
       messages,
       tools: [judgeToolDefinition()],
       maxOutputTokens: options.maxOutputTokens ?? 2000,
@@ -249,6 +306,7 @@ export async function judgeRecap(options: JudgeOptions): Promise<JudgeResult> {
       const covered = coverage.reduce((sum, c) => sum + (c.covered === "yes" ? 1 : c.covered === "partly" ? 0.5 : 0), 0);
       return {
         judgement: read.judgement,
+        readabilityRubric: READABILITY_RUBRIC_OF[format],
         coverageScore: covered / coverage.length,
         model: model.id,
         usage,

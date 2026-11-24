@@ -19,6 +19,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import ThisWeek from "@/components/features/home/this-week";
 import GameweekStatsBox from "@/components/features/recap/gameweek-stats-box";
+import RecapCards from "@/components/features/recap/recap-cards";
 import { getRecaps, getSnapshot } from "@/lib/data";
 import { buildHomePage, type HomeRecap } from "@/lib/home";
 import { homeMetadata } from "@/lib/metadata";
@@ -110,7 +111,7 @@ const TOOLS: { title: string; description: string; icon: LucideIcon; href?: stri
 ];
 
 function LatestRecap({ latest }: { latest: HomeRecap }) {
-  const { recap, seasonLabel, firstParagraph, stats } = latest;
+  const { recap, seasonLabel, preview, entities, stats } = latest;
   return (
     <section aria-labelledby="latest-recap" className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
       <div className="min-w-0 rounded-xl border border-green-200 bg-white/90 p-5 shadow-sm sm:p-6 dark:border-green-900 dark:bg-gray-800/80">
@@ -122,7 +123,11 @@ function LatestRecap({ latest }: { latest: HomeRecap }) {
             {recap.headline}
           </Link>
         </h2>
-        <p className="mt-3 text-base leading-relaxed text-gray-700 dark:text-gray-300">{firstParagraph}</p>
+        {preview.kind === "cards" ? (
+          <RecapCards cards={preview.cards} entities={entities} heading="h3" idPrefix="latest-recap-card" className="mt-4" />
+        ) : (
+          <p className="mt-3 text-base leading-relaxed text-gray-700 dark:text-gray-300">{preview.paragraphs[0]}</p>
+        )}
         <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
           <Link
             href={recap.path}

@@ -10,17 +10,18 @@ import {
   nextDeadline,
   priceMoves,
 } from "../src/lib/home";
-import type { Recap } from "../src/lib/recap/recap";
+import type { CardRecap, ParagraphRecap } from "../src/lib/recap/recap";
 import { compareNewestFirst, toPublishedRecap } from "../src/lib/recaps";
 import { buildFixtureSnapshot } from "./fixture-client";
 import { loadRecapRaw } from "./recap/helpers";
 
 /** The recorded 2026/27 snapshot: GW4 current, GW5 next, 355 players. */
 const loadSnapshot = (): Snapshot => parseSnapshot(loadRecapRaw("snapshot.json"));
-const sample = () => loadRecapRaw("sample-recap.json") as Recap;
+const sample = () => loadRecapRaw("sample-recap.json") as CardRecap;
+const sampleV1 = () => loadRecapRaw("sample-recap-v1.json") as ParagraphRecap;
 
 describe("buildHomePage", () => {
-  it("leads with the newest recap: headline, first paragraph and its gameweek stats", () => {
+  it("leads with the newest recap: headline, numbers, first story card and its gameweek stats", () => {
     const snapshot = loadSnapshot();
     const recaps = [
       toPublishedRecap({ ...sample(), gameweek: 3, headline: "Older" }),
@@ -32,8 +33,17 @@ describe("buildHomePage", () => {
     expect(home.latest?.recap.path).toBe("/recap/2026-27/gw4/");
     expect(home.latest?.recap.headline).toBe(sample().headline);
     expect(home.latest?.seasonLabel).toBe("2026/27");
-    expect(home.latest?.firstParagraph).toBe(sample().paragraphs[0]);
+    expect(home.latest?.preview).toEqual({
+      kind: "cards",
+      cards: [expect.objectContaining({ type: "numbers" }), expect.objectContaining({ type: "captaincy", player: "Haaland" })],
+    });
+    expect(home.latest?.entities.players.p411).toEqual({ path: "/players/411/", team: "MCI", badge: 43 });
     expect(home.latest?.stats).toMatchObject({ gameweek: 4, averageScore: 69, highestScore: 151 });
+  });
+
+  it("shows the first paragraph of a version 1 recap", () => {
+    const home = buildHomePage(loadSnapshot(), [toPublishedRecap(sampleV1())]);
+    expect(home.latest?.preview).toEqual({ kind: "paragraphs", paragraphs: [sampleV1().paragraphs[0]] });
   });
 
   it("falls back to the 'this week' strip alone with no recap, which is the same either way", () => {

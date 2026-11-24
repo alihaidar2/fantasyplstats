@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RECAP_LIMITS } from "../../src/lib/recap/recap";
+import { recapToText } from "../../src/lib/recap/text";
 import { createRecapSession } from "../../src/lib/recap/session";
 import { TEMPLATE_CALLS, buildTemplateRecap } from "../../src/lib/recap/template";
 import { loadRecording } from "../../scripts/recorded-gameweeks";
@@ -22,10 +23,10 @@ describe("the fallback template", () => {
     const { draft, report } = template(recording.context(gameweek));
     expect(report.issues).toEqual([]);
     expect(report.passed).toBe(true);
-    expect(report.numbersChecked).toBeGreaterThan(20);
-    expect(draft.paragraphs).toHaveLength(3);
+    expect(report.numbersChecked).toBeGreaterThan(10);
+    expect(draft.cards.length).toBeGreaterThanOrEqual(RECAP_LIMITS.minCards);
+    expect(draft.cards.length).toBeLessThanOrEqual(RECAP_LIMITS.maxCards);
     expect(draft.headline.length).toBeLessThanOrEqual(RECAP_LIMITS.headlineMaxChars);
-    for (const claim of draft.claims) expect(claim.text.length).toBeLessThanOrEqual(RECAP_LIMITS.claimMaxChars);
   });
 
   it.each([3, 4] as const)("passes for GW%i of the recap fixtures (a full snapshot)", (gameweek) => {
@@ -42,19 +43,32 @@ describe("the fallback template", () => {
   it("says nothing about transfers in gameweek 1", () => {
     const { draft, report } = template(recording.context(1));
     expect(report.passed).toBe(true);
-    expect(draft.paragraphs.join(" ")).not.toMatch(/transferred/);
-    expect(template(recording.context(2)).draft.paragraphs.join(" ")).toMatch(/most-transferred-in player/);
+    expect(recapToText(draft)).not.toMatch(/transferred/);
+    expect(recapToText(template(recording.context(2)).draft)).toMatch(/most-transferred-in player/);
   });
 
   it("reads like this (GW5)", () => {
     const { draft } = template(recording.context(5));
     expect(draft.headline).toBe("Brobbey tops Gameweek 5 with 17 points");
-    expect(draft.paragraphs[0]).toMatch(/^Brobbey of Sunderland was the top scorer of Gameweek 5 with 17 points\. /);
-    expect(draft.paragraphs[1]).toMatch(/^The average manager scored 48 points\. The highest manager score of the gameweek was 126 points\. Haaland was the most-captained player and returned 6 points\. Gibbs-White was the most-transferred-in player and returned 2 points\.$/);
-    expect(draft.paragraphs[2]).toMatch(/Man City 5-3 Sunderland/);
-    // Every sentence is a claim citing the one result it was copied from.
-    expect(draft.claims.map((c) => c.text).join(" ")).toBe(draft.paragraphs.join(" "));
-    expect(draft.claims.every((c) => c.evidence.length === 1 && /^r[12]$/.test(c.evidence[0]))).toBe(true);
+    expect(recapToText(draft)).toBe(
+      [
+        "# Brobbey tops Gameweek 5 with 17 points",
+        "",
+        "In numbers: 48 average score, 27 goals and 10 matches.",
+        "",
+        "The captaincy: Haaland scored 6 points.",
+        "",
+        "The top scorer: Brobbey scored 17 points.",
+        "",
+        "Close behind: Semenyo scored 17 points. Dasilva scored 15 points. Schuster scored 14 points.",
+        "",
+        "The most goals: Man City 5-3 Sunderland, Spurs 2-3 Aston Villa and Brentford 3-0 Chelsea.",
+        "",
+        "Also worth knowing: Gibbs-White was the most-transferred-in player (2 points). The highest manager score of the gameweek was 126 points.",
+      ].join("\n"),
+    );
+    // Every card cites the one result it was copied from.
+    expect(draft.cards.every((c) => c.evidence.length === 1 && /^r[12]$/.test(c.evidence[0]))).toBe(true);
   });
 
   it("uses the latest results in the log, and needs both", () => {
@@ -66,7 +80,7 @@ describe("the fallback template", () => {
     session.call("top_performers", { limit: 2 });
     session.call("top_performers", { limit: 5 });
     const draft = buildTemplateRecap(session.evidence)!;
-    expect(new Set(draft.claims.flatMap((c) => c.evidence))).toEqual(new Set(["r1", "r4"]));
+    expect(new Set(draft.cards.flatMap((c) => c.evidence))).toEqual(new Set(["r1", "r4"]));
     expect(session.check(draft).passed).toBe(true);
   });
 });

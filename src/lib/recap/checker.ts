@@ -26,6 +26,13 @@
 // - Content. Length limits; nothing about betting or odds; no links; no
 //   quotes.
 //
+// A card recap (version 2, cards.ts) is checked the same way: each card is
+// read as one sentence per figure, naming the player or club it belongs to
+// ("Alysson scored 16 points.", "Alysson was owned by 0.1%."), checked
+// against the results the card cites. Its free text (a title, a line) is
+// checked as written. A player's ref must be that player. The headline is
+// checked against everything, and its numbers must be on a card.
+//
 // Known gaps. These are for the quality review and the person approving the
 // recap:
 // - A false statement built from true numbers of the right stat about the
@@ -61,11 +68,15 @@ import {
   countsPlayers,
   writtenStat,
 } from "./stats";
+import { cardFreeText, cardPlayerRefs, cardStatements, wordCount, type RecapCard } from "./cards";
 import {
+  PARAGRAPH_RECAP_LIMITS,
   RECAP_LIMITS,
   type CheckIssue,
   type CheckReport,
   type EvidenceEntry,
+  type ParagraphDraft,
+  type ParagraphRecapLimits,
   type RecapDraft,
   type RecapLimits,
 } from "./recap";
@@ -79,10 +90,10 @@ export interface CheckOptions {
   names: NameIndex;
   /** The same dictionary as `names`, to name players in messages. */
   nameEntries: readonly NameEntry[];
-  limits?: Partial<RecapLimits>;
+  limits?: Partial<RecapLimits & ParagraphRecapLimits>;
   /** Real names that must never appear, e.g. the members of a mini-league. Matched ignoring case. */
   forbiddenNames?: readonly string[];
-  /** Numbers in the headline and paragraphs must also appear in a claim. Default true. */
+  /** Numbers in the headline and paragraphs (or the headline of a card recap) must also appear in a claim (or a card). Default true. */
   requireClaimCoverage?: boolean;
 }
 
@@ -208,6 +219,9 @@ const LINK =
 /** A quoted passage of a few words or more: nobody in the data said anything. */
 const QUOTE = /["“][^"“”]{12,}["”]/g;
 
+/** "eight-goal thriller", "8-goal game": the number is the goals in a match, not a player's. */
+const MATCH_GOALS_AFTER = /^-goal\s+(?:thriller|game|match|draw|contest|classic|win|victory|defeat)(?![\p{L}])/iu;
+
 interface Sentence {
   start: number;
   end: number;
@@ -272,8 +286,26 @@ function excerpt(text: string, sentence: Sentence): string {
 const list = (items: readonly string[], max = 4) =>
   items.length > max ? `${items.slice(0, max).join(", ")} and ${items.length - max} more` : items.join(", ");
 
-export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckReport {
-  const limits: RecapLimits = { ...RECAP_LIMITS, ...options.limits };
+/** What a text checker shares between the pieces of one recap. */
+interface TextChecker {
+  report(code: string, where: string, message: string): void;
+  /**
+   * Checks one piece of text: its names and numbers against `scope` (the
+   * results it may draw on), and its content (betting, links, quotes).
+   * `cited` is the ids the piece cites, or null when it may use anything.
+   */
+  checkText(where: string, text: string, scope: readonly ResultFacts[], cited: readonly string[] | null): void;
+  /** Numbers already reported as absent from the evidence, as "where|text". */
+  unsupported: Set<string>;
+  allFacts: readonly ResultFacts[];
+  factsById: ReadonlyMap<string, ResultFacts>;
+  /** The results a piece cites, reporting ids that are unknown, failed or a submit_recap call. */
+  scopeOf(where: string, ids: readonly string[]): ResultFacts[];
+  finish(): CheckReport;
+}
+
+/** The checker for one recap. `recapText` is all of its text, to settle which club a shared nickname means. */
+function textChecker(options: CheckOptions, recapText: string, citer = "claim"): TextChecker {
   const { names } = options;
   const issues: CheckIssue[] = [];
   const seen = new Set<string>();
@@ -298,57 +330,15 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
   // Clubs the recap names in full, to settle which club a shared nickname ("City", "United") means.
   const fullTeamsIn = (text: string) =>
     new Set(names.scan(text).mentions.filter((m) => m.kind === "team" && !m.sharedNickname).flatMap((m) => m.ids));
-  const fullTeamsInRecap = fullTeamsIn([draft.headline, ...draft.paragraphs].join("\n"));
+  const fullTeamsInRecap = fullTeamsIn(recapText);
 
   const usable = options.evidence.filter((e) => e.ok && e.tool !== "submit_recap");
   const allFacts = usable.map((e) => readResult(e, names));
   const factsById = new Map(allFacts.map((f) => [f.id, f]));
 
-  // ---- Length ------------------------------------------------------------
-  const headline = draft.headline.trim();
-  if (headline.length < limits.headlineMinChars || headline.length > limits.headlineMaxChars) {
-    report(
-      "length",
-      "headline",
-      `The headline is ${headline.length} characters. Keep it between ${limits.headlineMinChars} and ${limits.headlineMaxChars}.`,
-    );
-  }
-  if (draft.paragraphs.length < limits.minParagraphs || draft.paragraphs.length > limits.maxParagraphs) {
-    report(
-      "length",
-      "recap",
-      `The recap has ${draft.paragraphs.length} paragraphs. Write between ${limits.minParagraphs} and ${limits.maxParagraphs}.`,
-    );
-  }
-  draft.paragraphs.forEach((paragraph, i) => {
-    if (paragraph.trim().length === 0) report("length", `paragraph ${i + 1}`, "This paragraph is empty.");
-    if (paragraph.length > limits.paragraphMaxChars) {
-      report(
-        "length",
-        `paragraph ${i + 1}`,
-        `This paragraph is ${paragraph.length} characters. Keep each paragraph under ${limits.paragraphMaxChars}.`,
-      );
-    }
-  });
-  const words = draft.paragraphs.join(" ").split(/\s+/).filter(Boolean).length;
-  if (words < limits.minWords || words > limits.maxWords) {
-    report(
-      "length",
-      "recap",
-      `The paragraphs total ${words} words. Write between ${limits.minWords} and ${limits.maxWords}.`,
-    );
-  }
-  if (draft.claims.length < limits.minClaims || draft.claims.length > limits.maxClaims) {
-    report(
-      "length",
-      "recap",
-      `There are ${draft.claims.length} claims. Give between ${limits.minClaims} and ${limits.maxClaims}.`,
-    );
-  }
-
   // ---- One piece of text against the results it may draw on ----------------
   const checkText = (where: string, text: string, scope: readonly ResultFacts[], cited: readonly string[] | null) => {
-    const source = cited ? `the results this claim cites (${cited.join(", ") || "none"})` : "any tool result";
+    const source = cited ? `the results this ${citer} cites (${cited.join(", ") || "none"})` : "any tool result";
 
     for (const match of text.matchAll(BETTING)) {
       report("betting", where, `Remove ${quoted(match[0])}: a recap must not mention betting or odds.`);
@@ -535,7 +525,38 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
       // words make the number a gameweek-wide one ("the average manager
       // scored", "there were", a chip).
       const tied = subjects.length > 0;
-      const rightOwner = (n: Fact) => !tied || theirs(n) || (written.gameweekWide && gameweekWide(n));
+      // Two more figures are not a named player's, by the way they are written:
+      // - A club's own figure straight after the club: "Brighton made it 4
+      //   wins in a row, with Kostoulas (12 points) ...". The club must come
+      //   before the number with no player named in between, the words must
+      //   name the stat, and the figure must be that club's in the evidence.
+      // - A match's goals as an adjective: "in the eight-goal thriller". It
+      //   needs an article before it (so "Brobbey's three-goal game" is still
+      //   Brobbey's goals), and a figure for goals that is no player's.
+      const clubsBefore = new Set(
+        tight || written.stats === null
+          ? []
+          : here
+              .filter(
+                (m) =>
+                  m.mention.kind === "team" &&
+                  m.mention.end <= token.start &&
+                  !players.some((p) => p.mention.start >= m.mention.end && p.mention.start < token.start),
+              )
+              .flatMap((m) => m.ids),
+      );
+      const theirClubs = (n: Fact) => n.owners === null && n.team !== null && clubsBefore.has(n.team);
+      const matchGoals =
+        !tight &&
+        token.kind === "plain" &&
+        /\b(?:the|an?|that|this)\s+$/i.test(text.slice(sentence.start, token.start)) &&
+        MATCH_GOALS_AFTER.test(text.slice(token.end, sentence.end));
+      const rightOwner = (n: Fact) =>
+        !tied ||
+        theirs(n) ||
+        (written.gameweekWide && gameweekWide(n)) ||
+        theirClubs(n) ||
+        (matchGoals && gameweekWide(n) && n.stats.includes("goals"));
 
       // And when? A season total or another gameweek's figure only counts
       // when the sentence says that is what it means.
@@ -735,6 +756,88 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
     }
   };
 
+  const scopeOf = (where: string, ids: readonly string[]): ResultFacts[] => {
+    const scope: ResultFacts[] = [];
+    for (const id of new Set(ids)) {
+      const facts = factsById.get(id);
+      if (facts) {
+        scope.push(facts);
+        continue;
+      }
+      const entry = options.evidence.find((e) => e.id === id);
+      report(
+        "unknown-result",
+        where,
+        !entry
+          ? `It cites ${id}, which is not a result id from this session.`
+          : entry.tool === "submit_recap"
+            ? `It cites ${id}, a submit_recap call. Cite the tool results the facts came from.`
+            : `It cites ${id}, a call that failed and returned no data.`,
+      );
+    }
+    return scope;
+  };
+
+  return {
+    report,
+    checkText,
+    unsupported,
+    allFacts,
+    factsById,
+    scopeOf,
+    finish: () => ({ passed: issues.length === 0, issues, numbersChecked, namesChecked }),
+  };
+}
+
+/** Checks a version 1 recap: a headline, paragraphs and the claims behind them. */
+export function checkParagraphRecap(draft: ParagraphDraft, options: CheckOptions): CheckReport {
+  const limits: ParagraphRecapLimits = { ...PARAGRAPH_RECAP_LIMITS, ...options.limits };
+  const checker = textChecker(options, [draft.headline, ...draft.paragraphs].join("\n"));
+  const { report, checkText, unsupported, allFacts } = checker;
+
+  // ---- Length ------------------------------------------------------------
+  const headline = draft.headline.trim();
+  if (headline.length < limits.headlineMinChars || headline.length > limits.headlineMaxChars) {
+    report(
+      "length",
+      "headline",
+      `The headline is ${headline.length} characters. Keep it between ${limits.headlineMinChars} and ${limits.headlineMaxChars}.`,
+    );
+  }
+  if (draft.paragraphs.length < limits.minParagraphs || draft.paragraphs.length > limits.maxParagraphs) {
+    report(
+      "length",
+      "recap",
+      `The recap has ${draft.paragraphs.length} paragraphs. Write between ${limits.minParagraphs} and ${limits.maxParagraphs}.`,
+    );
+  }
+  draft.paragraphs.forEach((paragraph, i) => {
+    if (paragraph.trim().length === 0) report("length", `paragraph ${i + 1}`, "This paragraph is empty.");
+    if (paragraph.length > limits.paragraphMaxChars) {
+      report(
+        "length",
+        `paragraph ${i + 1}`,
+        `This paragraph is ${paragraph.length} characters. Keep each paragraph under ${limits.paragraphMaxChars}.`,
+      );
+    }
+  });
+  const words = draft.paragraphs.join(" ").split(/\s+/).filter(Boolean).length;
+  if (words < limits.minWords || words > limits.maxWords) {
+    report(
+      "length",
+      "recap",
+      `The paragraphs total ${words} words. Write between ${limits.minWords} and ${limits.maxWords}.`,
+    );
+  }
+  if (draft.claims.length < limits.minClaims || draft.claims.length > limits.maxClaims) {
+    report(
+      "length",
+      "recap",
+      `There are ${draft.claims.length} claims. Give between ${limits.minClaims} and ${limits.maxClaims}.`,
+    );
+  }
+
+
   // ---- Headline and paragraphs: against everything -------------------------
   checkText("headline", draft.headline, allFacts, null);
   draft.paragraphs.forEach((paragraph, i) => checkText(`paragraph ${i + 1}`, paragraph, allFacts, null));
@@ -756,24 +859,7 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
         `This claim cites ${claim.evidence.length} results. Cite at most ${limits.maxEvidencePerClaim}: split the claim.`,
       );
     }
-    const scope: ResultFacts[] = [];
-    for (const id of new Set(claim.evidence)) {
-      const facts = factsById.get(id);
-      if (facts) {
-        scope.push(facts);
-        continue;
-      }
-      const entry = options.evidence.find((e) => e.id === id);
-      report(
-        "unknown-result",
-        where,
-        !entry
-          ? `It cites ${id}, which is not a result id from this session.`
-          : entry.tool === "submit_recap"
-            ? `It cites ${id}, a submit_recap call. Cite the tool results the facts came from.`
-            : `It cites ${id}, a call that failed and returned no data.`,
-      );
-    }
+    const scope = checker.scopeOf(where, claim.evidence);
     checkText(where, claim.text, scope, claim.evidence);
   });
 
@@ -798,5 +884,150 @@ export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckRepor
     }
   }
 
-  return { passed: issues.length === 0, issues, numbersChecked, namesChecked };
+  return checker.finish();
+}
+
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+/** How many items of a card's list it may have, and what they are called in messages. */
+function listBounds(card: RecapCard, limits: RecapLimits): { count: number; min: number; max: number; noun: string } | null {
+  switch (card.type) {
+    case "numbers":
+      return { count: card.items.length, min: limits.numbersMin, max: limits.numbersMax, noun: "figure" };
+    case "players":
+      return { count: card.players.length, min: limits.playersMin, max: limits.playersMax, noun: "player" };
+    case "matches":
+      return { count: card.matches.length, min: limits.matchesMin, max: limits.matchesMax, noun: "match" };
+    case "transfers":
+      return { count: card.moves.length, min: limits.movesMin, max: limits.movesMax, noun: "move" };
+    case "notes":
+      return { count: card.items.length, min: limits.notesMin, max: limits.notesMax, noun: "note" };
+    case "captaincy":
+      return null;
+  }
+}
+
+/**
+ * Checks a recap of story cards (version 2): the headline against every tool
+ * result, and each card against the results it cites, one figure at a time.
+ */
+export function checkRecap(draft: RecapDraft, options: CheckOptions): CheckReport {
+  const limits: RecapLimits = { ...RECAP_LIMITS, ...options.limits };
+  const startsWithName = (text: string) => options.names.scan(text).mentions.some((m) => m.start === 0 && !m.weak);
+  const statements = draft.cards.map((card, i) => cardStatements(card, `card ${i + 1} (${card.type})`, startsWithName));
+  const checker = textChecker(
+    options,
+    [draft.headline, ...statements.flat().map((s) => s.text)].join("\n"),
+    "card",
+  );
+  const { report, checkText, unsupported, allFacts } = checker;
+
+  const playerNames = new Map<number, string>();
+  for (const entry of options.nameEntries) if (entry.kind === "player") playerNames.set(entry.id, entry.webName);
+
+  // ---- The headline and the number of cards ---------------------------------
+  const headline = draft.headline.trim();
+  if (headline.length < limits.headlineMinChars || headline.length > limits.headlineMaxChars) {
+    report(
+      "length",
+      "headline",
+      `The headline is ${headline.length} characters. Keep it between ${limits.headlineMinChars} and ${limits.headlineMaxChars}.`,
+    );
+  }
+  if (draft.cards.length < limits.minCards || draft.cards.length > limits.maxCards) {
+    report("length", "recap", `The recap has ${plural(draft.cards.length, "card")}. Give between ${limits.minCards} and ${limits.maxCards}.`);
+  }
+  for (const type of ["numbers", "captaincy"] as const) {
+    const count = draft.cards.filter((c) => c.type === type).length;
+    if (count > 1) report("card-type", "recap", `There are ${count} ${type} cards. Give at most one: merge them.`);
+  }
+
+  // ---- Each card against the results it cites --------------------------------
+  draft.cards.forEach((card, i) => {
+    const where = `card ${i + 1} (${card.type})`;
+
+    if (card.evidence.length > limits.maxEvidencePerCard) {
+      report(
+        "length",
+        where,
+        `This card cites ${card.evidence.length} results. Cite at most ${limits.maxEvidencePerCard}: split the card, or drop what isn't needed.`,
+      );
+    }
+    const bounds = listBounds(card, limits);
+    if (bounds && (bounds.count < bounds.min || bounds.count > bounds.max)) {
+      report(
+        "length",
+        where,
+        `This card has ${plural(bounds.count, bounds.noun, bounds.noun === "match" ? "matches" : undefined)}. Give between ${bounds.min} and ${bounds.max}.`,
+      );
+    }
+    if (card.type === "captaincy" && (card.tiles?.length ?? 0) > limits.tilesMax) {
+      report("length", where, `This card has ${card.tiles!.length} tiles. Give at most ${limits.tilesMax}.`);
+    }
+    for (const piece of cardFreeText(card, limits)) {
+      const words = wordCount(piece.text);
+      if (piece.text.trim().length === 0) report("length", `${where}, ${piece.at}`, "This is empty: leave it out instead.");
+      else if (words > piece.maxWords) {
+        report("length", `${where}, ${piece.at}`, `This is ${words} words. Keep it to ${piece.maxWords} words at most.`);
+      }
+    }
+    if (card.type === "transfers") {
+      card.moves.forEach((m, j) => {
+        if (m.run && (m.run.gameweeks < limits.runMinGameweeks || m.run.gameweeks > limits.runMaxGameweeks)) {
+          report(
+            "length",
+            `${where}, move ${j + 1} run`,
+            `A run of ${m.run.gameweeks} gameweeks is not a run: give one of ${limits.runMinGameweeks} or more, or leave it out.`,
+          );
+        }
+      });
+    }
+    if (card.type === "notes") {
+      card.items.forEach((n, j) => {
+        if (n.points !== undefined && !n.player) {
+          report("card-field", `${where}, note ${j + 1}`, "Points need the player they belong to: give the player and ref too.");
+        }
+      });
+    }
+
+    // Each ref is the player named with it.
+    for (const named of cardPlayerRefs(card, where)) {
+      if (!named.ref) {
+        report("player-ref", named.where, `Give ${quoted(named.player)}'s ref (such as "p411") from the tool results.`);
+        continue;
+      }
+      const id = Number(named.ref.slice(1));
+      if (options.names.lookupPlayer(named.player).includes(id)) continue;
+      const actual = playerNames.get(id);
+      report(
+        "player-ref",
+        named.where,
+        actual
+          ? `The ref ${named.ref} is ${actual}, not ${quoted(named.player)}. Give the name and ref a tool returned together.`
+          : `The ref ${named.ref} is not a player in the data. Give the ref a tool returned with ${quoted(named.player)}.`,
+      );
+    }
+
+    const scope = checker.scopeOf(where, card.evidence);
+    for (const statement of statements[i]) checkText(statement.where, statement.text, scope, card.evidence);
+  });
+
+  // ---- The headline: against everything, and its numbers on a card ------------
+  checkText("headline", draft.headline, allFacts, null);
+  if (options.requireClaimCoverage ?? true) {
+    const onCards = statements.flat().flatMap((s) => extractNumbers(s.text));
+    for (const token of extractNumbers(draft.headline)) {
+      if (token.kind === "gameweek" || token.kind === "season") continue;
+      if (unsupported.has(`headline|${token.text}`)) continue;
+      if (onCards.some((c) => numbersAgree(token, c) || numbersAgree(c, token))) continue;
+      report(
+        "number-without-card",
+        "headline",
+        `${quoted(token.text)} is in the headline but on no card. Put it on the card it belongs to, citing the result it came from, or leave it out of the headline.`,
+      );
+    }
+  }
+
+  return checker.finish();
 }

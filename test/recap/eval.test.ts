@@ -3,12 +3,16 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { fakeJudgeModel, fakeWriterModel } from "../../src/lib/recap/fakes";
+import { JUDGE_SYSTEM_PROMPT, READABILITY_RUBRICS, RUBRIC, judgeRecap, judgeSystemPrompt, judgeUserMessage, parseReferenceStories } from "../../src/lib/recap/judge";
 import { scriptedModel } from "../../src/lib/recap/model";
-import { recapSchema } from "../../src/lib/recap/recap";
+import { recapSchema, type RecapDraft } from "../../src/lib/recap/recap";
+import { recapJudgeView } from "../../src/lib/recap/text";
 import { formatSummary, resultsFolderName, runEval, type EvalReport } from "../../scripts/recap-eval";
 
 // The eval harness with scripted models (what `npm run recap:eval -- --fake`
 // runs): no network, and the report goes to a temporary folder.
+
+const sampleRecap: unknown = JSON.parse(readFileSync(path.join(__dirname, "..", "fixtures", "recap", "sample-recap.json"), "utf8"));
 
 const resultsDir = mkdtempSync(path.join(tmpdir(), "recap-eval-"));
 afterAll(() => rmSync(resultsDir, { recursive: true, force: true }));
@@ -16,9 +20,10 @@ afterAll(() => rmSync(resultsDir, { recursive: true, force: true }));
 describe("the recap eval harness", () => {
   it("runs two recorded gameweeks in fake mode and writes a report", async () => {
     const log: string[] = [];
+    const judge = fakeJudgeModel();
     const { report, summary, dir } = await runEval({
       writer: fakeWriterModel(),
-      judge: fakeJudgeModel(),
+      judge,
       gameweeks: [3, 5],
       resultsDir,
       log: (line) => log.push(line),
@@ -56,6 +61,18 @@ describe("the recap eval harness", () => {
     // GW5's first reference story is Man City 5-3 Sunderland; the template lists that result.
     expect(report.gameweeks[1].headline).toBe("Brobbey tops Gameweek 5 with 17 points");
     expect(report.gameweeks[1].judge!.coverage[0]).toMatchObject({ story: 1, covered: "yes" });
+    // The judge reads the recap card by card (type, title, figures, text), with the card readability rubric.
+    const prompt = judge.requests[1].messages[0].content[0];
+    expect(prompt).toMatchObject({
+      type: "text",
+      text: expect.stringContaining('<recap format="cards">\n<headline>Brobbey tops Gameweek 5 with 17 points</headline>\n<card number="1" type="numbers">\ntitle: In numbers\nfigure: 48 | average score\n'),
+    });
+    expect(prompt).toMatchObject({ text: expect.stringContaining('type="matches">\ntitle: The most goals\nresult: Man City 5-3 Sunderland\n') });
+    expect(judge.requests[1].system).toBe(judgeSystemPrompt("cards"));
+    expect(report.readabilityRubric).toBe("cards-v1");
+    expect(report.gameweeks[1].judge!.readabilityRubric).toBe("cards-v1");
+    expect(summary).toContain("- Readability rubric: cards-v1.");
+    expect(summary).toContain("readability is only comparable between runs with the same rubric version");
 
     expect(report.totals).toMatchObject({
       gameweeks: 2,
@@ -188,6 +205,8 @@ describe("the recap eval harness", () => {
     const summary = formatSummary(report);
     expect(summary).toContain("- Story coverage: 70% (");
     expect(summary).toContain("insight 4.0, story selection 3.0, readability 5.0");
+    // A report from before the cards has no rubric version: it was scored as paragraphs.
+    expect(summary).toContain("- Readability rubric: paragraphs-v1.");
     expect(summary).toContain("| 7 | after retry | 3 + 1 partly of 5 | 4 | 3 | 5 | 9 | 41,234 / 1,876 | $0.1012 | 38.4s |");
     expect(summary).toContain("- GW7, submission 1 rejected: claim 2: a | claim 3: b | claim 4: c (and 1 more)");
     expect(summary).toContain("- GW7, story 5 (Szoboszlai sold by almost a million): not covered. Absent.");
@@ -195,3 +214,52 @@ describe("the recap eval harness", () => {
     expect(resultsFolderName(new Date("2026-01-02T03:04:05.678Z"), "org/model:v1")).toBe("20260102T030405Z-org-model-v1");
   });
 });
+
+describe("the readability rubric by format", () => {
+  const references = parseReferenceStories("# GW\n\n## 1. Haaland blanks\nHaaland scored 2 points.\n");
+  const cards = recapJudgeView(sampleRecap as RecapDraft);
+
+  it("keeps the paragraph judge prompt exactly as it was", () => {
+    expect(JUDGE_SYSTEM_PROMPT).toBe(judgeSystemPrompt("paragraphs"));
+    expect(JUDGE_SYSTEM_PROMPT).toContain("Readability. Is it clear, lively UK English that reads well from start to finish?");
+    expect(JUDGE_SYSTEM_PROMPT).toContain("5: a pleasure to read: varied sentences, a good headline, no padding.");
+    expect(JUDGE_SYSTEM_PROMPT).not.toContain("story cards");
+    expect(READABILITY_RUBRICS["paragraphs-v1"]).toBe(RUBRIC.readability);
+  });
+
+  it("gives card recaps their own readability criterion with anchors, and the same insight and selection criteria", () => {
+    const prompt = judgeSystemPrompt("cards");
+    expect(prompt).toContain(RUBRIC.insight);
+    expect(prompt).toContain(RUBRIC.storySelection);
+    expect(prompt).not.toContain(RUBRIC.readability);
+    expect(prompt).toContain(READABILITY_RUBRICS["cards-v1"]);
+    for (const anchor of ["1: a jumble", "2: you can find the stories but have to work for them", "3: competent", "4: clean throughout", "5: rare."]) {
+      expect(READABILITY_RUBRICS["cards-v1"]).toContain(anchor);
+    }
+    // It still asks for a demanding editor, and penalises clutter rather than brevity.
+    expect(prompt).toContain("Be a demanding editor: 3 is competent, 5 is rare.");
+    expect(READABILITY_RUBRICS["cards-v1"]).toMatch(/no stat dump/);
+    expect(READABILITY_RUBRICS["cards-v1"]).toMatch(/Short is not a fault/);
+  });
+
+  it("shows the judge every field of every card, and records which rubric scored it", async () => {
+    expect("cards" in cards && cards.cards).toHaveLength((sampleRecap as RecapDraft).cards.length);
+    const message = judgeUserMessage(4, references, cards);
+    for (const card of (sampleRecap as RecapDraft).cards) {
+      expect(message).toContain(`type="${card.type}">`);
+      if ("text" in card && card.text) expect(message).toContain(`text: ${card.text}`);
+    }
+    expect(message).toMatch(/big figure: Haaland \| 9 points, owned by [\d.]+%/);
+    expect(message).toMatch(/tile: .+ \| as captain/);
+
+    const asCards = await judgeRecap({ model: fakeJudgeModel(), gameweek: 4, references, recap: cards });
+    expect(asCards.readabilityRubric).toBe("cards-v1");
+    expect(asCards.judgement.coverage[0].covered).toBe("yes");
+    const judge = fakeJudgeModel();
+    const asParagraphs = await judgeRecap({ model: judge, gameweek: 4, references, recap: recapJudgeView({ headline: "H", paragraphs: ["Haaland blanked."] }) });
+    expect(asParagraphs.readabilityRubric).toBe("paragraphs-v1");
+    expect(judge.requests[0].system).toBe(JUDGE_SYSTEM_PROMPT);
+    expect(judgeUserMessage(4, references, { headline: "H", paragraphs: ["Haaland blanked."] })).toContain("<recap>\n<headline>H</headline>\nHaaland blanked.\n</recap>");
+  });
+});
+

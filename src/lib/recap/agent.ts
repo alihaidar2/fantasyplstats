@@ -28,12 +28,12 @@ import { MODEL_PRICES_USD_PER_MTOK, costOfRequest, roundUsd, type ModelPrices } 
 import { RETRY_INSTRUCTION, recapKickoffMessage, recapSystemPrompt } from "./prompt";
 import {
   RECAP_VERSION,
+  cardRecapSchema,
   recapDraftSchema,
-  recapSchema,
+  type CardRecap,
   type CheckIssue,
   type CheckReport,
   type EvidenceEntry,
-  type Recap,
   type RecapAttempt,
   type RecapDraft,
 } from "./recap";
@@ -81,7 +81,7 @@ const resultText = (entry: EvidenceEntry) =>
     ? `Result id: ${entry.id}\n${JSON.stringify(entry.result)}`
     : `${(entry.result as { error?: string }).error ?? "The call failed."} (This call returned no result, so it cannot be cited.)`;
 
-export async function runRecapAgent(options: RecapAgentOptions): Promise<Recap> {
+export async function runRecapAgent(options: RecapAgentOptions): Promise<CardRecap> {
   const { context, model } = options;
   const limits: AgentLimits = { ...DEFAULT_AGENT_LIMITS, ...options.limits };
   const now = options.now ?? (() => new Date());
@@ -251,13 +251,12 @@ export async function runRecapAgent(options: RecapAgentOptions): Promise<Recap> 
   }
 
   const finishedAt = now();
-  const recap: Recap = {
+  const recap: CardRecap = {
     version: RECAP_VERSION,
     season: context.season,
     gameweek: context.gameweek,
     headline: draft.headline,
-    paragraphs: draft.paragraphs,
-    claims: draft.claims,
+    cards: draft.cards,
     evidence: [...session.evidence],
     checks,
     model: model.id,
@@ -284,7 +283,7 @@ export async function runRecapAgent(options: RecapAgentOptions): Promise<Recap> 
       limits,
     },
   };
-  return recapSchema.parse(recap);
+  return cardRecapSchema.parse(recap);
 }
 
 /**

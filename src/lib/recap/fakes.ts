@@ -48,7 +48,7 @@ export function fakeJudgeModel(id: string = FAKE_JUDGE_ID): ScriptedModel {
   return scriptedModel(id, (request) => {
     const first = request.messages[0];
     const prompt = first.role === "user" && first.content[0].type === "text" ? first.content[0].text : "";
-    const recap = /<recap>([\s\S]*)<\/recap>/.exec(prompt)?.[1] ?? "";
+    const recap = /<recap[^>]*>([\s\S]*)<\/recap>/.exec(prompt)?.[1] ?? "";
     const coverage: Judgement["coverage"] = [...prompt.matchAll(/^Story (\d+): (.+)$/gm)].map((match) => {
       const names = (match[2].match(/\p{Lu}[\p{L}'.-]{3,}/gu) ?? []).map((name) => name.replace(/['’]s$/, ""));
       const found = names.find((name) => recap.includes(name));

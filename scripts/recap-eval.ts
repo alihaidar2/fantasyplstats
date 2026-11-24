@@ -10,11 +10,13 @@ import {
   judgeRecap,
   parseReferenceStories,
   type Judgement,
+  type ReadabilityRubricVersion,
   type RubricKey,
 } from "../src/lib/recap/judge";
 import type { RecapModel } from "../src/lib/recap/model";
 import { roundUsd } from "../src/lib/recap/pricing";
 import type { Recap, RecapRun } from "../src/lib/recap/recap";
+import { recapJudgeView, recapTextBlocks } from "../src/lib/recap/text";
 import { loadRecording, type Recording } from "./recorded-gameweeks";
 
 export const DEFAULT_REFERENCES_DIR = path.join(__dirname, "..", "evals", "references");
@@ -62,6 +64,8 @@ export interface GameweekEval {
     coverageScore: number;
     coverage: (Judgement["coverage"][number] & { title: string })[];
     rubric: Judgement["rubric"];
+    /** The readability criterion this recap was scored with (it depends on the recap's format). */
+    readabilityRubric?: ReadabilityRubricVersion;
     inputTokens: number;
     outputTokens: number;
     costUsd: number;
@@ -74,6 +78,13 @@ export interface EvalReport {
   durationMs: number;
   model: string;
   judgeModel: string | null;
+  /**
+   * The readability criterion the judge used: "cards-v1" for card recaps,
+   * "paragraphs-v1" for paragraphs (every report from before the cards, which
+   * has no such field). Readability scores under different versions are not
+   * comparable. Null when nothing was judged.
+   */
+  readabilityRubric?: ReadabilityRubricVersion | "mixed" | null;
   limits: AgentLimits;
   gameweeks: GameweekEval[];
   totals: {
@@ -161,7 +172,7 @@ export async function runEval(options: EvalOptions): Promise<EvalRun> {
         .filter((a) => a.outcome === "failed")
         .map((a) => ({ attempt: a.attempt, issues: a.issues.map((i) => `${i.where}: ${i.message}`) })),
       headline: recap.headline,
-      words: recap.paragraphs.join(" ").split(/\s+/).filter(Boolean).length,
+      words: recapTextBlocks(recap).join(" ").split(/\s+/).filter(Boolean).length,
       toolCalls: recap.usage.toolCalls,
       modelCalls: run.modelCalls,
       inputTokens: recap.usage.inputTokens,
@@ -188,7 +199,8 @@ export async function runEval(options: EvalOptions): Promise<EvalRun> {
       continue;
     }
     try {
-      const judged = await judgeRecap({ model: judge, gameweek, references, recap });
+      // The judge reads the recap card by card: each card's type, title, figures and text.
+      const judged = await judgeRecap({ model: judge, gameweek, references, recap: recapJudgeView(recap) });
       if (!judged.priced) priced = false;
       const { coverage, rubric } = judged.judgement;
       result.judge = {
@@ -199,6 +211,7 @@ export async function runEval(options: EvalOptions): Promise<EvalRun> {
         coverageScore: judged.coverageScore,
         coverage: coverage.map((c) => ({ ...c, title: references.stories[c.story - 1].title })),
         rubric,
+        readabilityRubric: judged.readabilityRubric,
         inputTokens: judged.usage.inputTokens + judged.usage.cacheReadInputTokens + judged.usage.cacheCreationInputTokens,
         outputTokens: judged.usage.outputTokens,
         costUsd: judged.costUsd,
@@ -212,12 +225,14 @@ export async function runEval(options: EvalOptions): Promise<EvalRun> {
 
   const ran = results.filter((r) => r.error === undefined);
   const judged = ran.flatMap((r) => (r.judge ? [r.judge] : []));
+  const rubricVersions = [...new Set(judged.map((j) => j.readabilityRubric ?? "paragraphs-v1"))];
   const sum = (pick: (r: GameweekEval) => number | undefined) => ran.reduce((total, r) => total + (pick(r) ?? 0), 0);
   const report: EvalReport = {
     startedAt: startedAt.toISOString(),
     durationMs: Math.max(0, now().getTime() - startedAt.getTime()),
     model: writer.id,
     judgeModel: judge?.id ?? null,
+    readabilityRubric: rubricVersions.length === 0 ? null : rubricVersions.length === 1 ? rubricVersions[0] : "mixed",
     limits,
     gameweeks: results,
     totals: {
@@ -272,6 +287,12 @@ export function formatSummary(report: EvalReport): string {
       ".",
     `- Story coverage: ${percent(t.coverageScore)} (a story covered counts 1, partly covered a half).`,
     `- Quality (1–5): insight ${score(t.rubric.insight)}, story selection ${score(t.rubric.storySelection)}, readability ${score(t.rubric.readability)}.`,
+    ...(report.judgeModel
+      ? [
+          `- Readability rubric: ${report.readabilityRubric ?? "paragraphs-v1"}. Card recaps are scored as cards (quick to scan, one point per card, labelled numbers) and ` +
+            "paragraph recaps as prose, so readability is only comparable between runs with the same rubric version. Coverage, insight and story selection use the same criteria for both.",
+        ]
+      : []),
     `- Writer: ${t.toolCalls} tool calls, ${t.inputTokens.toLocaleString("en-GB")} input and ${t.outputTokens.toLocaleString("en-GB")} output tokens, ` +
       `${usd(t.costUsd)}, ${(t.agentDurationMs / 1000).toFixed(1)}s. Judge: ${usd(t.judgeCostUsd)}.` +
       (t.priced ? "" : " A model has no entry in the price table, so its cost is counted as 0."),
@@ -311,6 +332,11 @@ export function formatSummary(report: EvalReport): string {
     notes.push("- Some reference stories are still drafts awaiting human review, so coverage is provisional.");
   }
   if (notes.length) lines.push("", "## Notes", "", ...notes);
+  // The judge's own words on readability, so the score can be checked against the cards.
+  const reasons = report.gameweeks.flatMap((r) =>
+    r.judge?.rubric.readability.reason ? [`- GW${r.gameweek}: ${r.judge.rubric.readability.score}. ${r.judge.rubric.readability.reason}`] : [],
+  );
+  if (reasons.length) lines.push("", `## Readability reasons (${report.readabilityRubric ?? "paragraphs-v1"})`, "", ...reasons);
   lines.push("", "The saved recaps, with their evidence logs and check reports, are in `recaps/`; `report.json` has the judge's reasons.", "");
   return lines.join("\n");
 }

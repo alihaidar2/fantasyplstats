@@ -191,7 +191,7 @@ const NOUNS: [RegExp, string][] = [
   [/^recover(?:y|ies)(?![\p{L}])/iu, "recoveries"],
   [/^(?:managers|owners|squads|fpl teams)(?![\p{L}])/iu, "managers"],
   [/^(?:net\s+)?transfers?(?![\p{L}])/iu, "transfers"],
-  [/^(?:(?:game)?weeks?|games?|matches|fixtures|appearances) (?:in a row|running|in succession|on the bounce|on the spin)(?![\p{L}])/iu, "streak"],
+  [/^(?:(?:game)?weeks?|games?|matches|fixtures|appearances|blanks?|hauls?|wins|victories|defeats|losses|draws|clean sheets) (?:in a row|running|in succession|on the bounce|on the spin)(?![\p{L}])/iu, "streak"],
   [/^(?:consecutive|straight|successive)(?![\p{L}])/iu, "streak"],
   [/^(?:matches|games|fixtures)(?![\p{L}])/iu, "matches"],
   [/^(?:wins|victories)(?![\p{L}])/iu, "won"],

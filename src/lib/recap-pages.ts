@@ -98,6 +98,91 @@ export function buildGameweekStats(
   };
 }
 
+/** A player on a recap card, as the page links and badges them. */
+export interface RecapPlayer {
+  path: string;
+  /** The club's short name ("MCI"). */
+  team: string;
+  /** The club's code, for its badge. */
+  badge: number;
+}
+
+/** A club on a recap card. */
+export interface RecapClub {
+  /** "MCI" */
+  short: string;
+  badge: number;
+}
+
+/**
+ * Links and badges for the players (by ref, "p411") and clubs (by name) a
+ * recap's cards name, from the snapshot. Empty when the snapshot is from
+ * another season than the recap (player ids and clubs change between
+ * seasons): the cards then show names without links or badges.
+ */
+export interface RecapEntities {
+  players: Record<string, RecapPlayer>;
+  clubs: Record<string, RecapClub>;
+}
+
+const NO_ENTITIES: RecapEntities = { players: {}, clubs: {} };
+
+/** Every player ref and club name a recap's cards use. */
+function namedOnCards(recap: PublishedRecap): { refs: Set<string>; clubs: Set<string> } {
+  const refs = new Set<string>();
+  const clubs = new Set<string>();
+  if (recap.body.kind !== "cards") return { refs, clubs };
+  for (const card of recap.body.cards) {
+    switch (card.type) {
+      case "captaincy":
+        refs.add(card.ref);
+        for (const t of card.tiles ?? []) if (t.ref) refs.add(t.ref);
+        break;
+      case "players":
+        for (const p of card.players) refs.add(p.ref);
+        break;
+      case "transfers":
+        for (const m of card.moves) refs.add(m.ref);
+        break;
+      case "notes":
+        for (const n of card.items) if (n.ref) refs.add(n.ref);
+        break;
+      case "matches":
+        for (const m of card.matches) clubs.add(m.home).add(m.away);
+        break;
+      case "numbers":
+        break;
+    }
+  }
+  return { refs, clubs };
+}
+
+export function buildRecapEntities(snapshot: SnapshotParts, recap: PublishedRecap): RecapEntities {
+  let snapshotSeason: string;
+  try {
+    snapshotSeason = seasonOf(snapshot);
+  } catch {
+    return NO_ENTITIES;
+  }
+  if (snapshotSeason !== recap.season) return NO_ENTITIES;
+
+  const { bootstrap } = snapshot;
+  const teams = new Map(bootstrap.teams.map((t) => [t.id, t]));
+  const elements = new Map(bootstrap.elements.map((e) => [e.id, e]));
+  const named = namedOnCards(recap);
+  const entities: RecapEntities = { players: {}, clubs: {} };
+  for (const ref of named.refs) {
+    const element = elements.get(Number(ref.slice(1)));
+    const team = element ? teams.get(element.team) : undefined;
+    if (element && team) entities.players[ref] = { path: playerPath(element.id), team: team.short_name, badge: team.code };
+  }
+  for (const name of named.clubs) {
+    const team = bootstrap.teams.find((t) => t.name === name);
+    if (team) entities.clubs[name] = { short: team.short_name, badge: team.code };
+  }
+  return entities;
+}
+
 /** Who wrote the recap, in words for the note under it. */
 export function authorshipNote(model: string): string {
   if (model === "hand-written") {
@@ -118,6 +203,7 @@ export interface RecapPage {
   /** "2026/27" */
   seasonLabel: string;
   stats: GameweekStats | null;
+  entities: RecapEntities;
   note: string;
   /** The next older recap. */
   previous: RecapLink | null;
@@ -146,6 +232,7 @@ export function buildRecapPage(
     recap,
     seasonLabel: formatSeason(recap.season),
     stats: buildGameweekStats(snapshot, recap.season, recap.gameweek),
+    entities: buildRecapEntities(snapshot, recap),
     note: authorshipNote(recap.model),
     previous: linkTo(previous, recap),
     next: linkTo(next, recap),

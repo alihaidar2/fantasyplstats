@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Info } from "lucide-react";
 import GameweekStatsBox from "@/components/features/recap/gameweek-stats-box";
+import RecapCards from "@/components/features/recap/recap-cards";
 import { getRecaps, getSnapshot } from "@/lib/data";
 import { recapMetadata, recapNotFoundMetadata } from "@/lib/metadata";
 import { buildRecapPage, RECAP_PLACEHOLDER_PARAMS, recapParams, type RecapLink } from "@/lib/recap-pages";
@@ -56,7 +57,8 @@ export default async function RecapPage({ params }: PageProps<"/recap/[season]/[
   const { season, gameweek } = await params;
   const page = findPage(season, gameweek);
   if (!page) notFound();
-  const { recap, stats, note, previous, next, seasonLabel } = page;
+  const { recap, stats, entities, note, previous, next, seasonLabel } = page;
+  const { body } = recap;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col p-4 sm:p-6">
@@ -79,11 +81,15 @@ export default async function RecapPage({ params }: PageProps<"/recap/[season]/[
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-          <div className="min-w-0 space-y-4 text-base leading-relaxed text-gray-800 sm:text-lg dark:text-gray-200">
-            {recap.paragraphs.map((paragraph, i) => (
-              <p key={i}>{paragraph}</p>
-            ))}
-          </div>
+          {body.kind === "cards" ? (
+            <RecapCards cards={body.cards} entities={entities} footer={note} className="min-w-0 max-w-2xl" />
+          ) : (
+            <div className="min-w-0 space-y-4 text-base leading-relaxed text-gray-800 sm:text-lg dark:text-gray-200">
+              {body.paragraphs.map((paragraph, i) => (
+                <p key={i}>{paragraph}</p>
+              ))}
+            </div>
+          )}
           {stats && (
             <aside aria-label={`Gameweek ${recap.gameweek} stats`}>
               <GameweekStatsBox stats={stats} />
@@ -91,10 +97,12 @@ export default async function RecapPage({ params }: PageProps<"/recap/[season]/[
           )}
         </div>
 
-        <p className="mt-8 flex gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
-          <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <span>{note}</span>
-        </p>
+        {body.kind === "paragraphs" && (
+          <p className="mt-8 flex gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>{note}</span>
+          </p>
+        )}
       </article>
 
       {(previous || next) && (
