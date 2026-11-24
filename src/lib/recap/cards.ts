@@ -20,7 +20,7 @@ export const CARD_LIMITS = {
   textMaxWords: 25,
   titleMaxWords: 6,
   labelMaxWords: 4,
-  badgeMaxWords: 6,
+  badgeMaxWords: 8,
   /** A player's stat line ("1 goal, 2 assists") or a transfer's extra line. */
   detailMaxWords: 10,
   noteMaxWords: 14,

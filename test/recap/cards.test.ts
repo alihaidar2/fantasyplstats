@@ -290,11 +290,11 @@ describe("recapToText", () => {
     const text = recapToText(sample);
     expect(text.split("\n")[0]).toBe(`# ${sample.headline}`);
     expect(recapTextBlocks(sample)).toHaveLength(sample.cards.length);
-    expect(text).toContain("In numbers: 69 average score · 151 highest manager score · 29 goals · 10 matches.");
-    expect(text).toContain("The captaincy: Haaland scored 9 points (owned by 71.3%). 18 as captain · 27 as Triple Captain · Raya 28 as captain.");
-    expect(text).toContain("Hardly anyone had them: Schade 15 points (2 goals, owned by 3.5%).");
-    expect(text).toContain("Brighton ran riot: Coventry City 0-5 Brighton; Leeds 4-1 Newcastle.");
-    expect(text).toContain("The transfer market: Rogers, 1,039,938 net transfers in, 8 points. B.Fernandes, 615,807 net transfers out, 2 points, 2 blanks in a row.");
+    expect(text).toContain("In numbers: 69 average score, 151 highest manager score, 29 goals and 10 matches.");
+    expect(text).toContain("The captaincy: Haaland scored 9 points, owned by 71.3%. That meant 18 as captain, 27 as Triple Captain and Raya 28 as captain.");
+    expect(text).toContain("Hardly anyone had them: Schade scored 15 points (2 goals), owned by 3.5%.");
+    expect(text).toContain("Brighton ran riot: Coventry City 0-5 Brighton and Leeds 4-1 Newcastle.");
+    expect(text).toContain("The transfer market: Rogers had 1,039,938 net transfers in and scored 8 points. B.Fernandes had 615,807 net transfers out and scored 2 points (2 blanks in a row).");
     expect(text).toContain("Also worth knowing: 760,682 managers played their Wildcard");
     expect(text).toContain("Calafiori was in 49.6% of squads (6 points).");
     expect(text).not.toMatch(/\d{5,}/);
@@ -313,7 +313,7 @@ describe("recapToText", () => {
         "The bandwagon paid off. The sellers of B.Fernandes were proved right.",
     );
     const noLines = { headline: sample.headline, cards: sample.cards.map((c) => ({ ...c, text: undefined })) };
-    expect(recapSummary(noLines)).toMatch(/^The captaincy: Haaland scored 9 points .* Brighton ran riot: /);
+    expect(recapSummary(noLines)).toMatch(/^The captaincy: Haaland scored 9 points, .* Brighton ran riot: /);
   });
 });
 

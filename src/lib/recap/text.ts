@@ -21,47 +21,55 @@ const sentence = (text: string) => {
 };
 const joinParts = (parts: (string | undefined | false)[]) => parts.filter(Boolean).join(", ");
 
+/** "a, b and c" */
+const andList = (items: string[]) => (items.length <= 1 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`);
+const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 /** One card as a short block of plain text, starting with its title. */
 export function cardToText(card: RecapCard): string {
   const title = cardTitle(card);
   const text = "text" in card && card.text?.trim() ? ` ${sentence(card.text)}` : "";
   switch (card.type) {
     case "numbers":
-      return `${title}: ${card.items.map((i) => `${formatNumbersInText(i.value)} ${i.label.trim()}`).join(" · ")}.`;
+      return `${title}: ${andList(card.items.map((i) => `${formatNumbersInText(i.value)} ${i.label.trim()}`))}.`;
     case "captaincy": {
-      const tiles = (card.tiles ?? [])
-        .map((t) => `${t.player ? `${t.player} ` : ""}${formatNumbersInText(t.value)} ${t.label.trim()}`)
-        .join(" · ");
+      const tiles = (card.tiles ?? []).map(
+        (t) => `${t.player ? `${t.player} ` : ""}${formatNumbersInText(t.value)} ${t.label.trim()}`,
+      );
       return (
         `${title}: ${card.player} scored ${pts(card.points)}` +
-        (card.ownership !== undefined ? ` (owned by ${formatPercent(card.ownership)})` : "") +
+        (card.ownership !== undefined ? `, owned by ${formatPercent(card.ownership)}` : "") +
         "." +
-        (tiles ? ` ${tiles}.` : "") +
-        (card.badge?.trim() ? ` ${sentence(card.badge)}` : "") +
+        (tiles.length ? ` That meant ${andList(tiles)}.` : "") +
+        (card.badge?.trim() ? ` ${capitalise(sentence(card.badge))}` : "") +
         text
       );
     }
     case "players": {
-      const players = card.players.map((p) => {
-        const extra = joinParts([p.detail?.trim() && formatNumbersInText(p.detail.trim()), p.ownership !== undefined && `owned by ${formatPercent(p.ownership)}`]);
-        return `${p.player} ${pts(p.points)}${extra ? ` (${extra})` : ""}.`;
-      });
+      const players = card.players.map(
+        (p) =>
+          `${p.player} scored ${pts(p.points)}` +
+          (p.detail?.trim() ? ` (${formatNumbersInText(p.detail.trim())})` : "") +
+          (p.ownership !== undefined ? `, owned by ${formatPercent(p.ownership)}` : "") +
+          ".",
+      );
       return `${title}: ${players.join(" ")}${text}`;
     }
     case "matches":
-      return `${title}: ${card.matches.map((m) => `${m.home} ${m.score} ${m.away}`).join("; ")}.${text}`;
+      return `${title}: ${andList(card.matches.map((m) => `${m.home} ${m.score} ${m.away}`))}.${text}`;
     case "transfers": {
-      const moves = card.moves.map(
-        (m) =>
-          joinParts([
-            m.player,
-            `${formatCount(m.netTransfers)} net transfers ${m.direction}`,
-            m.points !== undefined && pts(m.points),
-            m.minutes !== undefined && `${formatCount(m.minutes)} minutes`,
-            m.run && runCaption(m.run.kind, m.run.gameweeks),
-            m.detail?.trim() && formatNumbersInText(m.detail.trim()),
-          ]) + ".",
-      );
+      const moves = card.moves.map((m) => {
+        const did = [m.points !== undefined && `scored ${pts(m.points)}`, m.minutes !== undefined && `played ${formatCount(m.minutes)} minutes`].filter(
+          (x): x is string => Boolean(x),
+        );
+        const extra = joinParts([m.run && runCaption(m.run.kind, m.run.gameweeks), m.detail?.trim() && formatNumbersInText(m.detail.trim())]);
+        return (
+          `${m.player} had ${formatCount(m.netTransfers)} net transfers ${m.direction}` +
+          (did.length ? ` and ${andList(did)}` : "") +
+          (extra ? ` (${extra})` : "") +
+          "."
+        );
+      });
       return `${title}: ${moves.join(" ")}${text}`;
     }
     case "notes": {
