@@ -1,0 +1,2245 @@
+{
+  "version": 2,
+  "season": "2026-27",
+  "gameweek": 2,
+  "headline": "B.Fernandes hits a hat-trick as Man Utd rout Ipswich Town",
+  "evidence": [
+    {
+      "id": "r1",
+      "tool": "gameweek_summary",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 2,
+        "season": "2026-27",
+        "status": {
+          "note": "A past gameweek: its points are final."
+        },
+        "managers": {
+          "averageScore": 81,
+          "highestScore": 161,
+          "ranked": 9904815
+        },
+        "matches": [
+          {
+            "home": "Crystal Palace",
+            "away": "Man City",
+            "score": "1-4",
+            "day": "Friday",
+            "scorers": [
+              {
+                "player": "Cherki",
+                "ref": "p399",
+                "team": "Man City",
+                "position": "MID",
+                "goals": 2
+              },
+              {
+                "player": "Haaland",
+                "ref": "p411",
+                "team": "Man City",
+                "position": "FWD",
+                "goals": 2
+              }
+            ],
+            "ownGoals": [
+              {
+                "player": "Donnarumma",
+                "ref": "p384",
+                "team": "Man City",
+                "position": "GKP",
+                "ownGoals": 1
+              }
+            ]
+          },
+          {
+            "home": "Liverpool",
+            "away": "Nott'm Forest",
+            "score": "2-2",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Munoz",
+                "ref": "p377",
+                "team": "Liverpool",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Isak",
+                "ref": "p379",
+                "team": "Liverpool",
+                "position": "FWD",
+                "goals": 1
+              },
+              {
+                "player": "Gibbs-White",
+                "ref": "p480",
+                "team": "Nott'm Forest",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Ndoye",
+                "ref": "p483",
+                "team": "Nott'm Forest",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Bournemouth",
+            "away": "Everton",
+            "score": "1-1",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Scott",
+                "ref": "p69",
+                "team": "Bournemouth",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Tarkowski",
+                "ref": "p229",
+                "team": "Everton",
+                "position": "DEF",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Coventry City",
+            "away": "Hull City",
+            "score": "0-1",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Millar",
+                "ref": "p287",
+                "team": "Hull City",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Spurs",
+            "away": "Newcastle",
+            "score": "0-2",
+            "day": "Saturday",
+            "scorers": [
+              {
+                "player": "Elanga",
+                "ref": "p454",
+                "team": "Newcastle",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Wissa",
+                "ref": "p464",
+                "team": "Newcastle",
+                "position": "FWD",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Chelsea",
+            "away": "Brighton",
+            "score": "4-3",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "Palmer",
+                "ref": "p154",
+                "team": "Chelsea",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Neto",
+                "ref": "p156",
+                "team": "Chelsea",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Lavia",
+                "ref": "p161",
+                "team": "Chelsea",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "João Pedro",
+                "ref": "p165",
+                "team": "Chelsea",
+                "position": "FWD",
+                "goals": 1
+              },
+              {
+                "player": "Groß",
+                "ref": "p124",
+                "team": "Brighton",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Yalcouyé",
+                "ref": "p605",
+                "team": "Brighton",
+                "position": "MID",
+                "goals": 1
+              }
+            ],
+            "ownGoals": [
+              {
+                "player": "João Pedro",
+                "ref": "p165",
+                "team": "Chelsea",
+                "position": "FWD",
+                "ownGoals": 1
+              }
+            ]
+          },
+          {
+            "home": "Leeds",
+            "away": "Brentford",
+            "score": "1-1",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "Calvert-Lewin",
+                "ref": "p346",
+                "team": "Leeds",
+                "position": "FWD",
+                "goals": 1
+              },
+              {
+                "player": "Schade",
+                "ref": "p94",
+                "team": "Brentford",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Sunderland",
+            "away": "Fulham",
+            "score": "1-0",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "Isidor",
+                "ref": "p553",
+                "team": "Sunderland",
+                "position": "FWD",
+                "goals": 1
+              }
+            ]
+          },
+          {
+            "home": "Man Utd",
+            "away": "Ipswich Town",
+            "score": "5-2",
+            "day": "Sunday",
+            "scorers": [
+              {
+                "player": "B.Fernandes",
+                "ref": "p426",
+                "team": "Man Utd",
+                "position": "MID",
+                "goals": 3
+              },
+              {
+                "player": "Mbeumo",
+                "ref": "p427",
+                "team": "Man Utd",
+                "position": "MID",
+                "goals": 1
+              },
+              {
+                "player": "Davis",
+                "ref": "p305",
+                "team": "Ipswich Town",
+                "position": "DEF",
+                "goals": 1
+              },
+              {
+                "player": "Akpom",
+                "ref": "p320",
+                "team": "Ipswich Town",
+                "position": "FWD",
+                "goals": 1
+              }
+            ],
+            "ownGoals": [
+              {
+                "player": "Greaves",
+                "ref": "p306",
+                "team": "Ipswich Town",
+                "position": "DEF",
+                "ownGoals": 1
+              }
+            ]
+          },
+          {
+            "home": "Aston Villa",
+            "away": "Arsenal",
+            "score": "0-1",
+            "day": "Monday",
+            "scorers": [
+              {
+                "player": "Saka",
+                "ref": "p12",
+                "team": "Arsenal",
+                "position": "MID",
+                "goals": 1
+              }
+            ]
+          }
+        ],
+        "matchCount": 10,
+        "goals": 32,
+        "topScorer": {
+          "player": "B.Fernandes",
+          "ref": "p426",
+          "team": "Man Utd",
+          "position": "MID",
+          "points": 23,
+          "ownedBy": 4770471,
+          "ownership": "48.2%"
+        },
+        "mostCaptained": {
+          "player": "Haaland",
+          "ref": "p411",
+          "team": "Man City",
+          "position": "FWD",
+          "points": 13,
+          "ownedBy": 6731685,
+          "ownership": "68.0%"
+        },
+        "mostTransferredIn": {
+          "player": "De Cuyper",
+          "ref": "p115",
+          "team": "Brighton",
+          "position": "DEF",
+          "points": 0,
+          "ownedBy": 847829,
+          "ownership": "8.6%"
+        },
+        "chips": [
+          {
+            "chip": "Bench Boost",
+            "played": 338660
+          },
+          {
+            "chip": "Free Hit",
+            "played": 78863
+          },
+          {
+            "chip": "Wildcard",
+            "played": 279227
+          },
+          {
+            "chip": "Triple Captain",
+            "played": 233946
+          }
+        ],
+        "dreamTeam": [
+          {
+            "player": "Tzolakis",
+            "ref": "p572",
+            "team": "Hull City",
+            "position": "GKP",
+            "points": 10
+          },
+          {
+            "player": "Tarkowski",
+            "ref": "p229",
+            "team": "Everton",
+            "position": "DEF",
+            "points": 12
+          },
+          {
+            "player": "Hall",
+            "ref": "p449",
+            "team": "Newcastle",
+            "position": "DEF",
+            "points": 11
+          },
+          {
+            "player": "Dedić",
+            "ref": "p593",
+            "team": "Newcastle",
+            "position": "DEF",
+            "points": 11
+          },
+          {
+            "player": "Calafiori",
+            "ref": "p8",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 11
+          },
+          {
+            "player": "B.Fernandes",
+            "ref": "p426",
+            "team": "Man Utd",
+            "position": "MID",
+            "points": 23
+          },
+          {
+            "player": "Cherki",
+            "ref": "p399",
+            "team": "Man City",
+            "position": "MID",
+            "points": 14
+          },
+          {
+            "player": "Groß",
+            "ref": "p124",
+            "team": "Brighton",
+            "position": "MID",
+            "points": 13
+          },
+          {
+            "player": "Gibbs-White",
+            "ref": "p480",
+            "team": "Nott'm Forest",
+            "position": "MID",
+            "points": 13
+          },
+          {
+            "player": "Scott",
+            "ref": "p69",
+            "team": "Bournemouth",
+            "position": "MID",
+            "points": 12
+          },
+          {
+            "player": "Haaland",
+            "ref": "p411",
+            "team": "Man City",
+            "position": "FWD",
+            "points": 13
+          }
+        ]
+      }
+    },
+    {
+      "id": "r2",
+      "tool": "story_candidates",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 2,
+        "note": "Ranked by managers affected and surprise, biggest first. A guide, not the recap: confirm each story with the tool that owns it before writing.",
+        "candidates": [
+          {
+            "story": "a standout match",
+            "home": "Man Utd",
+            "away": "Ipswich Town",
+            "score": "5-2",
+            "goals": 7,
+            "hauls": [
+              {
+                "player": "B.Fernandes",
+                "ref": "p426",
+                "team": "Man Utd",
+                "position": "MID",
+                "points": 23,
+                "ownedBy": 4770471,
+                "ownership": "48.2%"
+              },
+              {
+                "player": "Mbeumo",
+                "ref": "p427",
+                "team": "Man Utd",
+                "position": "MID",
+                "points": 11,
+                "ownedBy": 3537164,
+                "ownership": "35.7%"
+              }
+            ]
+          },
+          {
+            "story": "the most-captained player hauled",
+            "player": "Haaland",
+            "ref": "p411",
+            "team": "Man City",
+            "position": "FWD",
+            "points": 13,
+            "minutes": 90,
+            "goals": 2,
+            "assists": 0,
+            "outcome": "double-figure haul",
+            "ownedBy": 6731685,
+            "ownership": "68.0%",
+            "captainPoints": 26,
+            "tripleCaptainPoints": 39
+          },
+          {
+            "story": "a standout match",
+            "home": "Crystal Palace",
+            "away": "Man City",
+            "score": "1-4",
+            "goals": 5,
+            "hauls": [
+              {
+                "player": "Cherki",
+                "ref": "p399",
+                "team": "Man City",
+                "position": "MID",
+                "points": 14,
+                "ownedBy": 1073154,
+                "ownership": "10.8%"
+              },
+              {
+                "player": "Haaland",
+                "ref": "p411",
+                "team": "Man City",
+                "position": "FWD",
+                "points": 13,
+                "ownedBy": 6731685,
+                "ownership": "68.0%"
+              }
+            ]
+          },
+          {
+            "story": "a hat-trick",
+            "also": [
+              "a widely owned player hauled",
+              "the top score of the gameweek"
+            ],
+            "player": "B.Fernandes",
+            "ref": "p426",
+            "team": "Man Utd",
+            "position": "MID",
+            "points": 23,
+            "minutes": 90,
+            "goals": 3,
+            "assists": 1,
+            "outcome": "double-figure haul",
+            "ownedBy": 4770471,
+            "ownership": "48.2%",
+            "bestIndividualScoreOfTheSeasonSoFar": true
+          },
+          {
+            "story": "a widely owned player hauled",
+            "player": "Calafiori",
+            "ref": "p8",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 11,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 1,
+            "outcome": "double-figure haul",
+            "ownedBy": 4150694,
+            "ownership": "41.9%"
+          },
+          {
+            "story": "a widely owned player hauled",
+            "player": "Mbeumo",
+            "ref": "p427",
+            "team": "Man Utd",
+            "position": "MID",
+            "points": 11,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "outcome": "double-figure haul",
+            "ownedBy": 3537164,
+            "ownership": "35.7%"
+          },
+          {
+            "story": "a widely owned player did not play",
+            "also": [
+              "a run without playing"
+            ],
+            "player": "Dubravka",
+            "ref": "p497",
+            "team": "Spurs",
+            "position": "GKP",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 1835588,
+            "ownership": "18.5%",
+            "gameweeksInARowWithoutMinutes": 2
+          },
+          {
+            "story": "the most-bought player blanked",
+            "player": "De Cuyper",
+            "ref": "p115",
+            "team": "Brighton",
+            "position": "DEF",
+            "points": 0,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 847829,
+            "ownership": "8.6%",
+            "netTransfersIn": 473840
+          }
+        ],
+        "highsSetThisGameweek": [
+          {
+            "high": "most Free Hit chips played in a gameweek so far",
+            "chip": "Free Hit",
+            "played": 78863,
+            "shareOfManagers": "0.8%",
+            "mostPlayedInAGameweekSoFar": true,
+            "previousHigh": {
+              "chip": "Free Hit",
+              "gameweek": 1,
+              "played": 0
+            }
+          },
+          {
+            "high": "most Wildcard chips played in a gameweek so far",
+            "chip": "Wildcard",
+            "played": 279227,
+            "shareOfManagers": "2.8%",
+            "mostPlayedInAGameweekSoFar": true,
+            "previousHigh": {
+              "chip": "Wildcard",
+              "gameweek": 1,
+              "played": 0
+            }
+          },
+          {
+            "high": "most goals in a gameweek so far",
+            "goals": 32,
+            "matchCount": 10,
+            "previousHigh": {
+              "gameweek": 1,
+              "goals": 30
+            }
+          },
+          {
+            "high": "highest average manager score in a gameweek so far",
+            "averageScore": 81
+          },
+          {
+            "high": "most defensive contributions by all players in a gameweek so far",
+            "defensiveContribution": 1513,
+            "previousHigh": {
+              "gameweek": 1,
+              "defensiveContribution": 1507
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r3",
+      "tool": "captaincy",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 2,
+        "mostCaptained": {
+          "player": "Haaland",
+          "ref": "p411",
+          "team": "Man City",
+          "position": "FWD",
+          "points": 13,
+          "minutes": 90,
+          "goals": 2,
+          "assists": 0,
+          "outcome": "double-figure haul",
+          "ownedBy": 6731685,
+          "ownership": "68.0%",
+          "captainPoints": 26,
+          "tripleCaptainPoints": 39,
+          "gameweeksInARowAsMostCaptained": 2,
+          "wasTheGameweekTopScorer": false
+        },
+        "mostViceCaptained": {
+          "player": "Raya",
+          "ref": "p1",
+          "team": "Arsenal",
+          "position": "GKP",
+          "points": 6,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "outcome": "returned",
+          "ownedBy": 3801300,
+          "ownership": "38.4%"
+        },
+        "tripleCaptain": {
+          "chip": "Triple Captain",
+          "played": 233946,
+          "shareOfManagers": "2.4%",
+          "mostPlayedInAGameweekSoFar": false,
+          "previousHigh": {
+            "chip": "Triple Captain",
+            "gameweek": 1,
+            "played": 250816
+          },
+          "note": "FPL does not say which players the Triple Captains were on. Most go on the most-captained player, so report their tripled score as what a Triple Captain on them earned, not as what every chip user got."
+        },
+        "mostOwnedPlayers": [
+          {
+            "player": "João Pedro",
+            "ref": "p165",
+            "team": "Chelsea",
+            "position": "FWD",
+            "points": 9,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "outcome": "returned",
+            "ownedBy": 6802308,
+            "ownership": "68.7%"
+          },
+          {
+            "player": "Haaland",
+            "ref": "p411",
+            "team": "Man City",
+            "position": "FWD",
+            "points": 13,
+            "minutes": 90,
+            "goals": 2,
+            "assists": 0,
+            "outcome": "double-figure haul",
+            "ownedBy": 6731685,
+            "ownership": "68.0%"
+          },
+          {
+            "player": "B.Fernandes",
+            "ref": "p426",
+            "team": "Man Utd",
+            "position": "MID",
+            "points": 23,
+            "minutes": 90,
+            "goals": 3,
+            "assists": 1,
+            "outcome": "double-figure haul",
+            "ownedBy": 4770471,
+            "ownership": "48.2%"
+          },
+          {
+            "player": "Szoboszlai",
+            "ref": "p368",
+            "team": "Liverpool",
+            "position": "MID",
+            "points": 4,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "no goal or assist",
+            "ownedBy": 4309636,
+            "ownership": "43.5%"
+          },
+          {
+            "player": "Calafiori",
+            "ref": "p8",
+            "team": "Arsenal",
+            "position": "DEF",
+            "points": 11,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 1,
+            "outcome": "double-figure haul",
+            "ownedBy": 4150694,
+            "ownership": "41.9%"
+          }
+        ],
+        "bestScoreAmongTheMostOwned": {
+          "player": "B.Fernandes",
+          "ref": "p426",
+          "team": "Man Utd",
+          "position": "MID",
+          "points": 23,
+          "captainPoints": 46
+        },
+        "chips": [
+          {
+            "chip": "Bench Boost",
+            "played": 338660,
+            "shareOfManagers": "3.4%",
+            "mostPlayedInAGameweekSoFar": false,
+            "previousHigh": {
+              "chip": "Bench Boost",
+              "gameweek": 1,
+              "played": 814606
+            }
+          },
+          {
+            "chip": "Free Hit",
+            "played": 78863,
+            "shareOfManagers": "0.8%",
+            "mostPlayedInAGameweekSoFar": true,
+            "previousHigh": {
+              "chip": "Free Hit",
+              "gameweek": 1,
+              "played": 0
+            }
+          },
+          {
+            "chip": "Wildcard",
+            "played": 279227,
+            "shareOfManagers": "2.8%",
+            "mostPlayedInAGameweekSoFar": true,
+            "previousHigh": {
+              "chip": "Wildcard",
+              "gameweek": 1,
+              "played": 0
+            }
+          },
+          {
+            "chip": "Triple Captain",
+            "played": 233946,
+            "shareOfManagers": "2.4%",
+            "mostPlayedInAGameweekSoFar": false,
+            "previousHigh": {
+              "chip": "Triple Captain",
+              "gameweek": 1,
+              "played": 250816
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "r4",
+      "tool": "transfer_story",
+      "input": {},
+      "ok": true,
+      "result": {
+        "gameweek": 2,
+        "allManagers": {
+          "transfersMade": 11562127
+        },
+        "mostTransferredIn": {
+          "player": "De Cuyper",
+          "ref": "p115",
+          "team": "Brighton",
+          "position": "DEF",
+          "points": 0,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "outcome": "blanked",
+          "ownedBy": 847829,
+          "ownership": "8.6%",
+          "netTransfersIn": 473840,
+          "ownershipBefore": "1.7%",
+          "price": "£4.6m",
+          "priceChange": "+£0.1m"
+        },
+        "biggestNetTransfersIn": [
+          {
+            "player": "De Cuyper",
+            "ref": "p115",
+            "team": "Brighton",
+            "position": "DEF",
+            "points": 0,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 847829,
+            "ownership": "8.6%",
+            "netTransfersIn": 473840,
+            "ownershipBefore": "1.7%",
+            "price": "£4.6m",
+            "priceChange": "+£0.1m"
+          },
+          {
+            "player": "M.Sangaré",
+            "ref": "p565",
+            "team": "Brentford",
+            "position": "MID",
+            "points": 4,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "no goal or assist",
+            "ownedBy": 902725,
+            "ownership": "9.1%",
+            "netTransfersIn": 420422,
+            "ownershipBefore": "3.3%",
+            "price": "£5.6m",
+            "priceChange": "+£0.1m"
+          },
+          {
+            "player": "João Pedro",
+            "ref": "p165",
+            "team": "Chelsea",
+            "position": "FWD",
+            "points": 9,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "outcome": "returned",
+            "ownedBy": 6802308,
+            "ownership": "68.7%",
+            "netTransfersIn": 377023,
+            "ownershipBefore": "64.7%",
+            "price": "£7.6m",
+            "priceChange": "+£0.1m"
+          },
+          {
+            "player": "Palmer",
+            "ref": "p154",
+            "team": "Chelsea",
+            "position": "MID",
+            "points": 7,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 0,
+            "outcome": "returned",
+            "ownedBy": 1644351,
+            "ownership": "16.6%",
+            "netTransfersIn": 344912,
+            "ownershipBefore": "10.3%",
+            "price": "£9.5m",
+            "priceChange": "£0.0m"
+          },
+          {
+            "player": "Kayode",
+            "ref": "p88",
+            "team": "Brentford",
+            "position": "DEF",
+            "points": 2,
+            "minutes": 87,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 778776,
+            "ownership": "7.9%",
+            "netTransfersIn": 289643,
+            "ownershipBefore": "3.2%",
+            "price": "£4.6m",
+            "priceChange": "+£0.1m"
+          }
+        ],
+        "biggestNetTransfersOut": [
+          {
+            "player": "Pedro Porro",
+            "ref": "p499",
+            "team": "Spurs",
+            "position": "DEF",
+            "points": 1,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "blanked",
+            "ownedBy": 1331308,
+            "ownership": "13.4%",
+            "netTransfersOut": 296944,
+            "ownershipBefore": "17.9%",
+            "price": "£5.5m",
+            "priceChange": "£0.0m"
+          },
+          {
+            "player": "Gibbs-White",
+            "ref": "p480",
+            "team": "Nott'm Forest",
+            "position": "MID",
+            "points": 13,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "outcome": "double-figure haul",
+            "ownedBy": 815842,
+            "ownership": "8.2%",
+            "netTransfersOut": 274313,
+            "ownershipBefore": "11.7%",
+            "price": "£8.0m",
+            "priceChange": "£0.0m"
+          },
+          {
+            "player": "Watkins",
+            "ref": "p55",
+            "team": "Aston Villa",
+            "position": "FWD",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 734872,
+            "ownership": "7.4%",
+            "netTransfersOut": 265828,
+            "ownershipBefore": "10.1%",
+            "price": "£7.9m",
+            "priceChange": "-£0.1m"
+          },
+          {
+            "player": "Gyökeres",
+            "ref": "p25",
+            "team": "Arsenal",
+            "position": "FWD",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 650596,
+            "ownership": "6.6%",
+            "netTransfersOut": 229353,
+            "ownershipBefore": "9.2%",
+            "price": "£7.4m",
+            "priceChange": "-£0.1m"
+          },
+          {
+            "player": "Sarr",
+            "ref": "p208",
+            "team": "Crystal Palace",
+            "position": "MID",
+            "points": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "outcome": "did not play",
+            "ownedBy": 227391,
+            "ownership": "2.3%",
+            "netTransfersOut": 204476,
+            "ownershipBefore": "4.8%",
+            "price": "£6.4m",
+            "priceChange": "-£0.1m"
+          }
+        ]
+      }
+    },
+    {
+      "id": "r5",
+      "tool": "player_story",
+      "input": {
+        "player": "p426"
+      },
+      "ok": true,
+      "result": {
+        "player": "B.Fernandes",
+        "ref": "p426",
+        "team": "Man Utd",
+        "position": "MID",
+        "fullName": "Bruno Fernandes",
+        "thisGameweek": {
+          "points": 23,
+          "minutes": 90,
+          "goals": 3,
+          "assists": 1,
+          "bonus": 3,
+          "bps": 87,
+          "defensiveContribution": 8,
+          "xG": 2.02,
+          "xA": 0.48,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Man Utd",
+              "away": "Ipswich Town",
+              "score": "5-2",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 3,
+                  "points": 15
+                },
+                {
+                  "stat": "assists",
+                  "value": 1,
+                  "points": 3
+                },
+                {
+                  "stat": "bonus",
+                  "value": 3,
+                  "points": 3
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£12.0m",
+        "priceChangeSinceLastGameweek": "£0.0m",
+        "priceChangeSinceFirstGameweek": "£0.0m",
+        "ownedBy": 4770471,
+        "ownership": "48.2%",
+        "netTransfersIn": -180062,
+        "season": {
+          "points": 25,
+          "rankInPosition": 1,
+          "gameweeksPlayed": 2,
+          "minutes": 180,
+          "goals": 3,
+          "assists": 1,
+          "bonus": 3,
+          "defensiveContribution": 14,
+          "xG": 2.1,
+          "xA": 0.74,
+          "bestScore": 23,
+          "bestScoreGameweek": 2,
+          "thisIsTheirBestScore": true
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 4653303,
+            "ownership": "52.3%"
+          },
+          {
+            "gameweek": 2,
+            "points": 23,
+            "minutes": 90,
+            "goals": 3,
+            "assists": 1,
+            "ownedBy": 4770471,
+            "ownership": "48.2%",
+            "netTransfersOut": 180062
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 2,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 1,
+          "ownershipThen": "52.3%",
+          "ownershipNow": "48.2%",
+          "netTransfersOutOverTheseGameweeks": 180062
+        }
+      }
+    },
+    {
+      "id": "r6",
+      "tool": "player_story",
+      "input": {
+        "player": "p411"
+      },
+      "ok": true,
+      "result": {
+        "player": "Haaland",
+        "ref": "p411",
+        "team": "Man City",
+        "position": "FWD",
+        "fullName": "Erling Haaland",
+        "thisGameweek": {
+          "points": 13,
+          "minutes": 90,
+          "goals": 2,
+          "assists": 0,
+          "bonus": 3,
+          "bps": 60,
+          "defensiveContribution": 5,
+          "xG": 0.66,
+          "xA": 0,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Crystal Palace",
+              "away": "Man City",
+              "score": "1-4",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 2,
+                  "points": 8
+                },
+                {
+                  "stat": "bonus",
+                  "value": 3,
+                  "points": 3
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£15.5m",
+        "priceChangeSinceLastGameweek": "£0.0m",
+        "priceChangeSinceFirstGameweek": "£0.0m",
+        "ownedBy": 6731685,
+        "ownership": "68.0%",
+        "netTransfersIn": -34247,
+        "season": {
+          "points": 15,
+          "rankInPosition": 2,
+          "gameweeksPlayed": 2,
+          "minutes": 180,
+          "goals": 2,
+          "assists": 0,
+          "bonus": 3,
+          "defensiveContribution": 8,
+          "xG": 1.4,
+          "xA": 0.02,
+          "bestScore": 13,
+          "bestScoreGameweek": 2,
+          "thisIsTheirBestScore": true
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 6209794,
+            "ownership": "69.7%"
+          },
+          {
+            "gameweek": 2,
+            "points": 13,
+            "minutes": 90,
+            "goals": 2,
+            "assists": 0,
+            "ownedBy": 6731685,
+            "ownership": "68.0%",
+            "netTransfersOut": 34247
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 2,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 1,
+          "ownershipThen": "69.7%",
+          "ownershipNow": "68.0%",
+          "netTransfersOutOverTheseGameweeks": 34247
+        }
+      }
+    },
+    {
+      "id": "r7",
+      "tool": "player_story",
+      "input": {
+        "player": "p427"
+      },
+      "ok": true,
+      "result": {
+        "player": "Mbeumo",
+        "ref": "p427",
+        "team": "Man Utd",
+        "position": "MID",
+        "fullName": "Bryan Mbeumo",
+        "thisGameweek": {
+          "points": 11,
+          "minutes": 90,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 2,
+          "bps": 37,
+          "yellowCards": 1,
+          "defensiveContribution": 5,
+          "xG": 1.76,
+          "xA": 0.21,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Man Utd",
+              "away": "Ipswich Town",
+              "score": "5-2",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 1,
+                  "points": 5
+                },
+                {
+                  "stat": "assists",
+                  "value": 1,
+                  "points": 3
+                },
+                {
+                  "stat": "yellow_cards",
+                  "value": 1,
+                  "points": -1
+                },
+                {
+                  "stat": "bonus",
+                  "value": 2,
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£8.0m",
+        "priceChangeSinceLastGameweek": "£0.0m",
+        "priceChangeSinceFirstGameweek": "£0.0m",
+        "ownedBy": 3537164,
+        "ownership": "35.7%",
+        "netTransfersIn": -137963,
+        "season": {
+          "points": 13,
+          "rankInPosition": 16,
+          "gameweeksPlayed": 2,
+          "minutes": 180,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 2,
+          "defensiveContribution": 9,
+          "xG": 2.26,
+          "xA": 0.44,
+          "bestScore": 11,
+          "bestScoreGameweek": 2,
+          "thisIsTheirBestScore": true
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 3492739,
+            "ownership": "39.2%"
+          },
+          {
+            "gameweek": 2,
+            "points": 11,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "ownedBy": 3537164,
+            "ownership": "35.7%",
+            "netTransfersOut": 137963
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 2,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 1,
+          "ownershipThen": "39.2%",
+          "ownershipNow": "35.7%",
+          "netTransfersOutOverTheseGameweeks": 137963
+        }
+      }
+    },
+    {
+      "id": "r8",
+      "tool": "player_story",
+      "input": {
+        "player": "p115"
+      },
+      "ok": true,
+      "result": {
+        "player": "De Cuyper",
+        "ref": "p115",
+        "team": "Brighton",
+        "position": "DEF",
+        "fullName": "Maxim De Cuyper",
+        "thisGameweek": {
+          "points": 0,
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "bonus": 0,
+          "bps": -2,
+          "defensiveContribution": 2,
+          "xG": 0.03,
+          "xA": 0.05,
+          "inDreamTeam": false,
+          "matches": [
+            {
+              "home": "Chelsea",
+              "away": "Brighton",
+              "score": "4-3",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_conceded",
+                  "value": 4,
+                  "points": -2
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£4.6m",
+        "priceChangeSinceLastGameweek": "+£0.1m",
+        "priceChangeSinceFirstGameweek": "+£0.1m",
+        "ownedBy": 847829,
+        "ownership": "8.6%",
+        "netTransfersIn": 473840,
+        "season": {
+          "points": 17,
+          "rankInPosition": 5,
+          "gameweeksPlayed": 2,
+          "minutes": 167,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 2,
+          "defensiveContribution": 6,
+          "xG": 1.5,
+          "xA": 0.26,
+          "bestScore": 17,
+          "bestScoreGameweek": 1,
+          "thisIsTheirBestScore": false
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 17,
+            "minutes": 77,
+            "goals": 1,
+            "assists": 1,
+            "ownedBy": 151636,
+            "ownership": "1.7%"
+          },
+          {
+            "gameweek": 2,
+            "points": 0,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 847829,
+            "ownership": "8.6%",
+            "netTransfersIn": 473840
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 0,
+          "gameweeksInARowWithAGoalOrAssist": 0,
+          "gameweeksInARowWithoutAGoalOrAssist": 1,
+          "gameweeksInARowBlanking": 1,
+          "gameweeksInARowWithMinutes": 2,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 1,
+          "ownershipThen": "1.7%",
+          "ownershipNow": "8.6%",
+          "netTransfersInOverTheseGameweeks": 473840
+        }
+      }
+    },
+    {
+      "id": "r9",
+      "tool": "player_story",
+      "input": {
+        "player": "p480"
+      },
+      "ok": true,
+      "result": {
+        "player": "Gibbs-White",
+        "ref": "p480",
+        "team": "Nott'm Forest",
+        "position": "MID",
+        "fullName": "Morgan Gibbs-White",
+        "thisGameweek": {
+          "points": 13,
+          "minutes": 90,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 3,
+          "bps": 36,
+          "defensiveContribution": 5,
+          "xG": 0.79,
+          "xA": 0.04,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Liverpool",
+              "away": "Nott'm Forest",
+              "score": "2-2",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 90,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 1,
+                  "points": 5
+                },
+                {
+                  "stat": "assists",
+                  "value": 1,
+                  "points": 3
+                },
+                {
+                  "stat": "bonus",
+                  "value": 3,
+                  "points": 3
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£8.0m",
+        "priceChangeSinceLastGameweek": "£0.0m",
+        "priceChangeSinceFirstGameweek": "£0.0m",
+        "ownedBy": 815842,
+        "ownership": "8.2%",
+        "netTransfersIn": -274313,
+        "season": {
+          "points": 15,
+          "rankInPosition": 11,
+          "gameweeksPlayed": 2,
+          "minutes": 180,
+          "goals": 1,
+          "assists": 1,
+          "bonus": 3,
+          "defensiveContribution": 8,
+          "xG": 0.92,
+          "xA": 0.1,
+          "bestScore": 13,
+          "bestScoreGameweek": 2,
+          "thisIsTheirBestScore": true
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 2,
+            "minutes": 90,
+            "goals": 0,
+            "assists": 0,
+            "ownedBy": 1039647,
+            "ownership": "11.7%"
+          },
+          {
+            "gameweek": 2,
+            "points": 13,
+            "minutes": 90,
+            "goals": 1,
+            "assists": 1,
+            "ownedBy": 815842,
+            "ownership": "8.2%",
+            "netTransfersOut": 274313
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 1,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 2,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 1,
+          "ownershipThen": "11.7%",
+          "ownershipNow": "8.2%",
+          "netTransfersOutOverTheseGameweeks": 274313
+        }
+      }
+    },
+    {
+      "id": "r10",
+      "tool": "player_story",
+      "input": {
+        "player": "p399"
+      },
+      "ok": true,
+      "result": {
+        "player": "Cherki",
+        "ref": "p399",
+        "team": "Man City",
+        "position": "MID",
+        "fullName": "Rayan Cherki",
+        "thisGameweek": {
+          "points": 14,
+          "minutes": 81,
+          "goals": 2,
+          "assists": 0,
+          "bonus": 3,
+          "bps": 60,
+          "yellowCards": 1,
+          "defensiveContribution": 3,
+          "xG": 0.35,
+          "xA": 0.55,
+          "inDreamTeam": true,
+          "matches": [
+            {
+              "home": "Crystal Palace",
+              "away": "Man City",
+              "score": "1-4",
+              "pointsFrom": [
+                {
+                  "stat": "minutes",
+                  "value": 81,
+                  "points": 2
+                },
+                {
+                  "stat": "goals_scored",
+                  "value": 2,
+                  "points": 10
+                },
+                {
+                  "stat": "yellow_cards",
+                  "value": 1,
+                  "points": -1
+                },
+                {
+                  "stat": "bonus",
+                  "value": 3,
+                  "points": 3
+                }
+              ]
+            }
+          ]
+        },
+        "price": "£7.5m",
+        "priceChangeSinceLastGameweek": "£0.0m",
+        "priceChangeSinceFirstGameweek": "£0.0m",
+        "ownedBy": 1073154,
+        "ownership": "10.8%",
+        "netTransfersIn": 161916,
+        "season": {
+          "points": 22,
+          "rankInPosition": 2,
+          "gameweeksPlayed": 2,
+          "minutes": 108,
+          "goals": 2,
+          "assists": 2,
+          "bonus": 4,
+          "defensiveContribution": 3,
+          "xG": 0.35,
+          "xA": 1.05,
+          "bestScore": 14,
+          "bestScoreGameweek": 2,
+          "thisIsTheirBestScore": true
+        },
+        "lastFive": [
+          {
+            "gameweek": 1,
+            "points": 8,
+            "minutes": 27,
+            "goals": 0,
+            "assists": 2,
+            "ownedBy": 679336,
+            "ownership": "7.6%"
+          },
+          {
+            "gameweek": 2,
+            "points": 14,
+            "minutes": 81,
+            "goals": 2,
+            "assists": 0,
+            "ownedBy": 1073154,
+            "ownership": "10.8%",
+            "netTransfersIn": 161916
+          }
+        ],
+        "streaks": {
+          "gameweeksInARowWithAGoal": 1,
+          "gameweeksInARowWithAGoalOrAssist": 2,
+          "gameweeksInARowWithoutAGoalOrAssist": 0,
+          "gameweeksInARowBlanking": 0,
+          "gameweeksInARowWithMinutes": 2,
+          "gameweeksInARowWithoutMinutes": 0
+        },
+        "trend": {
+          "sinceGameweek": 1,
+          "ownershipThen": "7.6%",
+          "ownershipNow": "10.8%",
+          "netTransfersInOverTheseGameweeks": 161916
+        }
+      }
+    },
+    {
+      "id": "r11",
+      "tool": "submit_recap",
+      "input": {
+        "headline": "B.Fernandes hits a hat-trick as Man Utd rout Ipswich Town",
+        "cards": [
+          {
+            "type": "numbers",
+            "items": [
+              {
+                "value": "81",
+                "label": "average score"
+              },
+              {
+                "value": "161",
+                "label": "highest score"
+              },
+              {
+                "value": "32",
+                "label": "goals"
+              },
+              {
+                "value": "10",
+                "label": "matches"
+              }
+            ],
+            "evidence": [
+              "r1",
+              "r2"
+            ]
+          },
+          {
+            "type": "players",
+            "title": "Man Utd ran riot against Ipswich",
+            "players": [
+              {
+                "player": "B.Fernandes",
+                "ref": "p426",
+                "points": 23,
+                "detail": "3 goals, 1 assist, 3 bonus",
+                "ownership": 48.2
+              },
+              {
+                "player": "Mbeumo",
+                "ref": "p427",
+                "points": 11,
+                "detail": "1 goal, 1 assist",
+                "ownership": 35.7
+              }
+            ],
+            "text": "The 5-2 win was a bonanza for owners. B.Fernandes posted the best individual score of the season so far.",
+            "evidence": [
+              "r1",
+              "r2",
+              "r5",
+              "r7"
+            ]
+          },
+          {
+            "type": "captaincy",
+            "player": "Haaland",
+            "ref": "p411",
+            "points": 13,
+            "ownership": 68,
+            "tiles": [
+              {
+                "value": "26",
+                "label": "as captain"
+              },
+              {
+                "value": "39",
+                "label": "as Triple Captain"
+              },
+              {
+                "value": "46",
+                "label": "as captain",
+                "player": "B.Fernandes",
+                "ref": "p426"
+              }
+            ],
+            "badge": "Most captained for 2nd week",
+            "text": "Haaland's brace at Crystal Palace rewarded the armband, yet those who trusted B.Fernandes with it did even better.",
+            "evidence": [
+              "r3",
+              "r6"
+            ]
+          },
+          {
+            "type": "transfers",
+            "moves": [
+              {
+                "player": "De Cuyper",
+                "ref": "p115",
+                "direction": "in",
+                "netTransfers": 473840,
+                "points": 0,
+                "minutes": 90,
+                "detail": "ownership up to 8.6%"
+              },
+              {
+                "player": "Pedro Porro",
+                "ref": "p499",
+                "direction": "out",
+                "netTransfers": 296944,
+                "points": 1,
+                "minutes": 90
+              },
+              {
+                "player": "Gibbs-White",
+                "ref": "p480",
+                "direction": "out",
+                "netTransfers": 274313,
+                "points": 13,
+                "minutes": 90,
+                "detail": "1 goal, 1 assist"
+              }
+            ],
+            "text": "The bandwagon stalled as Brighton conceded 4 at Chelsea, while Gibbs-White punished the managers who sold him.",
+            "evidence": [
+              "r4",
+              "r8",
+              "r9"
+            ]
+          },
+          {
+            "type": "matches",
+            "title": "City's double act",
+            "matches": [
+              {
+                "home": "Crystal Palace",
+                "away": "Man City",
+                "score": "1-4"
+              }
+            ],
+            "text": "Cherki (14 points) edged out Haaland (13 points), with both scoring twice in the away win.",
+            "evidence": [
+              "r1",
+              "r10",
+              "r6"
+            ]
+          },
+          {
+            "type": "notes",
+            "items": [
+              {
+                "player": "Calafiori",
+                "ref": "p8",
+                "points": 11,
+                "text": "hauled with an assist for his 41.9% of owners"
+              },
+              {
+                "player": "Dubravka",
+                "ref": "p497",
+                "points": 0,
+                "text": "has now gone 2 gameweeks in a row without minutes"
+              },
+              {
+                "text": "279,227 Wildcards and 78,863 Free Hits were the most of the season so far"
+              }
+            ],
+            "evidence": [
+              "r2",
+              "r3"
+            ]
+          }
+        ]
+      },
+      "ok": true,
+      "result": {
+        "accepted": false,
+        "problems": [
+          "card 4 (transfers), text: \"4\" in \"The bandwagon stalled as Brighton conceded 4 at Chelsea, while Gibbs-White punished the managers who sold him.\": in the results this card cites (r4, r8, r9) that figure belongs to M.Sangaré, De Cuyper, not Gibbs-White. Check which player it describes and correct the sentence."
+        ]
+      }
+    },
+    {
+      "id": "r12",
+      "tool": "submit_recap",
+      "input": {
+        "headline": "B.Fernandes hits a hat-trick as Man Utd rout Ipswich Town",
+        "cards": [
+          {
+            "type": "numbers",
+            "items": [
+              {
+                "value": "81",
+                "label": "average score"
+              },
+              {
+                "value": "161",
+                "label": "highest score"
+              },
+              {
+                "value": "32",
+                "label": "goals"
+              },
+              {
+                "value": "10",
+                "label": "matches"
+              }
+            ],
+            "evidence": [
+              "r1",
+              "r2"
+            ]
+          },
+          {
+            "type": "players",
+            "title": "Man Utd ran riot against Ipswich",
+            "players": [
+              {
+                "player": "B.Fernandes",
+                "ref": "p426",
+                "points": 23,
+                "detail": "3 goals, 1 assist, 3 bonus",
+                "ownership": 48.2
+              },
+              {
+                "player": "Mbeumo",
+                "ref": "p427",
+                "points": 11,
+                "detail": "1 goal, 1 assist",
+                "ownership": 35.7
+              }
+            ],
+            "text": "The 5-2 win was a bonanza for owners. B.Fernandes posted the best individual score of the season so far.",
+            "evidence": [
+              "r1",
+              "r2",
+              "r5",
+              "r7"
+            ]
+          },
+          {
+            "type": "captaincy",
+            "player": "Haaland",
+            "ref": "p411",
+            "points": 13,
+            "ownership": 68,
+            "tiles": [
+              {
+                "value": "26",
+                "label": "as captain"
+              },
+              {
+                "value": "39",
+                "label": "as Triple Captain"
+              },
+              {
+                "value": "46",
+                "label": "as captain",
+                "player": "B.Fernandes",
+                "ref": "p426"
+              }
+            ],
+            "badge": "Most captained for 2nd week",
+            "text": "Haaland's brace at Crystal Palace rewarded the armband, yet those who trusted B.Fernandes with it did even better.",
+            "evidence": [
+              "r3",
+              "r6"
+            ]
+          },
+          {
+            "type": "transfers",
+            "moves": [
+              {
+                "player": "De Cuyper",
+                "ref": "p115",
+                "direction": "in",
+                "netTransfers": 473840,
+                "points": 0,
+                "minutes": 90,
+                "detail": "ownership up to 8.6%"
+              },
+              {
+                "player": "Pedro Porro",
+                "ref": "p499",
+                "direction": "out",
+                "netTransfers": 296944,
+                "points": 1,
+                "minutes": 90
+              },
+              {
+                "player": "Gibbs-White",
+                "ref": "p480",
+                "direction": "out",
+                "netTransfers": 274313,
+                "points": 13,
+                "minutes": 90,
+                "detail": "1 goal, 1 assist"
+              }
+            ],
+            "text": "The De Cuyper bandwagon stalled at Chelsea. Meanwhile Gibbs-White punished the managers who sold him.",
+            "evidence": [
+              "r4",
+              "r8",
+              "r9"
+            ]
+          },
+          {
+            "type": "matches",
+            "title": "City's double act",
+            "matches": [
+              {
+                "home": "Crystal Palace",
+                "away": "Man City",
+                "score": "1-4"
+              }
+            ],
+            "text": "Cherki (14 points) edged out Haaland (13 points), with both scoring twice in the away win.",
+            "evidence": [
+              "r1",
+              "r10",
+              "r6"
+            ]
+          },
+          {
+            "type": "notes",
+            "items": [
+              {
+                "player": "Calafiori",
+                "ref": "p8",
+                "points": 11,
+                "text": "hauled with an assist for his 41.9% of owners"
+              },
+              {
+                "player": "Dubravka",
+                "ref": "p497",
+                "points": 0,
+                "text": "has now gone 2 gameweeks in a row without minutes"
+              },
+              {
+                "text": "279,227 Wildcards and 78,863 Free Hits were the most of the season so far"
+              }
+            ],
+            "evidence": [
+              "r2",
+              "r3"
+            ]
+          }
+        ]
+      },
+      "ok": true,
+      "result": {
+        "accepted": true,
+        "numbersChecked": 44,
+        "namesChecked": 44
+      }
+    }
+  ],
+  "checks": {
+    "passed": true,
+    "issues": [],
+    "numbersChecked": 44,
+    "namesChecked": 44
+  },
+  "model": "claude-opus-5-5",
+  "usage": {
+    "inputTokens": 81571,
+    "outputTokens": 4137,
+    "toolCalls": 12,
+    "cacheReadInputTokens": 67992,
+    "cacheCreationInputTokens": 13567
+  },
+  "costUsd": 0.1642214,
+  "timing": {
+    "startedAt": "2026-11-24T16:01:55.410Z",
+    "durationMs": 35024
+  },
+  "generatedAt": "2026-11-24T16:02:30.434Z",
+  "run": {
+    "outcome": "after-retry",
+    "fallback": false,
+    "attempts": [
+      {
+        "attempt": 1,
+        "outcome": "failed",
+        "toolCalls": 10,
+        "issues": [
+          {
+            "code": "wrong-player",
+            "where": "card 4 (transfers), text",
+            "message": "\"4\" in \"The bandwagon stalled as Brighton conceded 4 at Chelsea, while Gibbs-White punished the managers who sold him.\": in the results this card cites (r4, r8, r9) that figure belongs to M.Sangaré, De Cuyper, not Gibbs-White. Check which player it describes and correct the sentence."
+          }
+        ]
+      },
+      {
+        "attempt": 2,
+        "outcome": "passed",
+        "toolCalls": 0,
+        "issues": []
+      }
+    ],
+    "modelCalls": 4,
+    "priced": true,
+    "limits": {
+      "maxToolCallsPerAttempt": 15,
+      "maxOutputTokens": 4000,
+      "timeoutMs": 180000
+    }
+  },
+  "cards": [
+    {
+      "type": "numbers",
+      "items": [
+        {
+          "value": "81",
+          "label": "average score"
+        },
+        {
+          "value": "161",
+          "label": "highest score"
+        },
+        {
+          "value": "32",
+          "label": "goals"
+        },
+        {
+          "value": "10",
+          "label": "matches"
+        }
+      ],
+      "evidence": [
+        "r1",
+        "r2"
+      ]
+    },
+    {
+      "type": "players",
+      "title": "Man Utd ran riot against Ipswich",
+      "players": [
+        {
+          "player": "B.Fernandes",
+          "ref": "p426",
+          "points": 23,
+          "detail": "3 goals, 1 assist, 3 bonus",
+          "ownership": 48.2
+        },
+        {
+          "player": "Mbeumo",
+          "ref": "p427",
+          "points": 11,
+          "detail": "1 goal, 1 assist",
+          "ownership": 35.7
+        }
+      ],
+      "text": "The 5-2 win was a bonanza for owners. B.Fernandes posted the best individual score of the season so far.",
+      "evidence": [
+        "r1",
+        "r2",
+        "r5",
+        "r7"
+      ]
+    },
+    {
+      "type": "captaincy",
+      "player": "Haaland",
+      "ref": "p411",
+      "points": 13,
+      "ownership": 68,
+      "tiles": [
+        {
+          "value": "26",
+          "label": "as captain"
+        },
+        {
+          "value": "39",
+          "label": "as Triple Captain"
+        },
+        {
+          "value": "46",
+          "label": "as captain",
+          "player": "B.Fernandes",
+          "ref": "p426"
+        }
+      ],
+      "badge": "Most captained for 2nd week",
+      "text": "Haaland's brace at Crystal Palace rewarded the armband, yet those who trusted B.Fernandes with it did even better.",
+      "evidence": [
+        "r3",
+        "r6"
+      ]
+    },
+    {
+      "type": "transfers",
+      "moves": [
+        {
+          "player": "De Cuyper",
+          "ref": "p115",
+          "direction": "in",
+          "netTransfers": 473840,
+          "points": 0,
+          "minutes": 90,
+          "detail": "ownership up to 8.6%"
+        },
+        {
+          "player": "Pedro Porro",
+          "ref": "p499",
+          "direction": "out",
+          "netTransfers": 296944,
+          "points": 1,
+          "minutes": 90
+        },
+        {
+          "player": "Gibbs-White",
+          "ref": "p480",
+          "direction": "out",
+          "netTransfers": 274313,
+          "points": 13,
+          "minutes": 90,
+          "detail": "1 goal, 1 assist"
+        }
+      ],
+      "text": "The De Cuyper bandwagon stalled at Chelsea. Meanwhile Gibbs-White punished the managers who sold him.",
+      "evidence": [
+        "r4",
+        "r8",
+        "r9"
+      ]
+    },
+    {
+      "type": "matches",
+      "title": "City's double act",
+      "matches": [
+        {
+          "home": "Crystal Palace",
+          "away": "Man City",
+          "score": "1-4"
+        }
+      ],
+      "text": "Cherki (14 points) edged out Haaland (13 points), with both scoring twice in the away win.",
+      "evidence": [
+        "r1",
+        "r10",
+        "r6"
+      ]
+    },
+    {
+      "type": "notes",
+      "items": [
+        {
+          "player": "Calafiori",
+          "ref": "p8",
+          "text": "hauled with an assist for his 41.9% of owners",
+          "points": 11
+        },
+        {
+          "player": "Dubravka",
+          "ref": "p497",
+          "text": "has now gone 2 gameweeks in a row without minutes",
+          "points": 0
+        },
+        {
+          "text": "279,227 Wildcards and 78,863 Free Hits were the most of the season so far"
+        }
+      ],
+      "evidence": [
+        "r2",
+        "r3"
+      ]
+    }
+  ]
+}
